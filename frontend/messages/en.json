@@ -1,0 +1,29 @@
+{
+  "Home": {
+    "title": "atpassport",
+    "description": "Identity provider for the atproto ecosystem",
+    "registered_handles": "Registered Handles",
+    "no_handles": "No registered handles",
+    "add_handle": "Add Handle",
+    "placeholder_handle": "example.bsky.social",
+    "handle": "Handle",
+    "register": "Register",
+    "delete": "Delete",
+    "select": "Select",
+    "registering": "Registering...",
+    "invalid_handle": "Invalid handle",
+    "set_as_primary": "Set as Primary",
+    "refresh_metadata": "Refresh Metadata",
+    "move_up": "Move Up",
+    "move_down": "Move Down",
+    "confirm_delete_title": "Confirm Deletion",
+    "confirm_delete_text": "Are you sure you want to remove {handle} from your registered handles?",
+    "cancel": "Cancel"
+  },
+  "Auth": {
+    "title": "Select an account",
+    "moving_to": "Moving to {domain}",
+    "no_accounts": "No registered accounts found",
+    "missing_callback": "Invalid request (missing callbackUrl)"
+  }
+}

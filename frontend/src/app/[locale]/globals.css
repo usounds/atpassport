@@ -1,0 +1,26 @@
+@import '@mantine/core/styles.css';
+
+:root {
+  --at-indigo: #1A237E;
+  --at-gold: #FFD700;
+  --at-light-gray: #F5F5F5;
+}
+
+body {
+  background-color: var(--at-light-gray);
+  color: var(--at-indigo);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Maintain dark mode readability while respecting the theme */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #0D1117;
+    color: #E6EDF3;
+  }
+}
+
+.picker-item-hover:hover {
+  background-color: rgba(26, 35, 126, 0.05) !important;
+}
