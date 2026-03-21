@@ -8,40 +8,14 @@
 
 - **UUID-based Session Management**: Multiple DIDs can be linked to a single browser session (UUID).
 - **Signed Cookies**: Secure session cookies (`HttpOnly`, `Secure`) to prevent tampering.
-- **Identity Resolution via JWT**: External applications can securely obtain user DIDs through the @passport API.
 - **Multilingual Support (i18n)**: Standard support for Japanese and English.
 - **Mantine UI**: Modern user interface for handle management.
 
 ## Directory Structure
 
-- `/frontend`: The main application built with Next.js (App Router).
+- `/frontend`: The main application built with Next.js (App Router). See [frontend/README.md](./frontend/README.md) for setup and build instructions.
 - `/packages/atpassport-client`: A client library for external applications.
-
-## Setup
-
-### Install Dependencies
-
-```bash
-pnpm install
-```
-
-### Environment Variables (`frontend/.env.local`)
-
-```env
-# Session Management
-SESSION_SECRET=your-secure-session-secret
-```
-
-### Build
-
-```bash
-pnpm build
-```
-
-## Client Library (`@atpassport/client`)
-
-We provide a client library for integrating @passport into external applications.
-For more details, please refer to [packages/atpassport-client/README.md](./packages/atpassport-client/README.md).
+- `/atpassport-extension`: Browser extension for Chrome and Firefox.
 
 ## License
 

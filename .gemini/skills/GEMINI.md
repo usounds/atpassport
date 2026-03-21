@@ -20,7 +20,6 @@ AtPassportは、atprotoアプリケーションにおけるハンドルの入力
 - 依存関係の追加は、それぞれのディレクトリ（`frontend` や `backend`）で行ってください。
 
 ### 3. AT Protocol / Lexicon
-- `uk.skyblur.*` 名前空間のレキシコンを尊重してください。
 - レキシコンの変更は `lexicons/` ディレクトリで行い、必要に応じて型定義を再生成してください。
 
 ### 4. テスト方針
@@ -39,11 +38,6 @@ AtPassportは、atprotoアプリケーションにおけるハンドルの入力
 - feat : 新機能
 - fix : バグ修正
 - lib : ライブラリの更新
-
-## 特定のワークフロー
-
-## 特定のワークフロー
-- **OAuth**: `HandleOauthClientNode.ts` など、BlueskyのOAuthフローの実装に注意を払ってください。
 
 ## 優先事項
 1. **型の安全性**: TypeScriptの型定義を厳格に守り、`any` の使用を避けてください。
