@@ -1,6 +1,6 @@
 {
   "name": "@atpassport/client",
-  "version": "0.1.8",
+  "version": "0.1.10",
   "description": "AtPassport client library for integrating secure handle input assist into applications.",
   "keywords": [
     "atproto",
@@ -12,13 +12,6 @@
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    }
-  },
   "files": [
     "dist",
     "README.md"
@@ -27,7 +20,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup src/index.tsx --format cjs,esm --dts --minify",
+    "build": "tsup src/index.ts src/core.ts src/ui.tsx --format cjs,esm --dts --minify --clean",
     "deploy": "pnpm build && npm publish --access public",
     "test": "vitest run"
   },
@@ -37,6 +30,23 @@
   "peerDependenciesMeta": {
     "react": {
       "optional": true
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.mjs",
+      "require": "./dist/core.js"
+    },
+    "./ui": {
+      "types": "./dist/ui.d.ts",
+      "import": "./dist/ui.mjs",
+      "require": "./dist/ui.js"
     }
   },
   "devDependencies": {

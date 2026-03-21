@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { AtPassport } from '../index';
+import { AtPassport } from '../core';
 
 describe('AtPassport', () => {
   const baseUrl = 'https://passport.atproto.com';
