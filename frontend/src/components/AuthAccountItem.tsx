@@ -70,7 +70,7 @@ export function AuthAccountItem({
         <Card
           padding="sm"
           radius={0}
-          className="picker-item picker-item-hoverable"
+          className="picker-item picker-item-hoverable picker-item-slide"
           style={{
             backgroundColor: 'transparent',
             border: 'none',

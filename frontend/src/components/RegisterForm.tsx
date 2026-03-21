@@ -108,6 +108,7 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
         <Stack gap="md">
           <Autocomplete
             label={t('handle')}
+            name="handle"
             placeholder={t('placeholder_handle')}
             required
             radius="md"
@@ -117,6 +118,9 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
             spellCheck={false}
             value={handle}
             data={suggestions}
+            leftSection={
+              <Text size="sm">@</Text>
+            }
             renderOption={({ option }: { option: any }) => (
               <Group gap="sm">
                 <Avatar src={option.avatar} size={24} radius="xl" />

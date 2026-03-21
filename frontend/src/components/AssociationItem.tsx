@@ -59,6 +59,7 @@ export function AssociationItem({
     setIsUpdating(false);
   };
 
+  const [menuOpened, setMenuOpened] = useState(false);
   const displayName = item.profile?.displayName || item.handle;
   const avatar = item.profile?.avatar;
 
@@ -70,7 +71,7 @@ export function AssociationItem({
             <Card
               padding="sm"
               radius={0}
-              className="picker-item picker-item-hoverable"
+              className={`picker-item ${!menuOpened ? 'picker-item-hoverable picker-item-scale' : ''}`}
               style={{
                 backgroundColor: 'transparent',
                 border: 'none',
@@ -91,7 +92,14 @@ export function AssociationItem({
                 </Group>
 
                 <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
-                  <Menu shadow="md" width={200} position="bottom-end" radius="md">
+                  <Menu 
+                    shadow="md" 
+                    width={200} 
+                    position="bottom-end" 
+                    radius="md"
+                    opened={menuOpened}
+                    onChange={setMenuOpened}
+                  >
                     <Menu.Target>
                       <ActionIcon variant="subtle" color="gray" size="lg" radius="md" loading={isUpdating}>
                         <IconDotsVertical size={20} />

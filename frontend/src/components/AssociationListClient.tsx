@@ -1,12 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Stack } from '@mantine/core';
 import { AssociationItem } from './AssociationItem';
 import { moveAssociation, removeAssociation, refreshAssociation } from '@/lib/actions';
 
 export function AssociationListClient({ initialItems }: { initialItems: any[] }) {
   const [items, setItems] = useState(initialItems);
+
+  useEffect(() => {
+    setItems(initialItems);
+  }, [initialItems]);
 
   const handleMove = async (did: string, direction: 'up' | 'down') => {
     const index = items.findIndex(item => item.did === did);

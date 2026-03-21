@@ -41,8 +41,15 @@ body {
 
 .picker-item-hoverable:hover {
   background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6)) !important;
-  transform: translateX(4px);
   box-shadow: var(--mantine-shadow-xs);
+}
+
+.picker-item-slide:hover {
+  transform: translateX(4px);
+}
+
+.picker-item-scale:hover {
+  transform: scale(1.01);
 }
 
 @media (prefers-color-scheme: dark) {
