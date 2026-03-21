@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUuid } from "@/lib/session";
 import { addAssociation } from "@/lib/models";
-import { resolveHandle } from "@/lib/atproto";
+import { resolveIdentity } from "@/lib/atproto";
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,17 +19,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No session found" }, { status: 401 });
     }
 
-    // 2. atcute の DoH リゾルバーを使用し、受け取った handle を解決（DIDを取得）する。
-    const did = await resolveHandle(handle);
-    console.log(`[API/Register] Resolved DID: ${did}`);
+    const result = await resolveIdentity(handle);
+    console.log(`[API/Register] Resolved:`, result);
 
-    if (did) {
-      // 4. 解決成功時: 取得した DID、handle、および UUID を関連付けて DynamoDB に保存
-      await addAssociation(uuid, did, handle);
-      return NextResponse.json({ success: true, did, handle });
+    if (result && result.did && result.pdsUrl) {
+      await addAssociation(uuid, result.did, handle, result.pdsUrl);
+      return NextResponse.json({ success: true, did: result.did, handle });
     } else {
-      // 3. 解決失敗時: 404エラー
-      return NextResponse.json({ error: "Handle not found" }, { status: 404 });
+      return NextResponse.json({ error: "Handle not found or missing PDS" }, { status: 404 });
     }
   } catch (e) {
     console.error("[API/Register] Error:", e);

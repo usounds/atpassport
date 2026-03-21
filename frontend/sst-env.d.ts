@@ -4,7 +4,23 @@
 /* deno-fmt-ignore-file */
 /* biome-ignore-all lint: auto-generated */
 
-/// <reference path="../sst-env.d.ts" />
+declare module "sst" {
+  export interface Resource {
+    "AtPassportApp": {
+      "type": "sst.aws.Nextjs"
+      "url": string
+    }
+    "AtPassportSessions": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
+    "SessionSecret": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+  }
+}
+/// <reference path="sst-env.d.ts" />
 
 import "sst"
 export {}

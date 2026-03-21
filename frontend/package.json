@@ -6,6 +6,7 @@
     "dev": "next dev -p 3001 -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
+    "deploy": "npx sst deploy --stage production",
     "lint": "eslint"
   },
   "dependencies": {
@@ -24,7 +25,7 @@
     "@tabler/icons-react": "^3.40.0",
     "cookie": "^1.1.1",
     "jose": "^6.2.2",
-    "next": "16.2.0",
+    "next": "16.1.7",
     "next-intl": "^4.8.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",

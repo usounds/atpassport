@@ -1,5 +1,4 @@
 import { Client } from "@atcute/client";
-import type { AtpQueries, AtpProcedures } from "@atcute/bluesky/lexicons";
 import { 
   CompositeHandleResolver, 
   WellKnownHandleResolver, 
@@ -34,7 +33,7 @@ const actorResolver = new LocalActorResolver({
 
 export async function resolveIdentity(handleOrDid: string) {
   try {
-    const actor = await actorResolver.resolve(handleOrDid);
+    const actor = await actorResolver.resolve(handleOrDid as any);
     
     if (!actor.did || !actor.pds) {
       return null;
@@ -51,8 +50,9 @@ export async function resolveIdentity(handleOrDid: string) {
 }
 
 export async function getProfile(did: string) {
-  const rpc = new Client<AtpQueries, AtpProcedures>({
-    handler: (pathname, { params, body, headers, signal }) => {
+  // Using any, any for lexicons due to version mismatch/missing type exports
+  const rpc = new Client<any, any>({
+    handler: (pathname, { params, body, headers, signal }: any) => {
       const url = new URL(pathname, "https://public.api.bsky.app");
       if (params) {
         for (const [key, value] of Object.entries(params)) {

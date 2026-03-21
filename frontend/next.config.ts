@@ -5,13 +5,19 @@ const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   /* config options here */
-  serverExternalPackages: [],
+  serverExternalPackages: [
+    "@atcute/client",
+    "@atcute/identity",
+    "@atcute/identity-resolver",
+    "@atcute/identity-resolver-node",
+    "@atcute/bluesky"
+  ],
   experimental: {
     serverActions: {
-      allowedOrigins: ['dev.atpassport.net', '192.168.1.120:3001', '127.0.0.1:3001', 'localhost:3001'],
+      allowedOrigins: ['atpassport.net', 'dev.atpassport.net', 'localhost:3001'],
     },
   },
-  allowedDevOrigins: ['dev.atpassport.net', '192.168.1.120', '127.0.0.1', 'localhost'],
+  allowedDevOrigins: ['atpassport.net', 'dev.atpassport.net', 'localhost:3001'],
 };
 
 export default withNextIntl(nextConfig);

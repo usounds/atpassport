@@ -11,6 +11,9 @@ export async function DELETE(request: NextRequest) {
   }
 
   const uuid = await getSessionUuid();
+  if (!uuid) {
+    return NextResponse.json({ error: "No session found" }, { status: 401 });
+  }
   await deleteAssociation(uuid, did);
 
   return NextResponse.json({ success: true });
