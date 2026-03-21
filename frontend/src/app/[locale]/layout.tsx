@@ -19,21 +19,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "atpassport",
+  title: "@passport",
   description: "Identity management for atproto",
 };
 
 const theme = createTheme({
-  primaryColor: 'indigo',
-  colors: {
-    indigo: [
-      '#E8EAF6', '#C5CAE9', '#9FA8DA', '#7986CB', '#5C6BC0', '#3F51B5', '#3949AB', '#303F9F', '#283593', '#1A237E',
-    ],
-    gold: [
-      '#FFFDE7', '#FFF9C4', '#FFF59D', '#FFF176', '#FFEE58', '#FFEB3B', '#FDD835', '#FBC02D', '#F9A825', '#FFD700',
-    ],
-  },
-  defaultRadius: 'sm',
+  // Use default Mantine theme
 });
 
 export default async function RootLayout({

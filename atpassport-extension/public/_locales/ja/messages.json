@@ -1,0 +1,29 @@
+{
+  "extensionName": {
+    "message": "@passport 拡張機能"
+  },
+  "extensionDescription": {
+    "message": "@passportで管理しているハンドルを簡単に自動入力・コピーできます。"
+  },
+  "loginRequired": {
+    "message": "先に @passport にログインしてください。"
+  },
+  "fetchError": {
+    "message": "ハンドルの取得に失敗しました。"
+  },
+  "noHandles": {
+    "message": "ハンドルが見つかりません。"
+  },
+  "loginButton": {
+    "message": "ログインする"
+  },
+  "filledSuccess": {
+    "message": "入力フォームに挿入しました！"
+  },
+  "copiedFallback": {
+    "message": "クリップボードにコピーしました（入力先不明）"
+  },
+  "copiedIncompatible": {
+    "message": "クリップボードにコピーしました（非対応ページ）"
+  }
+}

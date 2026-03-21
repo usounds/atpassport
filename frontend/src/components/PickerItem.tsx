@@ -77,15 +77,15 @@ export function PickerItem({ item, selectable = true }: { item: any, selectable?
                     {item.handle} ({item.did})
                   </Text>
                   <Text size="10px" c="dimmed" truncate style={{ opacity: 0.8 }}>
-                    PDS: {item.pdsUrl}
+                    {item.pdsUrl}
                   </Text>
                 </Stack>
               </Group>
-              
+
               <Tooltip label={t('refresh_metadata')}>
-                <ActionIcon 
-                  variant="subtle" 
-                  color="blue" 
+                <ActionIcon
+                  variant="subtle"
+                  color="blue"
                   onClick={onRefresh}
                   loading={isUpdating}
                 >
@@ -98,9 +98,9 @@ export function PickerItem({ item, selectable = true }: { item: any, selectable?
 
         <Stack gap={4}>
           <Tooltip label={t('move_up')}>
-            <ActionIcon 
-              variant="subtle" 
-              color="gray" 
+            <ActionIcon
+              variant="subtle"
+              color="gray"
               onClick={(e) => onMove(e, 'up')}
               loading={isUpdating}
             >
@@ -108,9 +108,9 @@ export function PickerItem({ item, selectable = true }: { item: any, selectable?
             </ActionIcon>
           </Tooltip>
           <Tooltip label={t('move_down')}>
-            <ActionIcon 
-              variant="subtle" 
-              color="gray" 
+            <ActionIcon
+              variant="subtle"
+              color="gray"
               onClick={(e) => onMove(e, 'down')}
               loading={isUpdating}
             >
@@ -118,9 +118,9 @@ export function PickerItem({ item, selectable = true }: { item: any, selectable?
             </ActionIcon>
           </Tooltip>
           <Tooltip label={t('delete')}>
-            <ActionIcon 
-              variant="subtle" 
-              color="red" 
+            <ActionIcon
+              variant="subtle"
+              color="red"
               onClick={(e) => { e.stopPropagation(); open(); }}
               loading={isUpdating}
             >

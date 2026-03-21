@@ -4,16 +4,16 @@ import { Card, Avatar, Text, Group, UnstyledButton, Stack } from '@mantine/core'
 import { notifications } from '@mantine/notifications';
 import { useTranslations } from 'next-intl';
 
-export function AuthAccountItem({ 
-  item, 
-  callback, 
+export function AuthAccountItem({
+  item,
+  callback,
   atpstate,
   domain,
   onSelect,
   disabled
-}: { 
-  item: any; 
-  callback: string; 
+}: {
+  item: any;
+  callback: string;
   atpstate?: string;
   domain: string;
   onSelect: () => void;
@@ -23,7 +23,7 @@ export function AuthAccountItem({
 
   const handleSelect = () => {
     if (disabled) return;
-    
+
     // Show notification
     notifications.show({
       id: 'auth-loading',
@@ -35,7 +35,7 @@ export function AuthAccountItem({
     });
 
     onSelect();
-    
+
     try {
       const url = new URL(callback);
       url.searchParams.set('handle', item.handle);
@@ -82,7 +82,7 @@ export function AuthAccountItem({
               {item.handle} ({item.did})
             </Text>
             <Text size="10px" c="dimmed" truncate style={{ opacity: 0.8 }}>
-              PDS: {item.pdsUrl}
+              {item.pdsUrl}
             </Text>
           </Stack>
         </Group>

@@ -50,10 +50,7 @@ export default async function middleware(request: NextRequest) {
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 365,
-    ...(process.env.NODE_ENV === 'production' && { domain: '.atpassport.net' }),
   });
-
-  response.headers.set('Set-Cookie', response.cookies.toString());
 
   return response;
 }

@@ -1,6 +1,7 @@
 import { Container, Title, Text, Stack, Paper, Center, Divider } from '@mantine/core';
-import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { AuthAccountList } from '@/components/AuthAccountList';
 import { RegisterForm } from '@/components/RegisterForm';
 import { getAssociations } from '@/lib/models';
@@ -20,11 +21,14 @@ export default async function AuthPage({
 
   if (!callback) {
     return (
-      <Container size="sm" py="xl">
-        <Center style={{ minHeight: '60vh' }}>
-          <Text c="red" size="lg">{t('missing_callback')}</Text>
-        </Center>
-      </Container>
+      <>
+        <Header />
+        <Container size="sm" py="xl">
+          <Center style={{ minHeight: '60vh' }}>
+            <Text c="red" size="lg">{t('missing_callback')}</Text>
+          </Center>
+        </Container>
+      </>
     );
   }
 
@@ -34,11 +38,14 @@ export default async function AuthPage({
     domain = url.hostname;
   } catch (e) {
     return (
-      <Container size="sm" py="xl">
-        <Center style={{ minHeight: '60vh' }}>
-          <Text c="red" size="lg">Invalid callback URL</Text>
-        </Center>
-      </Container>
+      <>
+        <Header />
+        <Container size="sm" py="xl">
+          <Center style={{ minHeight: '60vh' }}>
+            <Text c="red" size="lg">Invalid callback URL</Text>
+          </Center>
+        </Container>
+      </>
     );
   }
 
@@ -56,26 +63,33 @@ export default async function AuthPage({
   }
 
   return (
-    <Container size="sm" py="xl" style={{ maxWidth: 500 }}>
-      <Paper withBorder p="xl" radius="md" shadow="sm">
+    <>
+      <Header />
+      <Container size="sm" py="xl" style={{ maxWidth: 500 }}>
         <Stack gap="xl">
-          <header style={{ textAlign: 'center' }}>
-            <Title order={2} mb="xs">{t('title')}</Title>
-            <Text c="dimmed" size="sm" fw={500}>{t('moving_to', { domain })}</Text>
-          </header>
+          <Paper withBorder p="xl" radius="md" shadow="sm">
+            <Stack gap="xl">
+              <header style={{ textAlign: 'center' }}>
+                <Title order={2} mb="xs">{t('title')}</Title>
+                <Text c="dimmed" size="sm" fw={500}>{t('moving_to', { domain })}</Text>
+              </header>
 
-          <AuthAccountList 
-            initialItems={items} 
-            callback={callback} 
-            atpstate={atpstate} 
-            domain={domain}
-          />
+              <AuthAccountList
+                initialItems={items}
+                callback={callback}
+                atpstate={atpstate}
+                domain={domain}
+              />
 
-          <Divider />
+              <Divider />
 
-          <RegisterForm />
+              <RegisterForm handleCount={items.length} />
+            </Stack>
+          </Paper>
+
+          <Footer />
         </Stack>
-      </Paper>
-    </Container>
+      </Container>
+    </>
   );
 }

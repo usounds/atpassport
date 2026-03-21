@@ -3,6 +3,8 @@ import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { PickerList } from '@/components/PickerList';
 import { RegisterForm } from '@/components/RegisterForm';
+import { getAssociations } from '@/lib/models';
+import { getSessionUuid } from '@/lib/session';
 
 export default async function PickerPage({
   params
@@ -11,6 +13,13 @@ export default async function PickerPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Home' });
+
+  const uuid = await getSessionUuid();
+  let handleCount = 0;
+  if (uuid) {
+    const associations = await getAssociations(uuid);
+    handleCount = associations.length;
+  }
 
   return (
     <Container size="xs" py="md">
@@ -24,9 +33,9 @@ export default async function PickerPage({
         </Suspense>
 
         <Divider mt="md" />
-        
+
         <Paper withBorder p="md" radius="md">
-          <RegisterForm />
+          <RegisterForm handleCount={handleCount} />
         </Paper>
       </Stack>
     </Container>

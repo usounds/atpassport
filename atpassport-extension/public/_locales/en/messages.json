@@ -1,0 +1,29 @@
+{
+  "extensionName": {
+    "message": "@passport Extension"
+  },
+  "extensionDescription": {
+    "message": "Auto-fill or copy your @passport handles effortlessly."
+  },
+  "loginRequired": {
+    "message": "Please login to @passport first."
+  },
+  "fetchError": {
+    "message": "Failed to fetch handles."
+  },
+  "noHandles": {
+    "message": "No handles found."
+  },
+  "loginButton": {
+    "message": "Login now"
+  },
+  "filledSuccess": {
+    "message": "Filled into input!"
+  },
+  "copiedFallback": {
+    "message": "Copied to clipboard (No input found)"
+  },
+  "copiedIncompatible": {
+    "message": "Copied to clipboard (Incompatible tab)"
+  }
+}
