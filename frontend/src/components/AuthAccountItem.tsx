@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, Avatar, Text, Group, UnstyledButton, Stack } from '@mantine/core';
+import { Card, Avatar, Text, Group, UnstyledButton, Stack, Box } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useTranslations } from 'next-intl';
 
@@ -10,7 +10,8 @@ export function AuthAccountItem({
   atpstate,
   domain,
   onSelect,
-  disabled
+  disabled,
+  index = 0
 }: {
   item: any;
   callback: string;
@@ -18,6 +19,7 @@ export function AuthAccountItem({
   domain: string;
   onSelect: () => void;
   disabled?: boolean;
+  index?: number;
 }) {
   const t = useTranslations('Auth');
 
@@ -55,15 +57,16 @@ export function AuthAccountItem({
   const avatar = item.profile?.avatar;
 
   return (
-    <UnstyledButton
-      component="div"
-      onClick={handleSelect}
-      style={{
-        width: '100%',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.6 : 1,
-      }}
-    >
+    <Box className={`animate-slide-in stagger-${Math.min(index + 1, 10)}`}>
+      <UnstyledButton
+        component="div"
+        onClick={handleSelect}
+        style={{
+          width: '100%',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.6 : undefined,
+        }}
+      >
       <Card
         padding="sm"
         radius={0}
@@ -87,5 +90,6 @@ export function AuthAccountItem({
         </Group>
       </Card>
     </UnstyledButton>
+  </Box>
   );
 }

@@ -50,3 +50,58 @@ body {
     background-color: var(--mantine-color-dark-6) !important;
   }
 }
+.premium-card {
+  background-color: light-dark(rgba(255, 255, 255, 0.7), rgba(26, 35, 126, 0.15));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.1));
+  box-shadow: 0 8px 32px 0 light-dark(rgba(31, 38, 135, 0.07), rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
+}
+
+.premium-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px 0 light-dark(rgba(31, 38, 135, 0.1), rgba(0, 0, 0, 0.3));
+  background-color: light-dark(rgba(255, 255, 255, 0.8), rgba(26, 35, 126, 0.2));
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  opacity: 0;
+  animation: slideInLeft 0.5s ease-out both;
+}
+
+/* Stagger delays for up to 10 items */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.15s; }
+.stagger-3 { animation-delay: 0.2s; }
+.stagger-4 { animation-delay: 0.25s; }
+.stagger-5 { animation-delay: 0.3s; }
+.stagger-6 { animation-delay: 0.35s; }
+.stagger-7 { animation-delay: 0.4s; }
+.stagger-8 { animation-delay: 0.45s; }
+.stagger-9 { animation-delay: 0.5s; }
+.stagger-10 { animation-delay: 0.55s; }

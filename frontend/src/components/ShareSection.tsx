@@ -1,6 +1,6 @@
 'use client';
 
-import { Paper, Stack, Title, Text, Button, Group } from '@mantine/core';
+import { Paper, Stack, Title, Text, Button, Group, Box } from '@mantine/core';
 import { IconShare } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { useTranslations } from 'next-intl';
@@ -13,26 +13,40 @@ export function ShareSection() {
 
   return (
     <>
-      <Paper withBorder p="xl" radius="md" bg="gray.0" style={{ borderStyle: 'dashed' }}>
-        <Stack gap="md" align="center" ta="center">
-          <Group gap="xs">
-            <IconShare size={24} color="var(--mantine-color-blue-6)" />
-            <Title order={4}>{t('share_title')}</Title>
-          </Group>
-          <Text size="sm" c="dimmed" style={{ maxWidth: 400 }}>
-            {t('share_description')}
-          </Text>
+    <Box className="animate-slide-in">
+      <Paper 
+        p="md" 
+        radius="lg" 
+        className="premium-card"
+        style={{ overflow: 'hidden', position: 'relative' }}
+      >
+        <Group justify="space-between" align="center" wrap="nowrap">
+          <Stack gap={2} style={{ flex: 1 }}>
+            <Group gap="xs">
+              <IconShare size={20} color="var(--mantine-color-blue-6)" />
+              <Title order={5} fw={700}>{t('share_title')}</Title>
+            </Group>
+            <Text size="xs" c="dimmed" lh={1.4} style={{ maxWidth: 300 }}>
+              {t('share_description')}
+            </Text>
+          </Stack>
+          
           <Button 
-            variant="light" 
+            variant="gradient"
+            gradient={{ from: 'blue.6', to: 'cyan.6', deg: 90 }}
             onClick={open}
-            leftSection={<IconShare size={18} />}
+            size="sm"
+            radius="md"
+            leftSection={<IconShare size={16} />}
+            px="md"
           >
             {tShare('title')}
           </Button>
-        </Stack>
+        </Group>
       </Paper>
 
       <ShareModal opened={opened} onClose={close} />
+    </Box>
     </>
   );
 }

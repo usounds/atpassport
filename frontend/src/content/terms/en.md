@@ -7,11 +7,10 @@ last_updated: "March 21, 2026"
 By using @passport (hereinafter "this Service"), you agree to these Terms of Service. If you do not agree, please refrain from using this Service.
 
 ## 2. Service Description
-This Service is a handle manager for the AT Protocol (atproto) ecosystem. It provides the following features:
+This Service is a handle manager for the atproto ecosystem. It provides the following features:
 
 - Registration and management of atproto handles
-- DID (Decentralized Identifier) resolution
-- Identity authentication for third-party applications
+- DID resolution
 
 ## 3. User Responsibilities
 Users must:

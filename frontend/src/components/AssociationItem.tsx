@@ -19,7 +19,8 @@ export function AssociationItem({
   onDelete,
   onRefresh,
   isFirst,
-  isLast
+  isLast,
+  index = 0
 }: {
   item: any;
   onMoveUp?: () => void;
@@ -28,6 +29,7 @@ export function AssociationItem({
   onRefresh?: () => void;
   isFirst?: boolean;
   isLast?: boolean;
+  index?: number;
 }) {
   const t = useTranslations('Home');
   const [opened, { open, close }] = useDisclosure(false);
@@ -62,9 +64,10 @@ export function AssociationItem({
 
   return (
     <>
-      <Group gap="md" align="center" wrap="nowrap">
-        <Box style={{ flex: 1, opacity: isUpdating ? 0.6 : 1 }}>
-          <Card
+      <Box className={`animate-slide-in stagger-${Math.min(index + 1, 10)}`}>
+        <Group gap="md" align="center" wrap="nowrap">
+          <Box style={{ flex: 1, opacity: isUpdating ? 0.6 : undefined }}>
+            <Card
             padding="sm"
             radius={0}
             className="picker-item picker-item-hoverable"
@@ -137,6 +140,7 @@ export function AssociationItem({
           </Card>
         </Box>
       </Group>
+    </Box>
 
       <Modal opened={opened} onClose={close} title={t('confirm_delete_title')} centered>
         <Text size="sm" mb="lg">

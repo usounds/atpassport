@@ -38,6 +38,7 @@ export function AuthAccountList({
           domain={domain}
           onSelect={() => setAuthenticating(true)}
           disabled={authenticating}
+          index={index}
         />
       ))}
     </Stack>

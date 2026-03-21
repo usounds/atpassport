@@ -49,6 +49,7 @@ export function AssociationListClient({ initialItems }: { initialItems: any[] })
           onRefresh={() => handleRefresh(item.did)}
           isFirst={index === 0}
           isLast={index === items.length - 1}
+          index={index}
         />
       ))}
     </Stack>

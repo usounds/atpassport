@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { TextInput, Button, Modal, Stack, Checkbox } from '@mantine/core';
+import { TextInput, Button, Modal, Stack, Checkbox, Box } from '@mantine/core';
 import { useTranslations } from 'next-intl';
 import { useDisclosure } from '@mantine/hooks';
 import { registerHandle } from '@/lib/actions';
@@ -58,6 +58,7 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
 
   return (
     <>
+    <Box className="animate-slide-in">
       <Button
         fullWidth
         variant="filled"
@@ -71,6 +72,7 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
       >
         {t('add_handle')}
       </Button>
+    </Box>
 
       <Modal opened={opened} onClose={handleClose} title={t('add_handle')} centered radius="lg">
         <Stack gap="md">

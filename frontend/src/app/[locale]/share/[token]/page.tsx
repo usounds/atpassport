@@ -3,7 +3,8 @@
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Card, Text, Title, Button, Stack, Container, Center, Loader } from '@mantine/core';
+import { Card, Text, Title, Button, Stack, Container, Center, Loader, Box, Paper } from '@mantine/core';
+import { IconDeviceMobile } from '@tabler/icons-react';
 import { syncWithToken } from '@/lib/actions';
 
 interface PageProps {
@@ -44,10 +45,20 @@ export default function ShareSyncPage({ params }: PageProps) {
   if (loading) {
     return (
       <Container size="sm" py="xl">
-        <Center style={{ height: '50vh' }}>
-          <Stack align="center">
-            <Loader size="xl" />
-            <Text color="dimmed">同期しています...</Text>
+        <Center style={{ height: '70vh' }}>
+          <Stack align="center" gap="xl" className="animate-slide-in">
+            <Loader size={60} variant="bars" color="blue.6" />
+            <Stack gap={4} align="center">
+              <Text 
+                component="h3"
+                variant="gradient" 
+                gradient={{ from: 'blue.6', to: 'cyan.6', deg: 90 }}
+                style={{ fontSize: 'var(--mantine-font-size-xl)', fontWeight: 800, margin: 0 }}
+              >
+                Syncing Devices
+              </Text>
+              <Text c="dimmed" fw={500}>ハンドル情報を同期しています...</Text>
+            </Stack>
           </Stack>
         </Center>
       </Container>
@@ -57,17 +68,46 @@ export default function ShareSyncPage({ params }: PageProps) {
   if (error) {
     return (
       <Container size="sm" py="xl">
-        <Card withBorder shadow="sm" p="xl" radius="md">
-          <Stack align="center">
-            <Title order={2}>{t('invalidTokenTitle')}</Title>
-            <Text color="dimmed" ta="center">
-              {t('invalidTokenDescription')}
-            </Text>
-            <Button onClick={() => router.push(`/${locale}`)} variant="light">
-              {t('backToHome')}
-            </Button>
-          </Stack>
-        </Card>
+        <Center style={{ height: '70vh' }}>
+          <Paper 
+            withBorder 
+            p="xl" 
+            radius="lg" 
+            className="premium-card"
+            style={{ maxWidth: 400, width: '100%' }}
+          >
+            <Stack align="center" gap="lg">
+              <Box 
+                p="md" 
+                style={{ 
+                  borderRadius: '50%', 
+                  backgroundColor: 'var(--mantine-color-red-0)',
+                  color: 'var(--mantine-color-red-6)'
+                }}
+              >
+                <IconDeviceMobile size={40} />
+              </Box>
+              
+              <Stack gap={4} align="center">
+                <Title order={3} ta="center">{t('invalidTokenTitle')}</Title>
+                <Text color="dimmed" ta="center" size="sm">
+                  {t('invalidTokenDescription')}
+                </Text>
+              </Stack>
+
+              <Button 
+                onClick={() => router.push(`/${locale}`)} 
+                variant="gradient"
+                gradient={{ from: 'gray.6', to: 'gray.8', deg: 90 }}
+                fullWidth
+                radius="md"
+                size="md"
+              >
+                {t('backToHome')}
+              </Button>
+            </Stack>
+          </Paper>
+        </Center>
       </Container>
     );
   }
