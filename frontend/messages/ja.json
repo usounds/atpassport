@@ -78,5 +78,21 @@
     "section6_text": "登録したハンドルはサービス画面からいつでも削除できます。すべてのデータの完全な削除をご希望の場合は、お問い合わせください。",
     "section7_title": "7. お問い合わせ",
     "section7_text": "本プライバシーポリシーに関するご質問は、usounds.work までご連絡ください。"
+  },
+  "Share": {
+    "title": "デバイス間で共有",
+    "description": "QRコードまたはURLをスキャンして、他のデバイスでも同じハンドルを利用できるようにします。",
+    "generate": "共有リンクを発行",
+    "expiryNotice": "このリンクは10分間のみ有効です。",
+    "rateLimitExceeded": "短時間に多くの共有リンクが作成されました。1分ほど待ってから再度お試しください。",
+    "copyUrl": "URLをコピー",
+    "copied": "コピーしました",
+    "qrAlt": "共有用QRコード",
+    "scanInstruction": "スマートフォンのカメラ等でスキャンしてください。"
+  },
+  "ShareSync": {
+    "invalidTokenTitle": "無効なトークン",
+    "invalidTokenDescription": "この共有リンクは期限切れか、すでに使用されています。メインデバイスから新しいリンクを生成してください。",
+    "backToHome": "ホームに戻る"
   }
 }

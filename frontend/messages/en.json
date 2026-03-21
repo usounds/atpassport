@@ -78,5 +78,21 @@
     "section6_text": "You may delete your registered handles at any time through the Service interface. If you wish to have all your data completely removed, please contact us.",
     "section7_title": "7. Contact",
     "section7_text": "For questions regarding this Privacy Policy, please contact usounds.work."
+  },
+  "Share": {
+    "title": "Share with Other Devices",
+    "description": "Scan the QR code or copy the URL to enable the same handles on other devices.",
+    "generate": "Generate Share Link",
+    "expiryNotice": "This link is valid for 10 minutes.",
+    "rateLimitExceeded": "Too many share links created in a short time. Please wait a minute and try again.",
+    "copyUrl": "Copy URL",
+    "copied": "Copied!",
+    "qrAlt": "Share QR Code",
+    "scanInstruction": "Scan this with your smartphone camera."
+  },
+  "ShareSync": {
+    "invalidTokenTitle": "Invalid Token",
+    "invalidTokenDescription": "This share link is expired or has already been used. Please generate a new link from your main device.",
+    "backToHome": "Back to Home"
   }
 }

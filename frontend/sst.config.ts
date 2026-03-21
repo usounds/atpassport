@@ -22,10 +22,18 @@ export default $config({
       ttl: "expiresAt",
     });
 
+    const shareTokensTable = new sst.aws.Dynamo("AtPassportShareTokens", {
+      fields: {
+        token: "string",
+      },
+      primaryIndex: { hashKey: "token" },
+      ttl: "expiresAt",
+    });
+
     // 3. Next.js (frontend) を定義
     new sst.aws.Nextjs("AtPassportApp", {
       path: ".",
-      link: [table, sessionSecret],
+      link: [table, shareTokensTable, sessionSecret],
       environment: {
         SESSION_SECRET: sessionSecret.value,
       },

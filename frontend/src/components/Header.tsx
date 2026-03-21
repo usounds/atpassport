@@ -7,6 +7,9 @@ import { usePathname } from 'next/navigation';
 import { TicketsPlane } from 'lucide-react';
 import classes from './Header.module.css';
 
+import { IconShare } from '@tabler/icons-react';
+import { ShareModal } from './ShareModal';
+
 const links = [
   { link: '/terms', labelKey: 'terms' },
   { link: '/privacy', labelKey: 'privacy' },
@@ -15,8 +18,10 @@ const links = [
 export function Header() {
   const t = useTranslations('Home');
   const tNav = useTranslations('Nav');
+  const tShare = useTranslations('Share');
   const pathname = usePathname();
   const [opened, { toggle, close }] = useDisclosure(false);
+  const [shareOpened, { open: openShare, close: closeShare }] = useDisclosure(false);
 
   const items = links.map((link) => {
     // Check if current path ends with the link path (to handle locale prefix)
@@ -33,6 +38,23 @@ export function Header() {
     );
   });
 
+  const shareItem = (
+    <a
+      key="share"
+      className={classes.link}
+      onClick={() => {
+        close();
+        openShare();
+      }}
+      style={{ cursor: 'pointer' }}
+    >
+      <Group gap="xs">
+        <IconShare size={18} />
+        {tShare('title')}
+      </Group>
+    </a>
+  );
+
   return (
     <header className={classes.header}>
       <Container size="sm" className={classes.inner}>
@@ -42,6 +64,7 @@ export function Header() {
         </a>
 
         <Group gap={5} visibleFrom="xs">
+          {shareItem}
           {items}
         </Group>
 
@@ -63,10 +86,13 @@ export function Header() {
           zIndex={1000}
         >
           <Stack gap={0}>
+            {shareItem}
             {items}
           </Stack>
         </Drawer>
       </Container>
+
+      <ShareModal opened={shareOpened} onClose={closeShare} />
     </header>
   );
 }

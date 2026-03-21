@@ -23,34 +23,40 @@ export default async function middleware(request: NextRequest) {
 
   const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
   let uuid: string | null = null;
+  let isValid = false;
+
   if (sessionCookie) {
     try {
       const { payload } = await jwtVerify(sessionCookie.value, SECRET_KEY);
       uuid = payload.uuid as string;
+      isValid = true;
       
       // Extend DynamoDB TTL asynchronously
-      // Note: touchSession depends on AWS SDK, which may have issues in Edge Runtime.
-      // We call it here and catch errors.
       touchSession(uuid).catch(e => console.error('[Middleware] touchSession failed:', e));
-    } catch (e) { /* Invalid session */ }
+    } catch (e) {
+      console.warn('[Middleware] Invalid session cookie:', e);
+    }
   }
-
-  const finalUuid = uuid || crypto.randomUUID();
-  const token = await new SignJWT({ uuid: finalUuid })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('365d')
-    .sign(SECRET_KEY);
 
   const response = intlMiddleware(request);
 
-  response.cookies.set(SESSION_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 365,
-  });
+  // Only set cookie if it's not valid AND it's a GET request
+  if (!isValid && request.method === 'GET') {
+    const finalUuid = uuid || crypto.randomUUID();
+    const token = await new SignJWT({ uuid: finalUuid })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('365d')
+      .sign(SECRET_KEY);
+
+    response.cookies.set(SESSION_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+    });
+  }
 
   return response;
 }

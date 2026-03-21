@@ -4,6 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { getSessionUuid } from './session';
 import { getAssociations, updateAssociation, deleteAssociation, addAssociation, IdentityAssociation } from './models';
 import { resolveIdentity } from './atproto';
+import { getUuidByShareToken, deleteShareToken } from './share';
+import { createSessionToken, SESSION_COOKIE_NAME } from './session';
+import { cookies } from 'next/headers';
 
 export async function registerHandle(handle: string) {
   const uuid = await getSessionUuid();
@@ -101,4 +104,29 @@ export async function moveAssociation(did: string, direction: 'up' | 'down') {
   }
 
   revalidatePath('/[locale]/picker', 'page');
+}
+
+import { redirect } from 'next/navigation';
+
+export async function syncWithToken(token: string, locale: string): Promise<{ success: boolean; error?: string }> {
+  const targetUuid = await getUuidByShareToken(token);
+
+  if (!targetUuid) {
+    return { success: false, error: 'invalid_token' };
+  }
+
+  const sessionToken = await createSessionToken(targetUuid);
+  const cookieStore = await cookies();
+
+  cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+
+  await deleteShareToken(token);
+
+  return { success: true };
 }

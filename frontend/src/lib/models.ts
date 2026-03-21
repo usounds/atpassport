@@ -1,4 +1,4 @@
-import { db, TABLE_NAME } from "./db";
+import { db, SESSION_TABLE_NAME } from "./db";
 import { PutCommand, QueryCommand, DeleteCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 
 export interface IdentityAssociation {
@@ -31,7 +31,7 @@ export async function addAssociation(uuid: string, did: string, handle: string, 
 
   await db.send(
     new PutCommand({
-      TableName: TABLE_NAME,
+      TableName: SESSION_TABLE_NAME,
       Item: item,
     })
   );
@@ -50,7 +50,7 @@ export async function touchSession(uuid: string) {
 export async function getAssociations(uuid: string): Promise<IdentityAssociation[]> {
   const result = await db.send(
     new QueryCommand({
-      TableName: TABLE_NAME,
+      TableName: SESSION_TABLE_NAME,
       KeyConditionExpression: "#uuid = :uuid",
       ExpressionAttributeNames: {
         "#uuid": "uuid",
@@ -74,7 +74,7 @@ export async function getAssociations(uuid: string): Promise<IdentityAssociation
 export async function updateAssociation(uuid: string, did: string, updates: Partial<IdentityAssociation>) {
   const result = await db.send(
     new GetCommand({
-      TableName: TABLE_NAME,
+      TableName: SESSION_TABLE_NAME,
       Key: { uuid, did },
     })
   );
@@ -86,7 +86,7 @@ export async function updateAssociation(uuid: string, did: string, updates: Part
 
   await db.send(
     new PutCommand({
-      TableName: TABLE_NAME,
+      TableName: SESSION_TABLE_NAME,
       Item: newItem,
     })
   );
@@ -95,7 +95,7 @@ export async function updateAssociation(uuid: string, did: string, updates: Part
 export async function deleteAssociation(uuid: string, did: string) {
   await db.send(
     new DeleteCommand({
-      TableName: TABLE_NAME,
+      TableName: SESSION_TABLE_NAME,
       Key: { uuid, did },
     })
   );
