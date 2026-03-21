@@ -1,4 +1,4 @@
-import { Container, Text, Stack, Paper, Divider } from '@mantine/core';
+import { Container, Title, Text, Stack, Paper, Divider } from '@mantine/core';
 import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { Header } from '@/components/Header';
@@ -27,9 +27,12 @@ export default async function HomePage({
   return (
     <>
       <Header />
-      <Container size="sm" py="xl">
+      <Container size="sm" py="xl" style={{ maxWidth: 500 }}>
         <Stack gap="xl">
-          <Text c="dimmed" ta="center">{t('description')}</Text>
+          <header style={{ textAlign: 'center' }}>
+            <Title order={3} mb="xs">{t('title')}</Title>
+            <Text c="dimmed" size="xs" fw={500}>{t('description')}</Text>
+          </header>
 
           <Divider label={t('registered_handles')} labelPosition="center" />
 
@@ -37,10 +40,7 @@ export default async function HomePage({
             <AssociationList />
           </Suspense>
 
-          <Paper withBorder p="md" radius="md">
-            <RegisterForm handleCount={handleCount} />
-          </Paper>
-
+          <RegisterForm handleCount={handleCount} />
           <Footer />
         </Stack>
       </Container>

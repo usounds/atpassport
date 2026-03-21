@@ -7,8 +7,8 @@
 }
 
 body {
-  background-color: var(--at-light-gray);
-  color: var(--at-indigo);
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-8));
+  color: light-dark(var(--at-indigo), var(--mantine-color-dark-0));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -16,11 +16,37 @@ body {
 /* Maintain dark mode readability while respecting the theme */
 @media (prefers-color-scheme: dark) {
   body {
-    background-color: #0D1117;
-    color: #E6EDF3;
+    background-color: var(--mantine-color-dark-8);
+    color: var(--mantine-color-dark-0);
   }
 }
 
-.picker-item-hover:hover {
-  background-color: rgba(26, 35, 126, 0.05) !important;
+.flat-list-container > * {
+  border-bottom: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4)) !important;
+}
+
+.flat-list-container > *:last-child {
+  border-bottom: none !important;
+}
+
+.picker-item {
+  transition: all 0.2s ease;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+}
+
+.picker-item-hoverable {
+  cursor: pointer;
+}
+
+.picker-item-hoverable:hover {
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6)) !important;
+  transform: translateX(4px);
+  box-shadow: var(--mantine-shadow-xs);
+}
+
+@media (prefers-color-scheme: dark) {
+  .picker-item-hoverable:hover {
+    background-color: var(--mantine-color-dark-6) !important;
+  }
 }

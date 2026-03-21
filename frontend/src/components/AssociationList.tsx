@@ -2,7 +2,7 @@ import { getAssociations } from "@/lib/models";
 import { getProfile } from "@/lib/atproto";
 import { getSessionUuid } from "@/lib/session";
 import { Text, Stack } from '@mantine/core';
-import { PickerItem } from "./PickerItem";
+import { AssociationListClient } from "./AssociationListClient";
 import { getTranslations } from "next-intl/server";
 
 export async function AssociationList() {
@@ -35,11 +35,5 @@ export async function AssociationList() {
     );
   }
 
-  return (
-    <Stack gap="md">
-      {items.map((item, index) => (
-        <PickerItem key={`${item.did}-${index}`} item={item} selectable={false} />
-      ))}
-    </Stack>
-  );
+  return <AssociationListClient initialItems={items} />;
 }

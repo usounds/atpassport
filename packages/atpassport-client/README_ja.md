@@ -25,7 +25,8 @@ import { AtPassport } from '@atpassport/client';
 
 // 1. クライアントの初期化
 const passport = new AtPassport({
-  callbackUrl: 'https://myapp.com/oauth/login' // 必須: 認証後に戻ってくるURL
+  callbackUrl: 'https://myapp.com/oauth/login', // 必須: 認証後に戻ってくるURL
+  lang: 'ja' // 任意: 'en' または 'ja' (指定なしの場合はプレフィックスなし)
 });
 
 // 2. (任意)認証URLの生成とリダイレクト
@@ -61,15 +62,20 @@ import { AtPassportUI } from '@atpassport/client';
 
 // 日本語のテキスト
 console.log(AtPassportUI.ja.title); // "@passportでログイン"
-console.log(AtPassportUI.ja.description); // "@passportは、各atprotoアプリでハンドルを都度入力する手間を省ける共通ハンドルマネージャーです。"
+console.log(AtPassportUI.ja.description); // "@passportは、各atprotoアプリでハンドルを都度入力する手間が省ける共通ハンドルマネージャーです。"
 
 // 英語のテキスト
 console.log(AtPassportUI.en.title); // "Login with @passport"
 console.log(AtPassportUI.en.description); // 英語の説明文...
 
-// 標準アイコン（SVG文字列 - lucide-react の TicketsPlane と同等）
-// HTML にそのまま埋め込んだり、Reactの dangerouslySetInnerHTML で利用できます
+// Standard Icon (SVG String)
 const svgString = AtPassportUI.iconSvg;
+
+// React Component
+import { AtPassportIcon } from '@atpassport/client';
+
+// Use it in your React component
+// <AtPassportIcon size={24} />
 ```
 
 ---
@@ -84,10 +90,4 @@ const svgString = AtPassportUI.iconSvg;
 - **`pdsurl`**: ユーザーのデータが保存されている PDS (Personal Data Server) のエンドポイント URL。
 - **`atpstate`**: `generateAuthUrl()` で自動生成された CSRF 防止用のステート文字列。リクエスト元の検証に用います。
 
-### `{handle}` などのプレースホルダー置換機能
-特定のエンドポイントを利用した連携や、組み込み先のクライアント実装次第では、`callbackUrl` 内に `{handle}` や `{did}` といった文字列（プレースホルダー）を含めておくことで、認証完了時に @passport 側でユーザーの実際のハンドルや DID に**動的に文字列置換**されてリダイレクトされる機能があります。
-
-**例:**
-`callbackUrl` を `https://myapp.com/login?handle={handle}` にして @passport へ送ると、完了時に `https://myapp.com/login?handle=alice.bsky.social` として戻ってきます。
-
-※ `@atpassport/client` を使った標準の `generateAuthUrl` → `parseCallback` フローでは、@passport はプレースホルダー置換ではなく、安全に `&handle=...` のように標準的なクエリパラメータとして追記する形を採っているため、意識せずに `parseCallback()` だけで全ての情報を簡単に安全に受け取ることができます。
+※ `@atpassport/client` を使った標準の `generateAuthUrl` → `parseCallback` フローでは、@passport は安全に `&handle=...` のように標準的なクエリパラメータとして追記する形を採っているため、`parseCallback()` を使うことで、全ての情報を簡単に受け取ることができます。

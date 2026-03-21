@@ -25,7 +25,8 @@ import { AtPassport } from '@atpassport/client';
 
 // 1. Initialize the client
 const passport = new AtPassport({
-  callbackUrl: 'https://myapp.com/oauth/login' // Required: the URL to redirect back to
+  callbackUrl: 'https://myapp.com/oauth/login', // Required: the URL to redirect back to
+  lang: 'en' // Optional: 'en' or 'ja' (defaults to no prefix if omitted)
 });
 
 // 2. (Optional) Generate the authentication URL and redirect
@@ -67,9 +68,14 @@ console.log(AtPassportUI.en.description); // "@passport is a universal handle ma
 // Japanese translations
 console.log(AtPassportUI.ja.title); // "@passportでログイン"
 
-// Standard Icon (SVG String matching lucide-react's TicketsPlane)
-// Can be injected into HTML directly or using React's dangerouslySetInnerHTML
+// Standard Icon (SVG String)
 const svgString = AtPassportUI.iconSvg;
+
+// React Component
+import { AtPassportIcon } from '@atpassport/client';
+
+// Use it in your React component
+// <AtPassportIcon size={24} />
 ```
 
 ---
@@ -84,10 +90,4 @@ When @passport redirects back to your `callbackUrl`, the following information w
 - **`pdsurl`**: The endpoint URL of the user's Personal Data Server (PDS).
 - **`atpstate`**: The state string automatically generated for CSRF protection via `generateAuthUrl()`.
 
-### The `{handle}` and `{did}` Placeholder Replacement Feature
-Depending on the specific API endpoint used for integration or the exact implementation of the integrating client, there is a feature where placing `{handle}` or `{did}` string placeholders inside the `callbackUrl` string will instruct @passport to **dynamically string-replace** them with the actual handle/DID upon completion.
-
-**Example:**
-If the `callbackUrl` was `https://myapp.com/login?handle={handle}`, @passport would redirect back to `https://myapp.com/login?handle=alice.bsky.social`.
-
-*Note: With the standard flow using `@atpassport/client` (`generateAuthUrl` → `parseCallback`), @passport does not rely on string replacement. Instead, it securely appends parameters like `&handle=...` as standardized URL queries. This allows you to simply and securely receive all information using `parseCallback()` without manually formatting placeholders.*
+*Note: With the standard flow using `@atpassport/client` (`generateAuthUrl` → `parseCallback`), @passport securely appends parameters like `&handle=...` as standardized URL queries. This allows you to simply and securely receive all information using `parseCallback()` without manually formatting placeholders.*

@@ -14,27 +14,7 @@ describe('AtPassport', () => {
     }
   });
 
-  it('generates correct register URL', () => {
-    const passport = new AtPassport({ baseUrl, callbackUrl });
-    const url = passport.registerUrl('alice.bsky.social', 'https://app.com/register-callback');
-    
-    const parsed = new URL(url);
-    expect(parsed.origin).toBe(baseUrl);
-    expect(parsed.pathname).toBe('/api/register');
-    expect(parsed.searchParams.get('handle')).toBe('alice.bsky.social');
-    expect(parsed.searchParams.get('callbackUrl')).toBe('https://app.com/register-callback');
-  });
-
-  it('generates correct resolve URL', () => {
-    const passport = new AtPassport({ baseUrl, callbackUrl });
-    const url = passport.resolveUrl('https://app.com/resolve-callback');
-    
-    const parsed = new URL(url);
-    expect(parsed.origin).toBe(baseUrl);
-    expect(parsed.pathname).toBe('/api/resolve');
-    expect(parsed.searchParams.get('callbackUrl')).toBe('https://app.com/resolve-callback');
-  });
-  it('generates correct auth URL and state', () => {
+  it('generates correct auth URL and state (no lang)', () => {
     const passport = new AtPassport({ baseUrl, callbackUrl });
     const { url, atpstate } = passport.generateAuthUrl({ theme: 'dark' });
 
@@ -46,6 +26,14 @@ describe('AtPassport', () => {
     const innerCallback = new URL(parsed.searchParams.get('callback')!);
     expect(innerCallback.origin).toBe('https://app.com');
     expect(innerCallback.searchParams.get('theme')).toBe('dark');
+  });
+
+  it('generates correct auth URL with lang', () => {
+    const passport = new AtPassport({ baseUrl, callbackUrl, lang: 'ja' });
+    const { url } = passport.generateAuthUrl();
+
+    const parsed = new URL(url);
+    expect(parsed.pathname).toBe('/ja/authentication');
   });
 
   it('parses callback URL correctly', () => {

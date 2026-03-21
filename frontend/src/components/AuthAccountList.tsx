@@ -28,7 +28,7 @@ export function AuthAccountList({
   }
 
   return (
-    <Stack gap="sm">
+    <Stack gap={0} className="flat-list-container">
       {initialItems.map((item, index) => (
         <AuthAccountItem 
           key={`${item.did}-${index}`} 

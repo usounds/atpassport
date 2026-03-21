@@ -65,13 +65,12 @@ export function AuthAccountItem({
       }}
     >
       <Card
-        withBorder
-        padding="md"
-        radius="md"
-        className="picker-item-hover"
+        padding="sm"
+        radius={0}
+        className="picker-item picker-item-hoverable"
         style={{
           backgroundColor: 'transparent',
-          transition: 'background-color 0.2s ease',
+          border: 'none',
         }}
       >
         <Group wrap="nowrap" gap="md" align="center">

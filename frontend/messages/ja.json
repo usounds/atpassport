@@ -20,6 +20,7 @@
     "confirm_delete_title": "削除の確認",
     "confirm_delete_text": "登録済みハンドルから {handle} を削除してもよろしいですか？",
     "cancel": "キャンセル",
+    "manage_handle": "ハンドルの管理",
     "agree_to_terms": "<terms>利用規約</terms>および<privacy>プライバシーポリシー</privacy>に同意します"
   },
   "Auth": {

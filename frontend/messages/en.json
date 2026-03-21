@@ -20,6 +20,7 @@
     "confirm_delete_title": "Confirm Deletion",
     "confirm_delete_text": "Are you sure you want to remove {handle} from your registered handles?",
     "cancel": "Cancel",
+    "manage_handle": "Manage Handle",
     "agree_to_terms": "I agree to the <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>"
   },
   "Auth": {

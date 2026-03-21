@@ -54,7 +54,7 @@ export async function setPrimaryAssociation(did: string) {
     }
   }
 
-  revalidatePath('/[locale]/picker', 'page');
+  // Removed revalidatePath for picker
 }
 
 export async function refreshAssociation(did: string) {
@@ -80,7 +80,7 @@ export async function removeAssociation(did: string) {
   if (!uuid) return;
 
   await deleteAssociation(uuid, did);
-  revalidatePath('/[locale]/picker', 'page');
+  // Removed revalidatePath for picker
 }
 
 export async function moveAssociation(did: string, direction: 'up' | 'down') {
@@ -109,7 +109,7 @@ export async function moveAssociation(did: string, direction: 'up' | 'down') {
     await updateAssociation(uuid, next.did, { sortOrder: currOrder });
   }
 
-  revalidatePath('/[locale]/picker', 'page');
+  // Removed revalidatePath for picker
 }
 
 import { redirect } from 'next/navigation';

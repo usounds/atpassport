@@ -1,6 +1,6 @@
 {
   "name": "@atpassport/client",
-  "version": "0.1.6",
+  "version": "0.1.8",
   "description": "AtPassport client library for integrating secure handle input assist into applications.",
   "keywords": [
     "atproto",
@@ -27,12 +27,22 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --minify",
+    "build": "tsup src/index.tsx --format cjs,esm --dts --minify",
     "deploy": "pnpm build && npm publish --access public",
     "test": "vitest run"
   },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "react": "^19.2.4",
     "tsup": "^8.5.1",
     "typescript": "^5.0.0",
     "vitest": "^2.0.0"

@@ -67,28 +67,22 @@ export default async function AuthPage({
       <Header />
       <Container size="sm" py="xl" style={{ maxWidth: 500 }}>
         <Stack gap="xl">
-          <Paper withBorder p="xl" radius="md" shadow="sm">
-            <Stack gap="xl">
-              <header style={{ textAlign: 'center' }}>
-                <Title order={2} mb="xs">{t('title')}</Title>
-                <Text c="dimmed" size="sm" fw={500}>{t('moving_to', { domain })}</Text>
-              </header>
+          <header style={{ textAlign: 'center' }}>
+            <Title order={3} mb="xs">{t('title')}</Title>
+            <Text c="dimmed" size="xs" fw={500}>{t('moving_to', { domain })}</Text>
+          </header>
 
-              <AuthAccountList
-                initialItems={items}
-                callback={callback}
-                atpstate={atpstate}
-                domain={domain}
-              />
+          <AuthAccountList
+            initialItems={items}
+            callback={callback}
+            atpstate={atpstate}
+            domain={domain}
+          />
 
-              <Divider />
-
-              <RegisterForm handleCount={items.length} />
-            </Stack>
-          </Paper>
-
-          <Footer />
+          <RegisterForm handleCount={items.length} />
         </Stack>
+
+        <Footer />
       </Container>
     </>
   );

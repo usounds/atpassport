@@ -60,14 +60,19 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
     <>
       <Button
         fullWidth
-        variant="light"
+        variant="filled"
+        color="blue"
         leftSection={<IconPlus size={16} />}
         onClick={open}
+        radius="md"
+        style={{
+          boxShadow: '0 4px 12px rgba(0, 133, 255, 0.2)',
+        }}
       >
         {t('add_handle')}
       </Button>
 
-      <Modal opened={opened} onClose={handleClose} title={t('add_handle')} centered>
+      <Modal opened={opened} onClose={handleClose} title={t('add_handle')} centered radius="lg">
         <Stack gap="md">
           <TextInput
             label={t('handle')}
