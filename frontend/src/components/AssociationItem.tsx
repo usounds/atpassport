@@ -68,79 +68,79 @@ export function AssociationItem({
         <Group gap="md" align="center" wrap="nowrap">
           <Box style={{ flex: 1, opacity: isUpdating ? 0.6 : undefined }}>
             <Card
-            padding="sm"
-            radius={0}
-            className="picker-item picker-item-hoverable"
-            style={{
-              backgroundColor: 'transparent',
-              border: 'none',
-            }}
-          >
-            <Group wrap="nowrap" justify="space-between" align="center">
-              <Group wrap="nowrap" gap="md" align="center">
-                <Avatar src={avatar} radius="xl" size="md" />
-                <Box style={{ flex: 1, overflow: 'hidden' }}>
-                  <Text fw={500} size="sm" truncate>{displayName}</Text>
-                  <Text size="xs" c="dimmed" truncate>
-                    @{item.handle} ({item.did})
-                  </Text>
-                  <Text size="10px" c="dimmed" truncate style={{ opacity: 0.8 }}>
-                    {new URL(item.pdsUrl).hostname}
-                  </Text>
-                </Box>
+              padding="sm"
+              radius={0}
+              className="picker-item picker-item-hoverable"
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+              }}
+            >
+              <Group wrap="nowrap" justify="space-between" align="center">
+                <Group wrap="nowrap" gap="md" align="center">
+                  <Avatar src={avatar} radius="xl" size="md" />
+                  <Box style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
+                    <Text fw={500} size="sm" truncate>{displayName}</Text>
+                    <Text size="xs" c="dimmed" truncate>
+                      @{item.handle} ({item.did})
+                    </Text>
+                    <Text size="10px" c="dimmed" truncate style={{ opacity: 0.8 }}>
+                      {new URL(item.pdsUrl).hostname}
+                    </Text>
+                  </Box>
+                </Group>
+
+                <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
+                  <Menu shadow="md" width={200} position="bottom-end" radius="md">
+                    <Menu.Target>
+                      <ActionIcon variant="subtle" color="gray" size="lg" radius="md" loading={isUpdating}>
+                        <IconDotsVertical size={20} />
+                      </ActionIcon>
+                    </Menu.Target>
+
+                    <Menu.Dropdown>
+                      <Menu.Label>{t('manage_handle')}</Menu.Label>
+
+                      <Menu.Item
+                        leftSection={<IconChevronUp size={16} />}
+                        onClick={() => handleMove('up')}
+                        disabled={isFirst}
+                      >
+                        {t('move_up')}
+                      </Menu.Item>
+
+                      <Menu.Item
+                        leftSection={<IconChevronDown size={16} />}
+                        onClick={() => handleMove('down')}
+                        disabled={isLast}
+                      >
+                        {t('move_down')}
+                      </Menu.Item>
+
+                      <Menu.Item
+                        leftSection={<IconRefresh size={16} />}
+                        onClick={() => handleRefresh()}
+                      >
+                        {t('refresh_metadata')}
+                      </Menu.Item>
+
+                      <Menu.Divider />
+
+                      <Menu.Item
+                        color="red"
+                        leftSection={<IconTrash size={16} />}
+                        onClick={() => handleDelete()}
+                      >
+                        {t('delete')}
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                </Group>
               </Group>
-
-              <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
-                <Menu shadow="md" width={200} position="bottom-end" radius="md">
-                  <Menu.Target>
-                    <ActionIcon variant="subtle" color="gray" size="lg" radius="md" loading={isUpdating}>
-                      <IconDotsVertical size={20} />
-                    </ActionIcon>
-                  </Menu.Target>
-
-                  <Menu.Dropdown>
-                    <Menu.Label>{t('manage_handle')}</Menu.Label>
-
-                    <Menu.Item
-                      leftSection={<IconChevronUp size={16} />}
-                      onClick={() => handleMove('up')}
-                      disabled={isFirst}
-                    >
-                      {t('move_up')}
-                    </Menu.Item>
-
-                    <Menu.Item
-                      leftSection={<IconChevronDown size={16} />}
-                      onClick={() => handleMove('down')}
-                      disabled={isLast}
-                    >
-                      {t('move_down')}
-                    </Menu.Item>
-
-                    <Menu.Item
-                      leftSection={<IconRefresh size={16} />}
-                      onClick={() => handleRefresh()}
-                    >
-                      {t('refresh_metadata')}
-                    </Menu.Item>
-
-                    <Menu.Divider />
-
-                    <Menu.Item
-                      color="red"
-                      leftSection={<IconTrash size={16} />}
-                      onClick={() => handleDelete()}
-                    >
-                      {t('delete')}
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
-              </Group>
-            </Group>
-          </Card>
-        </Box>
-      </Group>
-    </Box>
+            </Card>
+          </Box>
+        </Group>
+      </Box>
 
       <Modal opened={opened} onClose={close} title={t('confirm_delete_title')} centered>
         <Text size="sm" mb="lg">

@@ -67,29 +67,29 @@ export function AuthAccountItem({
           opacity: disabled ? 0.6 : undefined,
         }}
       >
-      <Card
-        padding="sm"
-        radius={0}
-        className="picker-item picker-item-hoverable"
-        style={{
-          backgroundColor: 'transparent',
-          border: 'none',
-        }}
-      >
-        <Group wrap="nowrap" gap="md" align="center">
-          <Avatar src={avatar} radius="xl" size="md" />
-          <Stack gap={0} style={{ flex: 1, overflow: 'hidden' }}>
-            <Text fw={500} size="sm" truncate>{displayName}</Text>
-            <Text size="xs" c="dimmed" truncate>
-              {item.handle} ({item.did})
-            </Text>
-            <Text size="10px" c="dimmed" truncate style={{ opacity: 0.8 }}>
-              {item.pdsUrl}
-            </Text>
-          </Stack>
-        </Group>
-      </Card>
-    </UnstyledButton>
-  </Box>
+        <Card
+          padding="sm"
+          radius={0}
+          className="picker-item picker-item-hoverable"
+          style={{
+            backgroundColor: 'transparent',
+            border: 'none',
+          }}
+        >
+          <Group wrap="nowrap" gap="md" align="center">
+            <Avatar src={avatar} radius="xl" size="md" />
+            <Stack gap={0} style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
+              <Text fw={500} size="sm" truncate>{displayName}</Text>
+              <Text size="xs" c="dimmed" truncate>
+                @{item.handle} ({item.did})
+              </Text>
+              <Text size="10px" c="dimmed" truncate style={{ opacity: 0.8 }}>
+                {new URL(item.pdsUrl).hostname}
+              </Text>
+            </Stack>
+          </Group>
+        </Card>
+      </UnstyledButton>
+    </Box>
   );
 }

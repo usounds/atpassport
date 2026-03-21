@@ -12,9 +12,9 @@ const intlMiddleware = createMiddleware(routing);
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   if (
-    pathname.startsWith('/_next') || 
+    pathname.startsWith('/_next') ||
     pathname.includes('webpack-hmr') ||
     pathname.includes('.')
   ) {
@@ -30,7 +30,7 @@ export default async function middleware(request: NextRequest) {
       const { payload } = await jwtVerify(sessionCookie.value, SECRET_KEY);
       uuid = payload.uuid as string;
       isValid = true;
-      
+
       // Extend DynamoDB TTL asynchronously
       touchSession(uuid).catch(e => console.error('[Middleware] touchSession failed:', e));
     } catch (e) {
@@ -40,8 +40,8 @@ export default async function middleware(request: NextRequest) {
 
   const response = intlMiddleware(request);
 
-  // Only set cookie if it's not valid AND it's a GET request
-  if (!isValid && request.method === 'GET') {
+  // Set cookie if it's not valid
+  if (!isValid) {
     const finalUuid = uuid || crypto.randomUUID();
     const token = await new SignJWT({ uuid: finalUuid })
       .setProtectedHeader({ alg: 'HS256' })
