@@ -11,6 +11,7 @@ const Popup = () => {
   // Fetch handles from AtPassport API
   useEffect(() => {
     const fetchHandles = async () => {
+      const startTime = Date.now();
       try {
         setLoading(true);
         // We assume atpassport.net is the host for API. 
@@ -30,6 +31,10 @@ const Popup = () => {
       } catch (err: any) {
         setError(err.message === 'Failed to fetch' ? chrome.i18n.getMessage('fetchError') : err.message);
       } finally {
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 500) {
+          await new Promise(resolve => setTimeout(resolve, 500 - elapsed));
+        }
         setLoading(false);
       }
     };
@@ -38,26 +43,68 @@ const Popup = () => {
   }, []);
 
   const handleSelect = async (handle: string) => {
+    setCopyStatus(chrome.i18n.getMessage('processing'));
+    const startTime = Date.now();
+
     try {
       // Query for the active tab
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab || !tab.id) return;
+      if (!tab || !tab.id) {
+        throw new Error('No active tab');
+      }
 
-      // Try auto-filling via Content Script
-      const response = await chrome.tabs.sendMessage(tab.id, { 
-        action: 'autoFillHandle', 
-        handle: handle 
+      // Execute auto-fill script directly in the page using scripting API
+      // This is allowed by the 'activeTab' permission granted upon popup opening
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: (handleValue: string) => {
+          const activeElement = document.activeElement;
+          
+          const fill = (input: HTMLInputElement | HTMLTextAreaElement) => {
+            input.value = handleValue;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          };
+
+          // Try to fill active element if it's an input/textarea
+          if (activeElement && (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement)) {
+            fill(activeElement as HTMLInputElement);
+            return { success: true };
+          }
+
+          // Fallback: look for common handle inputs
+          const handleInputs = document.querySelectorAll('input[name="handle"], input[placeholder*="handle"], input[type="text"]');
+          if (handleInputs.length > 0) {
+            fill(handleInputs[0] as HTMLInputElement);
+            return { success: true };
+          }
+
+          return { success: false };
+        },
+        args: [handle],
       });
+
+      const response = results && results[0] && (results[0].result as { success: boolean });
+
+      // Ensure minimum display time for "Processing"
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 500) {
+        await new Promise(resolve => setTimeout(resolve, 500 - elapsed));
+      }
 
       if (response && response.success) {
         setCopyStatus(chrome.i18n.getMessage('filledSuccess'));
       } else {
-        // Fallback: Copy to clipboard if injection failed
+        // Fallback: Copy to clipboard if no suitable input was found
         await navigator.clipboard.writeText(handle);
         setCopyStatus(chrome.i18n.getMessage('copiedFallback'));
       }
     } catch (err) {
       // Fallback: Script might not be injectable (e.g., chrome:// or specialized pages)
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 500) {
+        await new Promise(resolve => setTimeout(resolve, 500 - elapsed));
+      }
       await navigator.clipboard.writeText(handle);
       setCopyStatus(chrome.i18n.getMessage('copiedIncompatible'));
     }
@@ -72,14 +119,32 @@ const Popup = () => {
 
   return (
     <div style={{ width: '300px', padding: '16px', fontFamily: 'sans-serif' }}>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px', gap: '8px' }}>
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+      `}</style>
+      <div 
+        onClick={() => chrome.tabs.create({ url: 'https://atpassport.net' })}
+        onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
+        onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+        style={{ display: 'flex', alignItems: 'center', marginBottom: '16px', gap: '8px', cursor: 'pointer', transition: 'opacity 0.2s' }}
+        title="Go to atpassport.net"
+      >
         <img src="/icons/icon48.png" alt="icon" style={{ width: '24px', height: '24px' }} />
         <h2 style={{ fontSize: '18px', margin: 0, color: '#333' }}>@passport</h2>
       </div>
 
       {loading && (
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-          <Loader2 className="animate-spin" style={{ margin: '0 auto' }} color="#666" />
+        <div style={{ padding: '20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+          <Loader2 className="animate-spin" color="#666" />
+          <div style={{ fontSize: '14px', color: '#666' }}>
+            {chrome.i18n.getMessage('processing')}
+          </div>
         </div>
       )}
 
@@ -106,40 +171,56 @@ const Popup = () => {
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {handles.map((handle) => (
-          <button
-            key={handle}
-            onClick={() => handleSelect(handle)}
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'space-between',
-              padding: '12px', 
-              background: '#f8f9fa', 
-              border: '1px solid #e9ecef', 
-              borderRadius: '8px',
-              textAlign: 'left',
-              cursor: 'pointer',
-              fontSize: '15px',
-              fontWeight: 500,
-              color: '#495057',
-              transition: 'background 0.2s'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.background = '#e9ecef'}
-            onMouseOut={(e) => e.currentTarget.style.background = '#f8f9fa'}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <User size={16} />
-              {handle}
-            </div>
-            <Copy size={14} color="#adb5bd" />
-          </button>
-        ))}
-      </div>
+      {!loading && !error && handles.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {handles.map((handle) => (
+            <button
+              key={handle}
+              onClick={() => handleSelect(handle)}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                padding: '12px', 
+                background: '#f8f9fa', 
+                border: '1px solid #e9ecef', 
+                borderRadius: '8px',
+                textAlign: 'left',
+                cursor: 'pointer',
+                fontSize: '15px',
+                fontWeight: 500,
+                color: '#495057',
+                transition: 'background 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#e9ecef'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#f8f9fa'}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <User size={16} />
+                {handle}
+              </div>
+              <Copy size={14} color="#adb5bd" />
+            </button>
+          ))}
+        </div>
+      )}
 
       {copyStatus && (
-        <div style={{ position: 'fixed', bottom: '16px', left: '16px', right: '16px', padding: '8px', background: '#4caf50', color: 'white', borderRadius: '4px', textAlign: 'center', fontSize: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+        <div style={{ 
+          position: 'fixed', bottom: '16px', left: '16px', right: '16px', 
+          padding: '8px', 
+          background: copyStatus === chrome.i18n.getMessage('processing') ? '#333' : '#4caf50', 
+          color: 'white', 
+          borderRadius: '4px', 
+          textAlign: 'center', 
+          fontSize: '12px', 
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}>
+          {copyStatus === chrome.i18n.getMessage('processing') && <Loader2 size={12} className="animate-spin" />}
           {copyStatus}
         </div>
       )}
