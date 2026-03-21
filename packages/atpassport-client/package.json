@@ -1,16 +1,39 @@
 {
   "name": "@atpassport/client",
-  "version": "1.0.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "version": "0.1.6",
+  "description": "AtPassport client library for integrating secure handle input assist into applications.",
+  "keywords": [
+    "atproto",
+    "bluesky",
+    "handle-manager"
+  ],
+  "author": "usounds.work",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsup src/index.ts --format cjs,esm --dts --minify",
+    "deploy": "pnpm build && npm publish --access public",
     "test": "vitest run"
   },
-  "dependencies": {
-    "jose": "^5.0.0"
-  },
   "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsup": "^8.5.1",
     "typescript": "^5.0.0",
     "vitest": "^2.0.0"
   }

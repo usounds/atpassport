@@ -52,21 +52,24 @@ pnpm build
 ```typescript
 import { AtPassport } from '@atpassport/client';
 
-const passport = new AtPassport(
-  'https://atpassport.us/',
-  '...' // AtPassport の公開鍵 (Optional for URL generation, Required for get)
-);
+const passport = new AtPassport({
+  baseUrl: 'https://atpassport.net', // Optional, default is https://atpassport.net
+  callbackUrl: 'https://myapp.com/callback' // Required
+});
 
-// 1. ハンドルを登録させる (リダイレクト用 URL 生成)
-const registerUrl = passport.registerUrl('alice.bsky.social', 'https://myapp.com/callback');
+// 1. 認証 URL と atpstate の生成 (OAuth のようなフロー)
+const { url, atpstate } = passport.generateAuthUrl({
+  redirect_uri: 'https://myapp.com/dashboard' // 任意のカスタムパラメータ
+});
 
-// 2. 現在のセッションの DID を解決する (リダイレクト用 URL 生成)
-const resolveUrl = passport.resolveUrl('https://myapp.com/callback');
+// atpstate は CSRF 対策のためセッションや Cookie に保存し、
+// callback 受信時に検証することを推奨します。
+// window.location.assign(url);
 
-// 3. コールバックで受け取ったトークンからセッション情報を取得する
-// (URL: https://myapp.com/callback?token=...)
-const session = await passport.get(token);
-console.log(session.did, session.handle);
+// 2. コールバックで受け取った情報をパースする
+const { handle, did, pdsUrl, atpstate: receivedState, customParams } = passport.parseCallback(window.location.href);
+console.log(handle, did, customParams.redirect_uri);
+
 ```
 
 ## ライセンス

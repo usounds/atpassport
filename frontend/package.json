@@ -25,6 +25,7 @@
     "@mantine/notifications": "^8.3.18",
     "@tabler/icons-react": "^3.40.0",
     "cookie": "^1.1.1",
+    "gray-matter": "^4.0.3",
     "jose": "^6.2.2",
     "lucide-react": "^0.511.0",
     "next": "16.1.7",
@@ -32,6 +33,8 @@
     "qrcode.react": "^4.2.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "sst": "^4.5.1",
     "uuid": "^13.0.0"
   },

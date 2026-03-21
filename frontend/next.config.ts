@@ -6,12 +6,14 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   /* config options here */
   serverExternalPackages: [
+    "sst",
     "@atcute/client",
     "@atcute/identity",
     "@atcute/identity-resolver",
     "@atcute/identity-resolver-node",
     "@atcute/bluesky"
   ],
+
   experimental: {
     serverActions: {
       allowedOrigins: ['atpassport.net', 'dev.atpassport.net', 'localhost:3001'],

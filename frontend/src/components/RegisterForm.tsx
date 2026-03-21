@@ -18,13 +18,26 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   const needsConsent = handleCount === 0;
 
   const handleRegister = async () => {
-    if (!handle) return;
+    const formattedHandle = handle.trim().replace(/@/g, '').toLowerCase();
+    const finalHandle = formattedHandle && !formattedHandle.includes('.') 
+      ? `${formattedHandle}.bsky.social` 
+      : formattedHandle;
+
+    if (!finalHandle) return;
     if (needsConsent && !agreed) return;
     setLoading(true);
     setError(null);
 
     try {
-      await registerHandle(handle);
+      const res = await registerHandle(finalHandle);
+      if (res && !res.success) {
+        if (res.error === "Handle not found or missing PDS") {
+          setError(t('handle_not_found'));
+        } else {
+          setError(res.error || t('invalid_handle'));
+        }
+        return;
+      }
       setHandle('');
       setAgreed(false);
       close();
@@ -61,8 +74,14 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
             placeholder={t('placeholder_handle')}
             value={handle}
             onChange={(e) => {
-              setHandle(e.currentTarget.value);
+              const val = e.currentTarget.value.replace(/@/g, '').toLowerCase();
+              setHandle(val);
               setError(null);
+            }}
+            onBlur={() => {
+              if (handle && !handle.includes('.')) {
+                setHandle(`${handle}.bsky.social`);
+              }
             }}
             error={error}
             required

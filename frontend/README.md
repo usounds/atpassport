@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AtPassport Frontend
+
+This is the frontend for AtPassport, built with Next.js and SST Ion.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- AWS account and credentials configured locally.
+- Node.js and `pnpm` installed.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Local Development (with AWS resources)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To run the development server with SST Ion (recommended), which links to DynamoDB and other AWS resources:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1.  **Set the required secrets:**
+    Before the first run, you need to set the `SessionSecret` (at least 32 characters).
+    ```bash
+    npx sst secret set SessionSecret a-very-secret-key-at-least-32-chars-long
+    ```
 
-## Learn More
+2.  **Install dependencies:**
+    ```bash
+    pnpm install
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+3.  **Run SST Dev:**
+    ```bash
+    pnpm run dev:local
+    ```
+    This will start the SST dev console and the Next.js dev server. It will also provision the necessary resources in your AWS account (in a dev stage).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Troubleshooting
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **"Resource is not linked" Error:**
+  If you see an error saying a resource is not linked, or if a previous deployment was interrupted, try refreshing the SST state:
+  ```bash
+  npx sst refresh
+  ```
+  Then restart `pnpm run dev:local`.
 
-## Deploy on Vercel
+## Environment Variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The project uses `.env.local` for local-only configuration that isn't managed by SST.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `SESSION_SECRET`: Fallback secret for local-only runs (non-SST).
+- `DYNAMODB_ENDPOINT`: Used if you are running a local DynamoDB instance.

@@ -1,7 +1,13 @@
-import { Container, Title, Text, Stack, Paper, List, ListItem } from '@mantine/core';
-import { getTranslations } from 'next-intl/server';
+import { Container, Title, Text, Stack, Paper } from '@mantine/core';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { getMarkdownContent } from '@/lib/markdown';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+export async function generateStaticParams() {
+  return [{ locale: 'en' }, { locale: 'ja' }];
+}
 
 export default async function TermsPage({
   params,
@@ -9,58 +15,38 @@ export default async function TermsPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'Terms' });
+  const { data, content } = await getMarkdownContent('terms', locale);
 
   return (
     <>
       <Header />
       <Container size="sm" py="xl">
         <Stack gap="xl">
-          <Paper withBorder p="xl" radius="md">
+          <Paper withBorder p="xl" radius="md" shadow="sm">
             <Stack gap="lg">
               <div>
-                <Title order={2}>{t('title')}</Title>
-                <Text size="sm" c="dimmed" mt="xs">{t('last_updated')}</Text>
+                <Title order={2}>{data.title}</Title>
+                <Text size="sm" c="dimmed" mt="xs">
+                  {locale === 'ja' ? `最終更新日: ${data.last_updated}` : `Last updated: ${data.last_updated}`}
+                </Text>
               </div>
 
-              <div>
-                <Title order={4} mb="xs">{t('section1_title')}</Title>
-                <Text size="sm">{t('section1_text')}</Text>
-              </div>
-
-              <div>
-                <Title order={4} mb="xs">{t('section2_title')}</Title>
-                <Text size="sm" mb="xs">{t('section2_text')}</Text>
-                <List size="sm" withPadding>
-                  <ListItem>{t('section2_item1')}</ListItem>
-                  <ListItem>{t('section2_item2')}</ListItem>
-                  <ListItem>{t('section2_item3')}</ListItem>
-                </List>
-              </div>
-
-              <div>
-                <Title order={4} mb="xs">{t('section3_title')}</Title>
-                <Text size="sm" mb="xs">{t('section3_text')}</Text>
-                <List size="sm" withPadding>
-                  <ListItem>{t('section3_item1')}</ListItem>
-                  <ListItem>{t('section3_item2')}</ListItem>
-                  <ListItem>{t('section3_item3')}</ListItem>
-                </List>
-              </div>
-
-              <div>
-                <Title order={4} mb="xs">{t('section4_title')}</Title>
-                <Text size="sm">{t('section4_text')}</Text>
-              </div>
-
-              <div>
-                <Title order={4} mb="xs">{t('section5_title')}</Title>
-                <Text size="sm">{t('section5_text')}</Text>
-              </div>
-
-              <div>
-                <Title order={4} mb="xs">{t('section6_title')}</Title>
-                <Text size="sm">{t('section6_text')}</Text>
+              <div style={{ lineHeight: 1.6 }}>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h2: ({ children }) => <Title order={4} mb="xs" mt="lg">{children}</Title>,
+                    p: ({ children }) => <Text size="sm" mb="sm" style={{ whiteSpace: 'pre-wrap' }}>{children}</Text>,
+                    ul: ({ children }) => <Stack gap={4} mb="md" pl="md" style={{ listStyleType: 'disc' }}>{children}</Stack>,
+                    li: ({ children }) => (
+                      <div style={{ display: 'list-item', fontSize: 'var(--mantine-font-size-sm)' }}>
+                        {children}
+                      </div>
+                    ),
+                  }}
+                >
+                  {content}
+                </ReactMarkdown>
               </div>
             </Stack>
           </Paper>
@@ -71,3 +57,4 @@ export default async function TermsPage({
     </>
   );
 }
+

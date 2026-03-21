@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+import type { Viewport } from 'next';
 import { Geist, Geist_Mono } from "next/font/google";
 import { ColorSchemeScript, MantineProvider, createTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, getTranslations } from 'next-intl/server';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import "./globals.css";
@@ -18,9 +18,62 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "@passport",
-  description: "Identity management for atproto",
+
+export async function generateMetadata(props: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await props.params;
+  const t = await getTranslations({ locale, namespace: "Home" });
+
+  return {
+    title: {
+      default: t('title'),
+      template: `%s | ${t('title')}`,
+    },
+    description: t('description'),
+    metadataBase: new URL('https://atpassport.net'),
+    alternates: {
+      canonical: '/',
+      languages: {
+        'en': '/en',
+        'ja': '/ja',
+      },
+    },
+    openGraph: {
+      title: t('title'),
+      description: t('description'),
+      url: 'https://atpassport.net',
+      siteName: t('title'),
+      images: [
+        {
+          url: '/atpassportOgp.png',
+          width: 1200,
+          height: 630,
+          alt: t('title'),
+        },
+      ],
+      locale: locale,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('title'),
+      description: t('description'),
+      images: ['/atpassportOgp.png'],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+    icons: {
+      icon: '/favicon.ico',
+      apple: '/icon128.svg',
+    },
+  };
+}
+
+export const viewport: Viewport = {
+  themeColor: '#1A237E',
 };
 
 const theme = createTheme({

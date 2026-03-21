@@ -8,6 +8,7 @@ import { TicketsPlane } from 'lucide-react';
 import classes from './Header.module.css';
 
 import { IconShare } from '@tabler/icons-react';
+import Image from 'next/image';
 import { ShareModal } from './ShareModal';
 
 const links = [
@@ -59,7 +60,7 @@ export function Header() {
     <header className={classes.header}>
       <Container size="sm" className={classes.inner}>
         <a href="/" className={classes.logo}>
-          <img src="/icon128.svg" alt="logo" style={{ width: '32px', height: '32px' }} />
+          <Image src="/icon128.svg" alt="logo" width={24} height={24} />
           <Title order={3}>{t('title')}</Title>
         </a>
 

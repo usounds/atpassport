@@ -8,13 +8,13 @@ import { getUuidByShareToken, deleteShareToken } from './share';
 import { createSessionToken, SESSION_COOKIE_NAME } from './session';
 import { cookies } from 'next/headers';
 
-export async function registerHandle(handle: string) {
+export async function registerHandle(handle: string): Promise<{ success: boolean; error?: string }> {
   const uuid = await getSessionUuid();
   console.log(`[ServerAction:registerHandle] START uuid=${uuid}, handle=${handle}`);
 
   if (!uuid) {
     console.error('[ServerAction:registerHandle] ERROR: No UUID found in session');
-    throw new Error("No session found");
+    return { success: false, error: "No session found" };
   }
 
   const result = await resolveIdentity(handle);
@@ -22,14 +22,20 @@ export async function registerHandle(handle: string) {
 
   if (!result || !result.did || !result.pdsUrl) {
     console.error('[ServerAction:registerHandle] ERROR: Could not resolve handle to DID/PDS');
-    throw new Error("Handle not found or missing PDS");
+    return { success: false, error: "Handle not found or missing PDS" };
   }
 
   const { did, pdsUrl } = result;
 
-  await addAssociation(uuid, did, handle, pdsUrl);
-  console.log(`[ServerAction:registerHandle] SUCCESS: Added association with PDS URL`);
-  revalidatePath('/[locale]', 'page');
+  try {
+    await addAssociation(uuid, did, handle, pdsUrl);
+    console.log(`[ServerAction:registerHandle] SUCCESS: Added association with PDS URL`);
+    revalidatePath('/[locale]', 'page');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[ServerAction:registerHandle] ERROR: Failed to add association', error);
+    return { success: false, error: "Internal server error" };
+  }
 }
 
 export async function setPrimaryAssociation(did: string) {
