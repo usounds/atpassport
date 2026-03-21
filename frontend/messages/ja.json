@@ -21,7 +21,9 @@
     "confirm_delete_text": "登録済みハンドルから {handle} を削除してもよろしいですか？",
     "cancel": "キャンセル",
     "manage_handle": "ハンドルの管理",
-    "agree_to_terms": "<terms>利用規約</terms>および<privacy>プライバシーポリシー</privacy>に同意します"
+    "agree_to_terms": "<terms>利用規約</terms>および<privacy>プライバシーポリシー</privacy>に同意します",
+    "share_title": "デバイス間で共有する",
+    "share_description": "QRコードまたはURLを使用して、他のデバイス（PCやスマートフォン）にハンドル情報を同期できます。"
   },
   "Auth": {
     "title": "アカウントを選択してください",
@@ -31,6 +33,7 @@
     "missing_callback": "リクエストが正しくありません (callbackUrl)"
   },
   "Nav": {
+    "about": "About",
     "terms": "利用規約",
     "privacy": "プライバシー"
   },

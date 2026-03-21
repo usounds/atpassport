@@ -21,7 +21,9 @@
     "confirm_delete_text": "Are you sure you want to remove {handle} from your registered handles?",
     "cancel": "Cancel",
     "manage_handle": "Manage Handle",
-    "agree_to_terms": "I agree to the <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>"
+    "agree_to_terms": "I agree to the <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>",
+    "share_title": "Share with Other Devices",
+    "share_description": "Sync your handles with other devices (PC or smartphone) using a QR code or URL."
   },
   "Auth": {
     "title": "Select an account",
@@ -31,6 +33,7 @@
     "missing_callback": "Invalid request (missing callbackUrl)"
   },
   "Nav": {
+    "about": "About",
     "terms": "Terms",
     "privacy": "Privacy"
   },

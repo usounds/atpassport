@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { AssociationList } from '@/components/AssociationList';
 import { RegisterForm } from '@/components/RegisterForm';
+import { ShareSection } from '@/components/ShareSection';
 import { getAssociations } from '@/lib/models';
 import { getSessionUuid } from '@/lib/session';
 
@@ -41,6 +42,9 @@ export default async function HomePage({
           </Suspense>
 
           <RegisterForm handleCount={handleCount} />
+
+          <ShareSection />
+
           <Footer />
         </Stack>
       </Container>
