@@ -76,8 +76,8 @@ export function AssociationItem({
                 border: 'none',
               }}
             >
-              <Group wrap="nowrap" justify="space-between" align="center">
-                <Group wrap="nowrap" gap="md" align="center">
+              <Group wrap="nowrap" justify="space-between" align="center" style={{ minWidth: 0 }}>
+                <Group wrap="nowrap" gap="md" align="center" style={{ flex: 1, minWidth: 0 }}>
                   <Avatar src={avatar} radius="xl" size="md" />
                   <Box style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
                     <Text fw={500} size="sm" truncate>{displayName}</Text>

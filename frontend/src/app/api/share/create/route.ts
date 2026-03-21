@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const token = await createShareToken(uuid);
-    return NextResponse.json({ token, expiresAt: Math.floor(Date.now() / 1000) + 600 });
+    return NextResponse.json({ token, expiresAt: Math.floor(Date.now() / 1000) + 300 });
   } catch (error) {
     console.error("Failed to create share token:", error);
     return NextResponse.json({ error: "Failed to create share token" }, { status: 500 });

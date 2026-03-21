@@ -76,12 +76,12 @@ export function AuthAccountItem({
             border: 'none',
           }}
         >
-          <Group wrap="nowrap" gap="md" align="center">
+          <Group wrap="nowrap" gap="md" align="center" style={{ minWidth: 0 }}>
             <Avatar src={avatar} radius="xl" size="md" />
             <Stack gap={0} style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
               <Text fw={500} size="sm" truncate>{displayName}</Text>
               <Text size="xs" c="dimmed" truncate>
-                @{item.handle} ({item.did})
+                @{item.handle}
               </Text>
               <Text size="10px" c="dimmed" truncate style={{ opacity: 0.8 }}>
                 {new URL(item.pdsUrl).hostname}

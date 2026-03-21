@@ -1,16 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { TextInput, Button, Modal, Stack, Checkbox, Box } from '@mantine/core';
+import { Autocomplete, Avatar, Group, Text, Button, Modal, Stack, Checkbox, Box } from '@mantine/core';
 import { useTranslations } from 'next-intl';
-import { useDisclosure } from '@mantine/hooks';
+import { useDebouncedCallback, useDisclosure } from '@mantine/hooks';
 import { registerHandle } from '@/lib/actions';
 import { IconPlus } from '@tabler/icons-react';
+import { publicAgent } from '@/lib/atproto';
 
 export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   const [handle, setHandle] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<{ value: string; label: string; avatar?: string }[]>([]);
   const [agreed, setAgreed] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
   const t = useTranslations('Home');
@@ -19,8 +21,8 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
 
   const handleRegister = async () => {
     const formattedHandle = handle.trim().replace(/@/g, '').toLowerCase();
-    const finalHandle = formattedHandle && !formattedHandle.includes('.') 
-      ? `${formattedHandle}.bsky.social` 
+    const finalHandle = formattedHandle && !formattedHandle.includes('.')
+      ? `${formattedHandle}.bsky.social`
       : formattedHandle;
 
     if (!finalHandle) return;
@@ -33,6 +35,8 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
       if (res && !res.success) {
         if (res.error === "Handle not found or missing PDS") {
           setError(t('handle_not_found'));
+        } else if (res.error === "already_registered") {
+          setError(t('already_registered'));
         } else {
           setError(res.error || t('invalid_handle'));
         }
@@ -49,6 +53,32 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
     }
   };
 
+  const handleInput = useDebouncedCallback(async (val: string) => {
+    if (!val) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const res = await publicAgent.get("app.bsky.actor.searchActorsTypeahead", {
+        params: {
+          q: val,
+          limit: 5,
+        },
+      });
+
+      if (res.ok && res.data) {
+        setSuggestions(res.data.actors.map((a: any) => ({
+          value: a.handle,
+          label: a.handle,
+          avatar: a.avatar
+        })));
+      }
+    } catch (err) {
+      // console.error("searchActorsTypeahead error", err);
+    }
+  }, 300);
+
   const handleClose = () => {
     setHandle('');
     setError(null);
@@ -58,31 +88,46 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
 
   return (
     <>
-    <Box className="animate-slide-in">
-      <Button
-        fullWidth
-        variant="filled"
-        color="blue"
-        leftSection={<IconPlus size={16} />}
-        onClick={open}
-        radius="md"
-        style={{
-          boxShadow: '0 4px 12px rgba(0, 133, 255, 0.2)',
-        }}
-      >
-        {t('add_handle')}
-      </Button>
-    </Box>
+      <Box className="animate-slide-in">
+        <Button
+          fullWidth
+          variant="filled"
+          color="blue"
+          leftSection={<IconPlus size={16} />}
+          onClick={open}
+          radius="md"
+          style={{
+            boxShadow: '0 4px 12px rgba(0, 133, 255, 0.2)',
+          }}
+        >
+          {t('add_handle')}
+        </Button>
+      </Box>
 
       <Modal opened={opened} onClose={handleClose} title={t('add_handle')} centered radius="lg">
         <Stack gap="md">
-          <TextInput
+          <Autocomplete
             label={t('handle')}
             placeholder={t('placeholder_handle')}
+            required
+            radius="md"
+            autoCapitalize={"none"}
+            autoCorrect={"off"}
+            autoComplete={"off"}
+            spellCheck={false}
             value={handle}
-            onChange={(e) => {
-              const val = e.currentTarget.value.replace(/@/g, '').toLowerCase();
+            data={suggestions}
+            renderOption={({ option }: { option: any }) => (
+              <Group gap="sm">
+                <Avatar src={option.avatar} size={24} radius="xl" />
+                <Text size="sm">{option.value}</Text>
+              </Group>
+            )}
+            onInput={(event) => handleInput(event.currentTarget.value)}
+            onChange={(value) => {
+              const val = value.replace(/@/g, '').toLowerCase();
               setHandle(val);
+              setSuggestions([]);
               setError(null);
             }}
             onBlur={() => {
@@ -91,11 +136,15 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
               }
             }}
             error={error}
-            required
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 handleRegister();
               }
+            }}
+            styles={{
+              input: {
+                fontSize: 16,
+              },
             }}
           />
           {needsConsent && (

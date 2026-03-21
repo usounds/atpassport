@@ -10,7 +10,6 @@ export async function getSessionUuid(): Promise<string | null> {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
     if (!sessionCookie) return null;
-    console.log('[sessionCookie.value] sessionCookie.value:', sessionCookie.value);
 
     const { payload } = await jwtVerify(sessionCookie.value, SECRET_KEY);
     return payload.uuid as string;

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getSessionUuid } from './session';
 import { getAssociations, updateAssociation, deleteAssociation, addAssociation, IdentityAssociation } from './models';
-import { resolveIdentity } from './atproto';
+import { resolveIdentity } from './atproto-server';
 import { getUuidByShareToken, deleteShareToken } from './share';
 import { createSessionToken, SESSION_COOKIE_NAME } from './session';
 import { cookies } from 'next/headers';
@@ -26,6 +26,13 @@ export async function registerHandle(handle: string): Promise<{ success: boolean
   }
 
   const { did, pdsUrl } = result;
+  
+  const associations = await getAssociations(uuid);
+  const exists = associations.some(a => a.did === did || a.handle === handle);
+  if (exists) {
+    console.warn(`[ServerAction:registerHandle] DUPLICATE did=${did}, handle=${handle}`);
+    return { success: false, error: "already_registered" };
+  }
 
   try {
     await addAssociation(uuid, did, handle, pdsUrl);
@@ -132,7 +139,6 @@ export async function syncWithToken(token: string, locale: string): Promise<{ su
     maxAge: 60 * 60 * 24 * 365,
   });
 
-  await deleteShareToken(token);
 
   return { success: true };
 }

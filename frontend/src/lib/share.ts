@@ -13,7 +13,7 @@ export interface ShareTokenRecord {
  */
 export async function createShareToken(targetUuid: string): Promise<string> {
   const token = uuidv4();
-  const expiresAt = Math.floor(Date.now() / 1000) + 600; // 10 minutes
+  const expiresAt = Math.floor(Date.now() / 1000) + 300; // 5 minutes
 
   await db.send(
     new PutCommand({
