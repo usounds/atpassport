@@ -21,7 +21,7 @@ pnpm add @atpassport/client
 ## 使い方
 
 ```typescript
-import { AtPassport } from '@atpassport/client';
+import { AtPassport } from '@atpassport/client/core';
 
 // 1. クライアントの初期化
 const passport = new AtPassport({
@@ -58,7 +58,7 @@ console.log('カスタムパラメータ:', result.customParams['redirect_uri'])
 開発者が独自のUI（例: 「@passportでログイン」ボタン）を実装しやすいように、多言語の標準テキストとSVGアイコンの定数 `AtPassportUI` をエクスポートしています。
 
 ```typescript
-import { AtPassportUI } from '@atpassport/client';
+import { AtPassportUI } from '@atpassport/client/ui';
 
 // 日本語のテキスト
 console.log(AtPassportUI.ja.title); // "@passportでログイン"
@@ -72,7 +72,7 @@ console.log(AtPassportUI.en.description); // 英語の説明文...
 const svgString = AtPassportUI.iconSvg;
 
 // React Component
-import { AtPassportIcon } from '@atpassport/client';
+import { AtPassportIcon } from '@atpassport/client/ui';
 
 // Use it in your React component
 // <AtPassportIcon size={24} />
