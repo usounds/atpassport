@@ -72,10 +72,14 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  if (!opened) return null;
-
   return (
-    <Modal opened={opened} onClose={onClose} title={t('title')} centered size="sm">
+    <Modal 
+      opened={opened} 
+      onClose={onClose} 
+      title={t('title')} 
+      size="sm"
+      closeOnClickOutside={false}
+    >
       <Stack align="center" py="md">
         {loading ? (
           <Stack align="center" py="xl">
