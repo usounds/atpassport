@@ -13,7 +13,6 @@ const nextConfig: NextConfig = {
     "@atcute/identity-resolver-node",
     "@atcute/bluesky"
   ],
-  transpilePackages: ["@atpassport/client"],
 
   experimental: {
     serverActions: {
