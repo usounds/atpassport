@@ -14,13 +14,19 @@ export async function GET(request: NextRequest) {
 
     const response = NextResponse.json({ handles });
 
-    // Handle CORS for browser extensions
+    // Handle CORS
     const origin = request.headers.get("origin");
-    if (origin && (origin.startsWith("chrome-extension://") || origin.startsWith("moz-extension://") || origin.includes("localhost") || origin.includes("atpassport.net"))) {
-      response.headers.set("Access-Control-Allow-Origin", origin);
-      response.headers.set("Access-Control-Allow-Credentials", "true");
-      response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-      response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    if (origin) {
+      const isExtension = origin.startsWith("chrome-extension://") || origin.startsWith("moz-extension://");
+      const isLocalhost = origin === "http://localhost:3000" || origin === "http://localhost:3001";
+      const isMainDomain = origin === "https://atpassport.net";
+
+      if (isExtension || isLocalhost || isMainDomain) {
+        response.headers.set("Access-Control-Allow-Origin", origin);
+        response.headers.set("Access-Control-Allow-Credentials", "true");
+        response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+        response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      }
     }
 
     return response;
@@ -34,11 +40,17 @@ export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get("origin");
   const response = new NextResponse(null, { status: 204 });
 
-  if (origin && (origin.startsWith("chrome-extension://") || origin.startsWith("moz-extension://") || origin.includes("localhost") || origin.includes("atpassport.net"))) {
-    response.headers.set("Access-Control-Allow-Origin", origin);
-    response.headers.set("Access-Control-Allow-Credentials", "true");
-    response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (origin) {
+    const isExtension = origin.startsWith("chrome-extension://") || origin.startsWith("moz-extension://");
+    const isLocalhost = origin === "http://localhost:3000" || origin === "http://localhost:3001";
+    const isMainDomain = origin === "https://atpassport.net";
+
+    if (isExtension || isLocalhost || isMainDomain) {
+      response.headers.set("Access-Control-Allow-Origin", origin);
+      response.headers.set("Access-Control-Allow-Credentials", "true");
+      response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+      response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    }
   }
 
   return response;
