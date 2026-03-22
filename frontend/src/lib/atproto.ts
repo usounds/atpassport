@@ -17,12 +17,22 @@ export const publicAgent = new Client<any, any>({
   },
 });
 
-export async function getProfile(did: string) {
+export interface BskyProfile {
+  did: string;
+  handle: string;
+  displayName?: string;
+  description?: string;
+  avatar?: string;
+  banner?: string;
+  [key: string]: unknown;
+}
+
+export async function getProfile(did: string): Promise<BskyProfile | null> {
   try {
     const { data } = await publicAgent.get("app.bsky.actor.getProfile", {
       params: { actor: did },
     });
-    return data;
+    return data as BskyProfile;
   } catch (e) {
     return null;
   }

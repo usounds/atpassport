@@ -17,7 +17,7 @@
     "@atcute/identity": "^1.1.4",
     "@atcute/identity-resolver": "^1.2.2",
     "@atcute/identity-resolver-node": "^1.0.3",
-    "@atpassport/client": "^0.1.10",
+    "@atpassport/client": "0.1.22",
     "@aws-sdk/client-dynamodb": "^3.1014.0",
     "@aws-sdk/lib-dynamodb": "^3.1014.0",
     "@emotion/react": "^11.14.0",

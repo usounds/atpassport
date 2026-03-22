@@ -29,25 +29,25 @@ describe('Actions Library', () => {
   describe('registerHandle', () => {
     it('should register a new handle successfully', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:new', handle: 'new.handle', pdsUrl: 'http://pds' });
+      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:plc:new', handle: 'new.handle', pdsUrl: 'http://pds' });
       vi.mocked(getAssociations).mockResolvedValue([]);
       vi.mocked(addAssociation).mockResolvedValue({} as any);
 
       const result = await registerHandle(mockHandle);
 
       expect(result.success).toBe(true);
-      expect(addAssociation).toHaveBeenCalledWith(mockUuid, 'did:new', 'new.handle', 'http://pds');
+      expect(addAssociation).toHaveBeenCalledWith(mockUuid, 'did:plc:new', 'new.handle', 'http://pds');
     });
 
     it('should update metadata if DID already exists', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:existing', handle: 'new.handle', pdsUrl: 'http://new-pds' });
-      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:existing', handle: 'old.handle' } as any]);
+      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:plc:existing', handle: 'new.handle', pdsUrl: 'http://new-pds' });
+      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:plc:existing', handle: 'old.handle' } as any]);
 
       const result = await registerHandle(mockHandle);
 
       expect(result.success).toBe(true);
-      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:existing', {
+      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:plc:existing', {
         handle: 'new.handle',
         pdsUrl: 'http://new-pds'
       });
@@ -59,26 +59,26 @@ describe('Actions Library', () => {
     it('should update primary status', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { did: 'did:1', isPrimary: true } as any,
-        { did: 'did:2', isPrimary: false } as any,
+        { did: 'did:plc:1', isPrimary: true } as any,
+        { did: 'did:plc:2', isPrimary: false } as any,
       ]);
 
-      await setPrimaryAssociation('did:2');
+      await setPrimaryAssociation('did:plc:2');
 
-      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:2', { isPrimary: true });
-      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:1', { isPrimary: false });
+      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:plc:2', { isPrimary: true });
+      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:plc:1', { isPrimary: false });
     });
   });
 
   describe('refreshAssociation', () => {
     it('should update PDS URL and handle on success', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:1', handle: 'new-h1', pdsUrl: 'http://new-pds' });
+      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:plc:1', handle: 'new.h1', pdsUrl: 'http://new-pds' });
 
-      await refreshAssociation('did:1');
+      await refreshAssociation('did:plc:1');
 
-      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:1', { 
-        handle: 'new-h1', 
+      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:plc:1', { 
+        handle: 'new.h1', 
         pdsUrl: 'http://new-pds' 
       });
     });
@@ -88,21 +88,21 @@ describe('Actions Library', () => {
     it('should swap sort orders when moving up', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { did: 'did:1', sortOrder: 0 } as any,
-        { did: 'did:2', sortOrder: 1 } as any,
+        { did: 'did:plc:1', sortOrder: 0 } as any,
+        { did: 'did:plc:2', sortOrder: 1 } as any,
       ]);
 
-      await moveAssociation('did:2', 'up');
+      await moveAssociation('did:plc:2', 'up');
 
-      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:2', { sortOrder: 0 });
-      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:1', { sortOrder: 1 });
+      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:plc:2', { sortOrder: 0 });
+      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:plc:1', { sortOrder: 1 });
     });
 
     it('should not move if already at the top', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:1', sortOrder: 0 } as any]);
+      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:plc:1', sortOrder: 0 } as any]);
 
-      await moveAssociation('did:1', 'up');
+      await moveAssociation('did:plc:1', 'up');
 
       expect(updateAssociation).not.toHaveBeenCalled();
     });

@@ -20,7 +20,7 @@ export function ShareSection() {
         className="premium-card"
         style={{ overflow: 'hidden', position: 'relative' }}
       >
-        <Group justify="space-between" align="center" wrap="nowrap">
+        <Group justify="space-between" align="center" wrap="wrap" gap="md">
           <Stack gap={2} style={{ flex: 1 }}>
             <Group gap="xs">
               <IconShare size={20} color="var(--mantine-color-blue-6)" />

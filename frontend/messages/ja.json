@@ -31,7 +31,18 @@
     "moving_to": "{domain} に移動",
     "authenticating": "{domain} へ認証中です...",
     "no_accounts": "登録されているハンドルがありません",
-    "missing_callback": "リクエストが正しくありません (callbackUrl)"
+    "missing_callback": "リクエストが正しくありません (callbackUrl)",
+    "register_and_auth": "@{handle} を登録して進む",
+    "confirm_registration": "このハンドルはまだ@passportに登録されていません。"
+  },
+  "Add": {
+    "title": "ハンドルの追加",
+    "description": "@{handle} を@passportに登録しますか？",
+    "already_registered": "このハンドルはすでに登録されています。",
+    "register_and_continue": "登録して進む",
+    "register_only": "登録する",
+    "invalid_handle": "無効なハンドルです",
+    "success": "@{handle} を登録しました"
   },
   "Nav": {
     "about": "About",
@@ -65,6 +76,15 @@
     "setup": "1. セットアップ",
     "custom_params": "カスタムパラメータ",
     "add_param": "パラメータを追加",
+    "register_handle": "登録するハンドル",
+    "add_specific_handle": "@{handle} を@passportに登録する",
+    "tab_auth": "アカウント選択",
+    "tab_add": "直接登録",
+    "auth_flow_title": "標準の選択フロー",
+    "auth_flow_description": "登録済みのハンドルからユーザーに選択させます。",
+    "add_flow_title": "直接登録フロー",
+    "add_flow_description": "特定のハンドルを指定して登録を促します。",
+    "callback_received": "コールバック受信済み",
     "param_key": "キー",
     "param_value": "値",
     "login_button_label": "@passportでログイン",
@@ -74,6 +94,7 @@
     "did": "DID",
     "pds_url": "PDS URL",
     "atpstate": "atpstate",
-    "returned_params": "返却されたカスタムパラメータ"
+    "returned_params": "返却されたカスタムパラメータ",
+    "try_another": "別のハンドルで試す"
   }
 }

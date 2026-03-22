@@ -31,7 +31,18 @@
     "moving_to": "Moving to {domain}",
     "authenticating": "Authenticating with {domain}...",
     "no_accounts": "No registered handles found",
-    "missing_callback": "Invalid request (missing callbackUrl)"
+    "missing_callback": "Invalid request (missing callbackUrl)",
+    "register_and_auth": "Register @{handle} and continue",
+    "confirm_registration": "This handle is not registered in @passport yet."
+  },
+  "Add": {
+    "title": "Add Handle",
+    "description": "Do you want to register @{handle} to @passport?",
+    "already_registered": "This handle is already registered.",
+    "register_and_continue": "Register and Continue",
+    "register_only": "Register",
+    "invalid_handle": "Invalid handle",
+    "success": "Successfully registered @{handle}"
   },
   "Nav": {
     "about": "About",
@@ -65,6 +76,15 @@
     "setup": "1. Setup",
     "custom_params": "Custom Parameters",
     "add_param": "Add Parameter",
+    "register_handle": "Handle to register",
+    "add_specific_handle": "Register @{handle} to @passport",
+    "tab_auth": "Authentication",
+    "tab_add": "Direct Registration",
+    "auth_flow_title": "Standard Picker Flow",
+    "auth_flow_description": "Let user pick from their registered handles.",
+    "add_flow_title": "Direct Registration Flow",
+    "add_flow_description": "Directly suggest a specific handle for registration.",
+    "callback_received": "Callback Received",
     "param_key": "Key",
     "param_value": "Value",
     "login_button_label": "Login with @passport",
@@ -74,6 +94,7 @@
     "did": "DID",
     "pds_url": "PDS URL",
     "atpstate": "atpstate",
-    "returned_params": "Returned Custom Parameters"
+    "returned_params": "Returned Custom Parameters",
+    "try_another": "Try with another handle"
   }
 }

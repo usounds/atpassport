@@ -25,33 +25,44 @@ import { AtPassport } from '@atpassport/client/core';
 
 // 1. Initialize the client
 const passport = new AtPassport({
-  callbackUrl: 'https://myapp.com/oauth/login', // Required: the URL to redirect back to
-  lang: 'en' // Optional: 'en' or 'ja' (defaults to no prefix if omitted)
+  callbackUrl: 'https://myapp.com/api/atpassport/callback', // The URL to redirect back to
+  lang: 'en', // Optional: 'en', 'ja', 'pt', 'de', 'fr', 'es' (default matches browser or 'en')
+  requiredParams: { returnTo: 'string' } // Define required parameters for type safety
 });
 
-// 2. (Optional) Generate the authentication URL and redirect
-// You can pass custom parameters (e.g., redirect_uri to return to the original page)
+// 2. Generate the authentication URL and atpstate (for CSRF protection)
+// In TypeScript, 'returnTo' (defined in requiredParams) is required
 const { url, atpstate } = passport.generateAuthUrl({
-  redirect_uri: '/dashboard'
+  returnTo: window.location.href
 });
 
-// 3. (Optional) For security, save the generated atpstate to sessionStorage or cookies to prevent CSRF
-sessionStorage.setItem('atpstate', atpstate);
+// 3. Save atpstate to cookies or session to prevent CSRF
+document.cookie = `atpstate=${atpstate}; path=/; max-age=600; SameSite=Lax`;
 
-// 4. Redirect the user to the @passport handle selection screen
-window.location.assign(url);
+// 4. Redirect the user to @passport
+window.location.href = url;
 ```
 
 ```typescript
-// Receive the parameters on your callback page (https://myapp.com/oauth/callback)
-// (Optional) By passing the saved atpstate as the second argument, parseCallback will automatically
-// throw an Error if the states don't match (preventing CSRF attacks).
-const savedState = sessionStorage.getItem('atpstate');
-const result = passport.parseCallback(window.location.href, savedState);
+// Receive the parameters on your callback page (Next.js API Route example at https://myapp.com/api/atpassport/callback)
 
-console.log('Login successful:', result);
-console.log('Authenticated User:', result.handle);
-console.log('Custom Parameters:', result.customParams['redirect_uri']); // Outputs '/dashboard'
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const expectedState = getCookie(req, 'atpstate'); // Get saved state from cookie
+  
+  try {
+    const result = passport.parseCallback(req.url, expectedState);
+    
+    console.log('Login successful:', result.handle);
+    console.log('Custom Parameters:', result.customParams.returnTo);
+    
+    // Continue the OAuth flow... (e.g., call authorize() with the received handle using your OAuth library)
+    const authUrl = await client.authorize(result.handle);
+
+  } catch (err) {
+    console.error('Finalize login failed:', err);
+  }
+}
 ```
 
 ## Standard UI Texts and Icons for Integration
@@ -76,6 +87,22 @@ import { AtPassportIcon } from '@atpassport/client/ui';
 
 // Use it in your React component
 // <AtPassportIcon size={24} />
+```
+
+### Handle Input Assist (Picker)
+
+You can allow users to select a handle they have already registered in @passport via a popup window.
+
+```typescript
+// 1. Open a popup to let the user select a handle
+const handle = await passport.pick();
+if (handle) {
+  console.log('Selected handle:', handle);
+}
+
+// 2. Attach auto-assist to an existing input element
+const input = document.getElementById('handle-input');
+passport.decorate(input);
 ```
 
 ---

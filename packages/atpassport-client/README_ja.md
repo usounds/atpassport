@@ -25,32 +25,44 @@ import { AtPassport } from '@atpassport/client/core';
 
 // 1. クライアントの初期化
 const passport = new AtPassport({
-  callbackUrl: 'https://myapp.com/oauth/login', // 必須: 認証後に戻ってくるURL
-  lang: 'ja' // 任意: 'en' または 'ja' (指定なしの場合はプレフィックスなし)
+  callbackUrl: 'https://myapp.com/api/atpassport/callback', // 必須: 認証後に戻ってくるURL
+  lang: 'ja', // 任意: 'en', 'ja', 'pt', 'de', 'fr', 'es'
+  requiredParams: { returnTo: 'string' } // 型安全のための必須パラメータを定義
 });
 
-// 2. (任意)認証URLの生成とリダイレクト
-// カスタムパラメータ（例: ログイン後に元いたページに戻すための redirect_uri など）を指定できます
+// 2. 認証URLの生成と atpstate (CSRF対策用) の取得
+// TypeScript の場合、requiredParamsで定義したパラメータであるreturnToが必須となります
 const { url, atpstate } = passport.generateAuthUrl({
-  redirect_uri: '/dashboard'
+  returnTo: window.location.href
 });
 
-// 3.(任意)セキュリティのため、発行された atpstate をセッションや sessionStorage 等に保存します
-sessionStorage.setItem('atpstate', atpstate);
+// 3. セキュリティのため、発行された atpstate をクッキー等に保存します
+document.cookie = `atpstate=${atpstate}; path=/; max-age=600; SameSite=Lax`;
 
 // 4. @passport のハンドル選択画面へリダイレクト
-window.location.assign(url);
+window.location.href = url;
 ```
 
 ```typescript
-// コールバック先 (https://myapp.com/oauth/callback) でのパラメータ受け取り
-// (任意)保存していた atpstate を第2引数に渡すことで、状態が不一致（CSRFの疑い）の場合はエラー（例外）が発生します
-const savedState = sessionStorage.getItem('atpstate');
-const result = passport.parseCallback(window.location.href, savedState);
+// コールバック先 (Next.js の API Route 例（https://myapp.com/api/atpassport/callback）) でのパラメータ受け取り
 
-console.log('ログイン成功:', result);
-console.log('認証ユーザー:', result.handle);
-console.log('カスタムパラメータ:', result.customParams['redirect_uri']); // '/dashboard' が取れる
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const expectedState = getCookie(req, 'atpstate'); // クッキーから保存済みステートを取得
+  
+  try {
+    const result = passport.parseCallback(req.url, expectedState);
+    
+    console.log('ログイン成功:', result.handle);
+    console.log('カスタムパラメータ:', result.customParams.returnTo);
+    
+    // OAuth フローの継続...（各OAuthライブラリのauthorizeを受け取ったhandleで継続する）
+    const authUrl = await client.authorize(result.handle);
+
+  } catch (err) {
+    console.error('ログイン処理に失敗しました:', err);
+  }
+}
 ```
 
 ## UI組み込み用の標準テキスト・アイコン
@@ -76,6 +88,22 @@ import { AtPassportIcon } from '@atpassport/client/ui';
 
 // Use it in your React component
 // <AtPassportIcon size={24} />
+```
+
+### ハンドル入力のアシスト (Picker)
+
+ユーザーが既に @passport に登録しているハンドルを、ポップアップ画面から選択させることができます。
+
+```typescript
+// 1. ポップアップを開いてハンドルを選択させる
+const handle = await passport.pick();
+if (handle) {
+  console.log('選択されたハンドル:', handle);
+}
+
+// 2. 既存の input 要素にフォーカス時の自動補完を適用する
+const input = document.getElementById('handle-input');
+passport.decorate(input);
 ```
 
 ---

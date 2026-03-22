@@ -11,7 +11,7 @@ export function AuthAccountItem({
   domain,
   onSelect,
   disabled,
-  index = 0
+  index = 0,
 }: {
   item: any;
   callback: string;
@@ -23,7 +23,7 @@ export function AuthAccountItem({
 }) {
   const t = useTranslations('Auth');
 
-  const handleSelect = () => {
+  const handleSelect = async () => {
     if (disabled) return;
 
     // Show notification
@@ -39,6 +39,7 @@ export function AuthAccountItem({
     onSelect();
 
     try {
+      // Callback mode (default)
       const url = new URL(callback);
       url.searchParams.set('handle', item.handle);
       url.searchParams.set('did', item.did);
@@ -48,7 +49,7 @@ export function AuthAccountItem({
       }
       window.location.replace(url.toString());
     } catch (e) {
-      console.error('Failed to construct callback URL', e);
+      console.error('Failed to construct redirect URL', e);
       notifications.hide('auth-loading');
     }
   };

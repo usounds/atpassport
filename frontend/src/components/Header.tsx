@@ -40,7 +40,12 @@ export function Header() {
         style={{ border: '1px solid light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))' }}
       >
         <Menu.Label c="light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-2))" fw={700}>
-          {locale === 'ja' ? '言語を選択' : 'Select Language'}
+          {locale === 'ja' ? '言語を選択' : 
+           locale === 'pt' ? 'Selecionar Idioma' :
+           locale === 'de' ? 'Sprache wählen' :
+           locale === 'fr' ? 'Choisir la langue' :
+           locale === 'es' ? 'Seleccionar idioma' :
+           'Select Language'}
         </Menu.Label>
         <Menu.Item 
           onClick={() => handleLocaleChange('en')}
@@ -57,6 +62,38 @@ export function Header() {
           c="light-dark(var(--mantine-color-black), var(--mantine-color-white))"
         >
           日本語
+        </Menu.Item>
+        <Menu.Item 
+          onClick={() => handleLocaleChange('pt')}
+          fw={locale === 'pt' ? 700 : 400}
+          bg={locale === 'pt' ? 'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))' : 'transparent'}
+          c="light-dark(var(--mantine-color-black), var(--mantine-color-white))"
+        >
+          Português
+        </Menu.Item>
+        <Menu.Item 
+          onClick={() => handleLocaleChange('de')}
+          fw={locale === 'de' ? 700 : 400}
+          bg={locale === 'de' ? 'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))' : 'transparent'}
+          c="light-dark(var(--mantine-color-black), var(--mantine-color-white))"
+        >
+          Deutsch
+        </Menu.Item>
+        <Menu.Item 
+          onClick={() => handleLocaleChange('fr')}
+          fw={locale === 'fr' ? 700 : 400}
+          bg={locale === 'fr' ? 'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))' : 'transparent'}
+          c="light-dark(var(--mantine-color-black), var(--mantine-color-white))"
+        >
+          Français
+        </Menu.Item>
+        <Menu.Item 
+          onClick={() => handleLocaleChange('es')}
+          fw={locale === 'es' ? 700 : 400}
+          bg={locale === 'es' ? 'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))' : 'transparent'}
+          c="light-dark(var(--mantine-color-black), var(--mantine-color-white))"
+        >
+          Español
         </Menu.Item>
       </Menu.Dropdown>
     </Menu>

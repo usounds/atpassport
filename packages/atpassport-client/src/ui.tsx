@@ -1,9 +1,14 @@
 import React, { SVGProps } from "react";
 
 /**
- * AtPassport Icon Component for React.
+ * Props for the AtPassportIcon component.
  */
 export interface AtPassportIconProps extends SVGProps<SVGSVGElement> {
+  /**
+   * The size of the icon (width and height). 
+   * Can be a number (px) or a string (e.g., "2rem").
+   * Defaults to 24.
+   */
   size?: number | string;
 }
 
@@ -14,6 +19,12 @@ const getIconSvgString = (size: number | string = 128) => {
   return `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 128 128"><path d="${ICON_PATH_1}" fill="currentColor" transform="translate(54.3,21.1)"/><path d="${ICON_PATH_2}" fill="currentColor" transform="translate(6.8,97.9)"/></svg>`;
 };
 
+/**
+ * AtPassport Icon Component.
+ * A React SVG component representing the AtPassport logo.
+ * 
+ * @param props Props for the SVG element, including optional `size`.
+ */
 export const AtPassportIcon = ({ size = 24, ...props }: AtPassportIconProps) => {
   return (
     <svg
@@ -38,23 +49,53 @@ export const AtPassportIcon = ({ size = 24, ...props }: AtPassportIconProps) => 
 };
 
 /**
- * Standard UI texts and icons for AtPassport integration components.
- * Useful for building "Login with @passport" buttons and explanation dialogues.
+ * Standard UI texts and helper functions for AtPassport integration components.
+ * 
+ * - `ja`: Japanese translations for title, description, and add button.
+ * - `en`: English translations.
+ * - `iconSvg`: Default 128x128 SVG string of the AtPassport icon.
+ * - `getIconSvg(size)`: Returns the icon SVG string with a specific size.
  */
 export const AtPassportUI = {
   ja: {
     title: '@passportでログイン',
-    description: '@passportは、各アプリでのハンドル入力を不要にするハンドルマネージャーです。',
+    description: '@passportは、各atprotoアプリケーションでのハンドル入力を不要にするハンドルマネージャーです。',
+    add: '@passportにハンドルを追加',
   },
   en: {
     title: 'Login with @passport',
-    description: '@passport is a handle manager that eliminates the need for handle entry in each app.',
+    description: '@passport is a handle manager that eliminates the need for handle entry in each atproto application.',
+    add: 'Add handle to @passport',
   },
-  // Standard icon of @passport (128x128)
+  pt: {
+    title: 'Entrar com @passport',
+    description: '@passport é um gerenciador de handles que elimina a necessidade de digitá-los em cada aplicativo atproto.',
+    add: 'Adicionar handle ao @passport',
+  },
+  de: {
+    title: 'Mit @passport anmelden',
+    description: '@passport ist ein Handle-Manager, der die Eingabe von Handles in jeder atproto-Anwendung überflüssig macht.',
+    add: 'Handle zu @passport hinzufügen',
+  },
+  fr: {
+    title: 'Se connecter avec @passport',
+    description: '@passport est un gestionnaire de handles qui élimine le besoin de saisir des handles dans chaque application atproto.',
+    add: 'Ajouter un handle à @passport',
+  },
+  es: {
+    title: 'Iniciar sesión con @passport',
+    description: '@passport es un gestor de handles que elimina la necesidad de introducirlos en cada aplicación atproto.',
+    add: 'Añadir handle a @passport',
+  },
+  /**
+   * Standard icon of @passport as an SVG string (128x128).
+   */
   iconSvg: getIconSvgString(128),
 
   /**
-   * Returns the @passport icon SVG string with a custom size.
+   * Generates the @passport icon SVG string with a custom size.
+   * @param size Width and height of the icon.
+   * @returns SVG string.
    */
   getIconSvg: getIconSvgString,
 };

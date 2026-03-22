@@ -9,7 +9,7 @@ export function AuthAccountList({
   initialItems, 
   callback, 
   atpstate, 
-  domain 
+  domain,
 }: { 
   initialItems: any[]; 
   callback: string; 
