@@ -75,7 +75,6 @@ export async function refreshAssociation(did: string) {
   const result = await resolveIdentity(assoc.handle);
   if (result) {
     await updateAssociation(uuid, did, {
-      did: result.did,
       pdsUrl: result.pdsUrl,
     });
     revalidatePath('/[locale]', 'page');

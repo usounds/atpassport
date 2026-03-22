@@ -75,14 +75,14 @@ export async function getAssociations(uuid: string): Promise<IdentityAssociation
 }
 
 export async function updateAssociation(uuid: string, did: string, updates: Partial<IdentityAssociation>) {
-  const entries = Object.entries(updates);
-  if (entries.length === 0) return;
+  const filteredEntries = Object.entries(updates).filter(([key]) => key !== "uuid" && key !== "did");
+  if (filteredEntries.length === 0) return;
 
   const updateExpressionParts: string[] = [];
   const expressionAttributeNames: Record<string, string> = {};
   const expressionAttributeValues: Record<string, any> = {};
 
-  entries.forEach(([key, value], index) => {
+  filteredEntries.forEach(([key, value], index) => {
     const attrName = `#attr${index}`;
     const attrVal = `:val${index}`;
     updateExpressionParts.push(`${attrName} = ${attrVal}`);

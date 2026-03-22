@@ -41,22 +41,31 @@ export function AssociationItem({
 
   const confirmDelete = async () => {
     setIsUpdating(true);
-    if (onDelete) await onDelete();
-    setIsUpdating(false);
-    close();
+    try {
+      if (onDelete) await onDelete();
+    } finally {
+      setIsUpdating(false);
+      close();
+    }
   };
 
   const handleMove = async (direction: 'up' | 'down') => {
     setIsUpdating(true);
-    if (direction === 'up' && onMoveUp) await onMoveUp();
-    if (direction === 'down' && onMoveDown) await onMoveDown();
-    setIsUpdating(false);
+    try {
+      if (direction === 'up' && onMoveUp) await onMoveUp();
+      if (direction === 'down' && onMoveDown) await onMoveDown();
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleRefresh = async () => {
     setIsUpdating(true);
-    if (onRefresh) await onRefresh();
-    setIsUpdating(false);
+    try {
+      if (onRefresh) await onRefresh();
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const [menuOpened, setMenuOpened] = useState(false);
