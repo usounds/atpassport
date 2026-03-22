@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Title, Text, Stack, Paper, Divider } from '@mantine/core';
+import { Container, Title, Text, Stack, Paper, Divider, Table } from '@mantine/core';
 import { getMarkdownContent } from '@/lib/markdown';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -20,7 +20,7 @@ export default async function AboutPage({
   return (
     <Container size="sm" py="xl">
       <Stack gap="xl">
-        <Paper withBorder p="xl" radius="md" shadow="sm">
+        <Paper withBorder p="xl" radius="md" bg="transparent" style={{ borderStyle: 'dashed' }}>
           <Stack gap="lg">
             <div>
               <Title order={2}>{data.title || 'Untitled'}</Title>
@@ -33,6 +33,65 @@ export default async function AboutPage({
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
+                  table: ({ children }) => (
+                    <div style={{ overflowX: 'auto' }}>
+                      <Table withTableBorder withColumnBorders mb="md" verticalSpacing="xs">
+                        {children}
+                      </Table>
+                    </div>
+                  ),
+                  thead: ({ children }) => <thead>{children}</thead>,
+                  tbody: ({ children }) => <tbody>{children}</tbody>,
+                  tr: ({ children }) => <tr>{children}</tr>,
+                  th: ({ children }) => (
+                    <th style={{ 
+                      padding: '10px 12px', 
+                      borderBottom: '2px solid var(--mantine-color-gray-3)', 
+                      textAlign: 'left', 
+                      backgroundColor: 'rgba(0, 0, 0, 0.03)', 
+                      fontWeight: 600, 
+                      fontSize: 'var(--mantine-font-size-sm)' 
+                    }}>
+                      {children}
+                    </th>
+                  ),
+                  td: ({ children }) => (
+                    <td style={{ 
+                      padding: '10px 12px', 
+                      borderBottom: '1px solid var(--mantine-color-gray-2)', 
+                      fontSize: 'var(--mantine-font-size-sm)' 
+                    }}>
+                      {children}
+                    </td>
+                  ),
+                  code: ({ children }) => (
+                    <code style={{ 
+                      wordBreak: 'break-all', 
+                      overflowWrap: 'anywhere', 
+                      whiteSpace: 'pre-wrap',
+                      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                      padding: '2px 4px',
+                      borderRadius: '4px',
+                      fontSize: '0.9em'
+                    }}>
+                      {children}
+                    </code>
+                  ),
+                  pre: ({ children }) => (
+                    <pre style={{ 
+                      wordBreak: 'break-all', 
+                      overflowWrap: 'anywhere', 
+                      whiteSpace: 'pre-wrap',
+                      backgroundColor: 'rgba(0, 0, 0, 0.03)',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      fontSize: 'var(--mantine-font-size-sm)',
+                      border: '1px solid var(--mantine-color-gray-3)',
+                      marginBottom: '16px'
+                    }}>
+                      {children}
+                    </pre>
+                  ),
                   h2: ({ children }) => <Title order={4} mb="xs" mt="lg">{children}</Title>,
                   h3: ({ children }) => <Title order={5} mb="xs" mt="md">{children}</Title>,
                   p: ({ children }) => (
@@ -40,11 +99,17 @@ export default async function AboutPage({
                       {children}
                     </Text>
                   ),
-                  ul: ({ children }) => <Stack gap={4} mb="md" pl="md" style={{ listStyleType: 'disc' }}>{children}</Stack>,
+                  ul: ({ children }) => <ul style={{ paddingLeft: '20px', marginBottom: '16px', listStyleType: 'disc' }}>{children}</ul>,
+                  ol: ({ children }) => <ol style={{ paddingLeft: '20px', marginBottom: '16px', listStyleType: 'decimal' }}>{children}</ol>,
                   li: ({ children }) => (
-                    <div style={{ display: 'list-item', fontSize: 'var(--mantine-font-size-sm)', wordBreak: 'break-all', overflowWrap: 'anywhere' }}>
+                    <li style={{ 
+                      fontSize: 'var(--mantine-font-size-sm)', 
+                      wordBreak: 'break-all', 
+                      overflowWrap: 'anywhere',
+                      marginBottom: '4px'
+                    }}>
                       {children}
-                    </div>
+                    </li>
                   ),
                   hr: () => <Divider my="xl" />,
                   a: ({ href, children }) => {
@@ -52,10 +117,6 @@ export default async function AboutPage({
                     const finalHref = href?.replace(/https:\/\/(dev\.)?atpassport\.net(\/[a-z]{2})?/, '') || '';
                     
                     if (isInternal && href) {
-                      // Link の href には routing で定義された特定のパスが必要ですが、
-                      // 動的な URL 置換の結果、型チェックが通らなくなるため、
-                      // 型安全な代替手段（例えばテンプレートリテラルの型を利用するなど）も考慮できますが、
-                      // ここでは string リテラルの代入可能範囲に寄せてキャストします。
                       return <Link href={finalHref as "/"} style={{ color: 'var(--mantine-color-blue-6)' }}>{children}</Link>;
                     }
                     return <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>{children}</a>;

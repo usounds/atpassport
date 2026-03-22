@@ -11,10 +11,10 @@ last_updated: "March 21, 2026"
 
 | | @passport Integration | Browser Extension |
 | :--- | :--- | :--- |
-| **Overview** | Integrating features into the site | Installing into the browser |
-| **Availability** | Only on supported sites | **All sites** (works on non-ready sites) |
-| **Benefits** | Best login experience | 1-tap handle input anywhere |
-| **Main Method** | Site-side development | Under development |
+| Overview | Integrating features into the site | Installing into the browser |
+| Availability | Only on supported sites | All sites (works on non-ready sites) |
+| Benefits | Best login experience | 1-tap handle input anywhere |
+| Main Method | Site-side development | [Available on Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) |
 
 
 ## For Users
@@ -22,7 +22,7 @@ Avoid the hassle of typing your handle every time and enjoy a smooth login exper
 
 Registered handles are stored on the server. Sensitive information such as passwords is never stored on this server. The session key is stored securely in your browser's cookies.
 
-Extensions for Chrome and Firefox are currently under development to enable use on sites that do not yet support @passport.
+Extensions for Chrome are [available on the Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) to enable use on sites that do not yet support @passport.
 
 These extensions will allow you to automatically reflect your handle in input fields even on sites that do not support @passport, significantly reducing the effort required during login on any site.
 

@@ -7,7 +7,8 @@
     "dev:local": "npx sst dev",
     "build": "next build",
     "start": "next start",
-    "deploy": "npx sst deploy --stage production",
+    "test": "vitest run",
+    "deploy": "pnpm test && npx sst deploy --stage production",
     "lint": "eslint"
   },
   "dependencies": {
@@ -31,6 +32,7 @@
     "lucide-react": "^0.511.0",
     "next": "16.1.7",
     "next-intl": "^4.8.3",
+    "nextjs-toploader": "^3.9.17",
     "qrcode.react": "^4.2.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -38,15 +40,15 @@
     "remark-gfm": "^4.0.1",
     "sst": "^4.5.1",
     "uuid": "^13.0.0"
-    },
-    "devDependencies": {
+  },
+  "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^20.19.37",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-
+    "@vitest/coverage-v8": "4.1.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.0",
     "jsdom": "^29.0.1",
