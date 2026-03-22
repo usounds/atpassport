@@ -90,7 +90,7 @@ export function AuthAccountItem({
                 @{item.handle}
               </Text>
               <Text size="10px" c="dimmed" truncate style={{ opacity: 0.8 }}>
-                {new URL(item.pdsUrl).hostname}
+                PDS:{new URL(item.pdsUrl).hostname}
               </Text>
             </Stack>
           </Group>

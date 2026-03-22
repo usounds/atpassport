@@ -102,16 +102,16 @@ export function AssociationItem({
                       @{item.handle}
                     </Text>
                     <Text size="10px" c="dimmed" truncate="end" style={{ opacity: 0.8 }}>
-                      {pdsHostname}
+                      PDS:{pdsHostname}
                     </Text>
                   </Box>
                 </Group>
 
                 <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
-                  <Menu 
-                    shadow="md" 
-                    width={200} 
-                    position="bottom-end" 
+                  <Menu
+                    shadow="md"
+                    width={200}
+                    position="bottom-end"
                     radius="md"
                     opened={menuOpened}
                     onChange={setMenuOpened}
@@ -166,10 +166,10 @@ export function AssociationItem({
         </Group>
       </Box>
 
-      <Modal 
-        opened={opened} 
-        onClose={close} 
-        title={t('confirm_delete_title')} 
+      <Modal
+        opened={opened}
+        onClose={close}
+        title={t('confirm_delete_title')}
         closeOnClickOutside={false}
       >
         <Text size="sm" mb="lg">
