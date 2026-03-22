@@ -39,6 +39,11 @@ export function ShareSection() {
             radius="md"
             leftSection={<IconShare size={16} />}
             px="md"
+            h="auto"
+            py="xs"
+            styles={{
+              label: { whiteSpace: 'pre-line', textAlign: 'center' }
+            }}
           >
             {tShare('title')}
           </Button>

@@ -3,6 +3,7 @@
 import { Card, Avatar, Text, Group, UnstyledButton, Stack, Box } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useTranslations } from 'next-intl';
+import { useTopLoader } from 'nextjs-toploader';
 
 export function AuthAccountItem({
   item,
@@ -22,9 +23,13 @@ export function AuthAccountItem({
   index?: number;
 }) {
   const t = useTranslations('Auth');
+  const topLoader = useTopLoader();
 
   const handleSelect = async () => {
     if (disabled) return;
+
+    // Show top loader
+    topLoader.start();
 
     // Show notification
     notifications.show({

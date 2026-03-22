@@ -50,7 +50,7 @@
     "privacy": "Confidentialité"
   },
   "Share": {
-    "title": "Partager avec d'autres appareils",
+    "title": "Partager avec\nd'autres appareils",
     "description": "Scannez le code QR ou copiez l'URL pour activer les mêmes handles sur d'autres appareils.",
     "generate": "Générer un lien de partage",
     "expiryNotice": "Ce lien est valide pendant 5 minutes.",
