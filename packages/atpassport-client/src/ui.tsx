@@ -44,11 +44,11 @@ export const AtPassportIcon = ({ size = 24, ...props }: AtPassportIconProps) => 
 export const AtPassportUI = {
   ja: {
     title: '@passportでログイン',
-    description: '@passportは、各atprotoアプリでハンドルを都度入力する手間が省ける共通ハンドルマネージャーです。',
+    description: '@passportは、各アプリでのハンドル入力を不要にするハンドルマネージャーです。',
   },
   en: {
     title: 'Login with @passport',
-    description: '@passport is a universal handle manager that saves you from typing your handle repeatedly across atproto apps.',
+    description: '@passport is a handle manager that eliminates the need for handle entry in each app.',
   },
   // Standard icon of @passport (128x128)
   iconSvg: getIconSvgString(128),
