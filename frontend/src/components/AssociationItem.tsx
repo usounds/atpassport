@@ -72,11 +72,18 @@ export function AssociationItem({
   const displayName = item.profile?.displayName || item.handle;
   const avatar = item.profile?.avatar;
 
+  let pdsHostname = '';
+  try {
+    pdsHostname = new URL(item.pdsUrl).hostname;
+  } catch (e) {
+    pdsHostname = item.pdsUrl;
+  }
+
   return (
     <>
       <Box className={`animate-slide-in stagger-${Math.min(index + 1, 10)}`}>
-        <Group gap="md" align="center" wrap="nowrap">
-          <Box style={{ flex: 1, opacity: isUpdating ? 0.6 : undefined }}>
+        <Group gap="md" align="center" wrap="nowrap" style={{ minWidth: 0 }}>
+          <Box style={{ flex: 1, opacity: isUpdating ? 0.6 : undefined, minWidth: 0 }}>
             <Card
               padding="sm"
               radius={0}
@@ -90,12 +97,12 @@ export function AssociationItem({
                 <Group wrap="nowrap" gap="md" align="center" style={{ flex: 1, minWidth: 0 }}>
                   <Avatar src={avatar} radius="xl" size="md" />
                   <Box style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
-                    <Text fw={500} size="sm" truncate>{displayName}</Text>
-                    <Text size="xs" c="dimmed" truncate>
-                      @{item.handle} ({item.did})
+                    <Text fw={500} size="sm" truncate="end">{displayName}</Text>
+                    <Text size="xs" c="dimmed" truncate="end">
+                      @{item.handle}
                     </Text>
-                    <Text size="10px" c="dimmed" truncate style={{ opacity: 0.8 }}>
-                      {new URL(item.pdsUrl).hostname}
+                    <Text size="10px" c="dimmed" truncate="end" style={{ opacity: 0.8 }}>
+                      {pdsHostname}
                     </Text>
                   </Box>
                 </Group>

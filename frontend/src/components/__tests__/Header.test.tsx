@@ -7,6 +7,10 @@ import { Header } from '../Header';
 vi.mock('@/i18n/routing', () => ({
   Link: ({ children, href }: any) => <a href={href}>{children}</a>,
   usePathname: () => '/',
+  useRouter: () => ({
+    replace: vi.fn(),
+    push: vi.fn(),
+  }),
 }));
 
 // Add missing translations for Nav

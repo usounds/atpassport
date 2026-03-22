@@ -40,6 +40,7 @@ export async function resolveIdentity(handleOrDid: string) {
 
     return { 
       did: actor.did, 
+      handle: actor.handle,
       pdsUrl: actor.pds 
     };
   } catch (e) {

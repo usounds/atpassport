@@ -14,6 +14,7 @@ vi.mock('@atcute/identity-resolver', () => {
         if (handle === 'valid.bsky.social') {
           return {
             did: 'did:plc:1234',
+            handle: 'valid.bsky.social',
             pds: 'https://pds.bsky.network'
           };
         }
@@ -33,6 +34,7 @@ describe('atproto-server Identity Resolution', () => {
     const result = await resolveIdentity('valid.bsky.social');
     expect(result).toEqual({
       did: 'did:plc:1234',
+      handle: 'valid.bsky.social',
       pdsUrl: 'https://pds.bsky.network'
     });
   });

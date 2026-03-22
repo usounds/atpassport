@@ -7,10 +7,10 @@
     "add_handle": "Add Handle",
     "placeholder_handle": "example.bsky.social",
     "handle": "Handle",
-    "register": "Register",
+    "register": "Add",
     "delete": "Delete",
     "select": "Select",
-    "registering": "Registering...",
+    "registering": "Adding...",
     "invalid_handle": "Invalid handle",
     "handle_not_found": "Handle not found",
     "already_registered": "This handle is already registered",
@@ -27,10 +27,10 @@
     "share_description": "Sync your handles with other devices (PC or smartphone) using a QR code or URL."
   },
   "Auth": {
-    "title": "Select an account",
+    "title": "Select a handle",
     "moving_to": "Moving to {domain}",
     "authenticating": "Authenticating with {domain}...",
-    "no_accounts": "No registered accounts found",
+    "no_accounts": "No registered handles found",
     "missing_callback": "Invalid request (missing callbackUrl)"
   },
   "Nav": {

@@ -29,14 +29,29 @@ describe('Actions Library', () => {
   describe('registerHandle', () => {
     it('should register a new handle successfully', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:123', pdsUrl: 'http://pds' });
+      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:new', handle: 'new.handle', pdsUrl: 'http://pds' });
       vi.mocked(getAssociations).mockResolvedValue([]);
       vi.mocked(addAssociation).mockResolvedValue({} as any);
 
       const result = await registerHandle(mockHandle);
 
       expect(result.success).toBe(true);
-      expect(addAssociation).toHaveBeenCalled();
+      expect(addAssociation).toHaveBeenCalledWith(mockUuid, 'did:new', 'new.handle', 'http://pds');
+    });
+
+    it('should update metadata if DID already exists', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:existing', handle: 'new.handle', pdsUrl: 'http://new-pds' });
+      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:existing', handle: 'old.handle' } as any]);
+
+      const result = await registerHandle(mockHandle);
+
+      expect(result.success).toBe(true);
+      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:existing', {
+        handle: 'new.handle',
+        pdsUrl: 'http://new-pds'
+      });
+      expect(addAssociation).not.toHaveBeenCalled();
     });
   });
 
@@ -56,14 +71,16 @@ describe('Actions Library', () => {
   });
 
   describe('refreshAssociation', () => {
-    it('should update PDS URL on success', async () => {
+    it('should update PDS URL and handle on success', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:1', handle: 'h1' } as any]);
-      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:1', pdsUrl: 'http://new-pds' });
+      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:1', handle: 'new-h1', pdsUrl: 'http://new-pds' });
 
       await refreshAssociation('did:1');
 
-      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:1', { pdsUrl: 'http://new-pds' });
+      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:1', { 
+        handle: 'new-h1', 
+        pdsUrl: 'http://new-pds' 
+      });
     });
   });
 

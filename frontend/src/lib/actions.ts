@@ -10,37 +10,35 @@ import { cookies } from 'next/headers';
 
 export async function registerHandle(handle: string): Promise<{ success: boolean; error?: string }> {
   const uuid = await getSessionUuid();
-  console.log(`[ServerAction:registerHandle] START uuid=${uuid}, handle=${handle}`);
-
-  if (!uuid) {
-    console.error('[ServerAction:registerHandle] ERROR: No UUID found in session');
-    return { success: false, error: "No session found" };
-  }
+  if (!uuid) return { success: false, error: "No session found" };
 
   const result = await resolveIdentity(handle);
-  console.log(`[ServerAction:registerHandle] RESOLVED result=${JSON.stringify(result)}`);
-
-  if (!result || !result.did || !result.pdsUrl) {
-    console.error('[ServerAction:registerHandle] ERROR: Could not resolve handle to DID/PDS');
+  if (!result || !result.did || !result.pdsUrl || !result.handle) {
     return { success: false, error: "Handle not found or missing PDS" };
   }
 
-  const { did, pdsUrl } = result;
-  
+  const { did, pdsUrl, handle: resolvedHandle } = result;
   const associations = await getAssociations(uuid);
-  const exists = associations.some(a => a.did === did || a.handle === handle);
-  if (exists) {
-    console.warn(`[ServerAction:registerHandle] DUPLICATE did=${did}, handle=${handle}`);
-    return { success: false, error: "already_registered" };
-  }
+  
+  // DIDベースで既存の登録を確認
+  const existing = associations.find(a => a.did === did);
 
   try {
-    await addAssociation(uuid, did, handle, pdsUrl);
-    console.log(`[ServerAction:registerHandle] SUCCESS: Added association with PDS URL`);
+    if (existing) {
+      // 既にDIDが登録されている場合は、最新のハンドルとPDS URLで更新する
+      await updateAssociation(uuid, did, {
+        handle: resolvedHandle,
+        pdsUrl: pdsUrl
+      });
+    } else {
+      // 新規登録
+      await addAssociation(uuid, did, resolvedHandle, pdsUrl);
+    }
+    
     revalidatePath('/[locale]', 'page');
     return { success: true };
   } catch (error: any) {
-    console.error('[ServerAction:registerHandle] ERROR: Failed to add association', error);
+    console.error('[ServerAction:registerHandle] ERROR:', error);
     return { success: false, error: "Internal server error" };
   }
 }
@@ -68,13 +66,11 @@ export async function refreshAssociation(did: string) {
   const uuid = await getSessionUuid();
   if (!uuid) return;
 
-  const associations = await getAssociations(uuid);
-  const assoc = associations.find(a => a.did === did);
-  if (!assoc) return;
-
-  const result = await resolveIdentity(assoc.handle);
-  if (result) {
+  // DID をキーに最新のアイデンティティ情報を取得
+  const result = await resolveIdentity(did);
+  if (result && result.handle && result.pdsUrl) {
     await updateAssociation(uuid, did, {
+      handle: result.handle,
       pdsUrl: result.pdsUrl,
     });
     revalidatePath('/[locale]', 'page');
