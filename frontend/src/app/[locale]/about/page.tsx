@@ -1,3 +1,4 @@
+import React from 'react';
 import { Container, Title, Text, Stack, Paper, Divider } from '@mantine/core';
 import { getMarkdownContent } from '@/lib/markdown';
 import ReactMarkdown from 'react-markdown';
@@ -51,51 +52,13 @@ export default async function AboutPage({
                     const finalHref = href?.replace(/https:\/\/(dev\.)?atpassport\.net(\/[a-z]{2})?/, '') || '';
                     
                     if (isInternal && href) {
-                      return <Link href={(finalHref as any) || '/'} style={{ color: 'var(--mantine-color-blue-6)' }}>{children}</Link>;
+                      // Link の href には routing で定義された特定のパスが必要ですが、
+                      // 動的な URL 置換の結果、型チェックが通らなくなるため、
+                      // 型安全な代替手段（例えばテンプレートリテラルの型を利用するなど）も考慮できますが、
+                      // ここでは string リテラルの代入可能範囲に寄せてキャストします。
+                      return <Link href={finalHref as "/"} style={{ color: 'var(--mantine-color-blue-6)' }}>{children}</Link>;
                     }
                     return <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>{children}</a>;
-                  },
-                  table: ({ children }) => (
-                    <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--mantine-font-size-sm)', border: '1px solid var(--mantine-color-default-border)' }}>
-                        {children}
-                      </table>
-                    </div>
-                  ),
-                  thead: ({ children }) => <thead style={{ backgroundColor: 'var(--mantine-color-default-hover)' }}>{children}</thead>,
-                  th: ({ children }) => <th style={{ border: '1px solid var(--mantine-color-default-border)', padding: '12px 8px', textAlign: 'left', fontWeight: 600 }}>{children}</th>,
-                  td: ({ children }) => <td style={{ border: '1px solid var(--mantine-color-default-border)', padding: '12px 8px', wordBreak: 'break-all', overflowWrap: 'anywhere' }}>{children}</td>,
-                  code: ({ className, children }) => {
-                    const match = /language-(\w+)/.exec(className || '');
-                    const inline = !match;
-                    
-                    if (inline) {
-                      return (
-                        <code style={{ 
-                          background: 'rgba(0,0,0,0.05)', 
-                          padding: '2px 4px', 
-                          borderRadius: '4px', 
-                          wordBreak: 'break-word',
-                          overflowWrap: 'anywhere'
-                        }}>
-                          {children}
-                        </code>
-                      );
-                    }
-
-                    return (
-                      <pre style={{ 
-                        background: 'rgba(0,0,0,0.05)', 
-                        padding: '12px', 
-                        borderRadius: '8px', 
-                        overflowX: 'auto', 
-                        whiteSpace: 'pre-wrap', 
-                        wordBreak: 'break-word',
-                        overflowWrap: 'anywhere'
-                      }}>
-                        <code className={className}>{children}</code>
-                      </pre>
-                    );
                   },
                 }}
               >

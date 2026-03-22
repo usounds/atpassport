@@ -1,3 +1,4 @@
+import React from 'react';
 import { Container, Title, Text, Stack, Paper } from '@mantine/core';
 import { getMarkdownContent } from '@/lib/markdown';
 import ReactMarkdown from 'react-markdown';
@@ -45,7 +46,7 @@ export default async function PrivacyPage({
                     const finalHref = href?.replace(/https:\/\/(dev\.)?atpassport\.net(\/[a-z]{2})?/, '') || '';
                     
                     if (isInternal && href) {
-                      return <Link href={(finalHref as any) || '/'} style={{ color: 'var(--mantine-color-blue-6)' }}>{children}</Link>;
+                      return <Link href={finalHref as "/"} style={{ color: 'var(--mantine-color-blue-6)' }}>{children}</Link>;
                     }
                     return <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>{children}</a>;
                   },
