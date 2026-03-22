@@ -1,22 +1,21 @@
 # AtPassport Frontend
 
-This is the frontend for AtPassport, built with Next.js and SST Ion.
+This is the frontend for AtPassport, built with Next.js.
 
 ## Getting Started
 
 ### Prerequisites
 
-- AWS account and credentials configured locally.
 - Node.js and `pnpm` installed.
 
-### Local Development (with AWS resources)
+### Local Development
 
-To run the development server with SST Ion (recommended), which links to DynamoDB and other AWS resources:
+To run the development server locally (using an in-memory stub for DynamoDB):
 
 1.  **Set the required secrets:**
-    Before the first run, you need to set the `SessionSecret` (at least 32 characters).
+    Before the first run, create a `.env.local` file and set the `SESSION_SECRET` (at least 32 characters).
     ```bash
-    npx sst secret set SessionSecret a-very-secret-key-at-least-32-chars-long
+    SESSION_SECRET=a-very-secret-key-at-least-32-chars-long
     ```
 
 2.  **Install dependencies:**
@@ -24,24 +23,14 @@ To run the development server with SST Ion (recommended), which links to DynamoD
     pnpm install
     ```
 
-3.  **Run SST Dev:**
+3.  **Run Dev Server:**
     ```bash
-    pnpm run dev:local
+    pnpm run dev
     ```
-    This will start the SST dev console and the Next.js dev server. It will also provision the necessary resources in your AWS account (in a dev stage).
-
-### Troubleshooting
-
-- **"Resource is not linked" Error:**
-  If you see an error saying a resource is not linked, or if a previous deployment was interrupted, try refreshing the SST state:
-  ```bash
-  npx sst refresh
-  ```
-  Then restart `pnpm run dev:local`.
+    This will start the Next.js dev server. By default, it uses an in-memory stub for DynamoDB, so no AWS setup is required for basic local testing.
 
 ## Environment Variables
 
-The project uses `.env.local` for local-only configuration that isn't managed by SST.
+The project uses `.env.local` for local-only configuration.
 
-- `SESSION_SECRET`: Fallback secret for local-only runs (non-SST).
-- `DYNAMODB_ENDPOINT`: Used if you are running a local DynamoDB instance.
+- `SESSION_SECRET`: Secret key for session/cookie encryption (at least 32 characters).
