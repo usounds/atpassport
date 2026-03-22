@@ -150,15 +150,17 @@ export function AssociationItem({
         </Group>
       </Box>
 
-      <Modal opened={opened} onClose={close} title={t('confirm_delete_title')} centered>
-        <Text size="sm" mb="lg">
-          {t('confirm_delete_text', { handle: item.handle })}
-        </Text>
-        <Group justify="flex-end" gap="xs">
-          <Button variant="subtle" onClick={close}>{t('cancel')}</Button>
-          <Button color="red" onClick={confirmDelete} loading={isUpdating}>{t('delete')}</Button>
-        </Group>
-      </Modal>
+      {opened && (
+        <Modal opened={opened} onClose={close} title={t('confirm_delete_title')} centered>
+          <Text size="sm" mb="lg">
+            {t('confirm_delete_text', { handle: item.handle })}
+          </Text>
+          <Group justify="flex-end" gap="xs">
+            <Button variant="subtle" onClick={close}>{t('cancel')}</Button>
+            <Button color="red" onClick={confirmDelete} loading={isUpdating}>{t('delete')}</Button>
+          </Group>
+        </Modal>
+      )}
     </>
   );
 }

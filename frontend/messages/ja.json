@@ -53,5 +53,22 @@
     "invalidTokenTitle": "無効なトークン",
     "invalidTokenDescription": "この共有リンクは期限切れか、すでに使用されています。メインデバイスから新しいリンクを生成してください。",
     "backToHome": "ホームに戻る"
+  },
+  "Example": {
+    "title": "お試しアプリ",
+    "description": "@atpassport/client ライブラリを使用した組み込みのデモです。",
+    "setup": "1. セットアップ",
+    "custom_params": "カスタムパラメータ",
+    "add_param": "パラメータを追加",
+    "param_key": "キー",
+    "param_value": "値",
+    "login_button_label": "@passportでログイン",
+    "result": "2. 実行結果",
+    "no_result": "まだ実行結果はありません。上のボタンからログインを試してください。",
+    "handle": "ハンドル",
+    "did": "DID",
+    "pds_url": "PDS URL",
+    "atpstate": "atpstate",
+    "returned_params": "返却されたカスタムパラメータ"
   }
 }

@@ -1,9 +1,11 @@
 import type { Viewport } from 'next';
 import { Geist, Geist_Mono } from "next/font/google";
-import { ColorSchemeScript, MantineProvider, createTheme } from '@mantine/core';
+import { ColorSchemeScript, MantineProvider, createTheme, Stack } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import "./globals.css";
@@ -97,7 +99,13 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           <MantineProvider theme={theme} defaultColorScheme="auto">
             <Notifications position="top-right" zIndex={1000} />
-            {children}
+            <Stack gap={0} style={{ minHeight: '100vh' }}>
+              <Header />
+              <main style={{ flex: 1 }}>
+                {children}
+              </main>
+              <Footer />
+            </Stack>
           </MantineProvider>
         </NextIntlClientProvider>
       </body>

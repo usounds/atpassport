@@ -1,5 +1,5 @@
 import { db, SESSION_TABLE_NAME } from "./db";
-import { PutCommand, QueryCommand, DeleteCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, QueryCommand, DeleteCommand, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 export interface IdentityAssociation {
   uuid: string;
@@ -42,9 +42,12 @@ export async function touchSession(uuid: string) {
   const associations = await getAssociations(uuid);
   const newExpiresAt = Math.floor(Date.now() / 1000) + TTL_DURATION;
 
-  for (const assoc of associations) {
-    await updateAssociation(uuid, assoc.did, { expiresAt: newExpiresAt });
-  }
+  // Parallelize updates for better performance
+  await Promise.all(
+    associations.map((assoc) => 
+      updateAssociation(uuid, assoc.did, { expiresAt: newExpiresAt })
+    )
+  );
 }
 
 export async function getAssociations(uuid: string): Promise<IdentityAssociation[]> {
@@ -72,22 +75,28 @@ export async function getAssociations(uuid: string): Promise<IdentityAssociation
 }
 
 export async function updateAssociation(uuid: string, did: string, updates: Partial<IdentityAssociation>) {
-  const result = await db.send(
-    new GetCommand({
-      TableName: SESSION_TABLE_NAME,
-      Key: { uuid, did },
-    })
-  );
+  const entries = Object.entries(updates);
+  if (entries.length === 0) return;
 
-  const existing = result.Item as IdentityAssociation;
-  if (!existing) return;
+  const updateExpressionParts: string[] = [];
+  const expressionAttributeNames: Record<string, string> = {};
+  const expressionAttributeValues: Record<string, any> = {};
 
-  const newItem = { ...existing, ...updates };
+  entries.forEach(([key, value], index) => {
+    const attrName = `#attr${index}`;
+    const attrVal = `:val${index}`;
+    updateExpressionParts.push(`${attrName} = ${attrVal}`);
+    expressionAttributeNames[attrName] = key;
+    expressionAttributeValues[attrVal] = value;
+  });
 
   await db.send(
-    new PutCommand({
+    new UpdateCommand({
       TableName: SESSION_TABLE_NAME,
-      Item: newItem,
+      Key: { uuid, did },
+      UpdateExpression: `SET ${updateExpressionParts.join(", ")}`,
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
     })
   );
 }

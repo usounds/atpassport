@@ -53,5 +53,22 @@
     "invalidTokenTitle": "Invalid Token",
     "invalidTokenDescription": "This share link is expired or has already been used. Please generate a new link from your main device.",
     "backToHome": "Back to Home"
+  },
+  "Example": {
+    "title": "Example App",
+    "description": "A demo showing how to integrate the @atpassport/client library.",
+    "setup": "1. Setup",
+    "custom_params": "Custom Parameters",
+    "add_param": "Add Parameter",
+    "param_key": "Key",
+    "param_value": "Value",
+    "login_button_label": "Login with @passport",
+    "result": "2. Result",
+    "no_result": "No result yet. Try logging in using the button above.",
+    "handle": "Handle",
+    "did": "DID",
+    "pds_url": "PDS URL",
+    "atpstate": "atpstate",
+    "returned_params": "Returned Custom Parameters"
   }
 }

@@ -1,7 +1,5 @@
-import { Container, Title, Text, Stack, Paper, Center, Divider } from '@mantine/core';
+import { Container, Title, Text, Stack, Center } from '@mantine/core';
 import { getTranslations } from 'next-intl/server';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { AuthAccountList } from '@/components/AuthAccountList';
 import { RegisterForm } from '@/components/RegisterForm';
 import { getAssociations } from '@/lib/models';
@@ -21,14 +19,11 @@ export default async function AuthPage({
 
   if (!callback) {
     return (
-      <>
-        <Header />
-        <Container size="sm" py="xl">
-          <Center style={{ minHeight: '60vh' }}>
-            <Text c="red" size="lg">{t('missing_callback')}</Text>
-          </Center>
-        </Container>
-      </>
+      <Container size="sm" py="xl">
+        <Center style={{ minHeight: '60vh' }}>
+          <Text c="red" size="lg">{t('missing_callback')}</Text>
+        </Center>
+      </Container>
     );
   }
 
@@ -38,14 +33,11 @@ export default async function AuthPage({
     domain = url.hostname;
   } catch (e) {
     return (
-      <>
-        <Header />
-        <Container size="sm" py="xl">
-          <Center style={{ minHeight: '60vh' }}>
-            <Text c="red" size="lg">Invalid callback URL</Text>
-          </Center>
-        </Container>
-      </>
+      <Container size="sm" py="xl">
+        <Center style={{ minHeight: '60vh' }}>
+          <Text c="red" size="lg">Invalid callback URL</Text>
+        </Center>
+      </Container>
     );
   }
 
@@ -63,27 +55,22 @@ export default async function AuthPage({
   }
 
   return (
-    <>
-      <Header />
-      <Container size="sm" py="xl" style={{ maxWidth: 500 }}>
-        <Stack gap="xl">
-          <header style={{ textAlign: 'center' }}>
-            <Title order={3} mb="xs">{t('title')}</Title>
-            <Text c="dimmed" size="xs" fw={500}>{t('moving_to', { domain })}</Text>
-          </header>
+    <Container size="sm" py="xl" style={{ maxWidth: 500 }}>
+      <Stack gap="xl">
+        <header style={{ textAlign: 'center' }}>
+          <Title order={3} mb="xs">{t('title')}</Title>
+          <Text c="dimmed" size="xs" fw={500}>{t('moving_to', { domain })}</Text>
+        </header>
 
-          <AuthAccountList
-            initialItems={items}
-            callback={callback}
-            atpstate={atpstate}
-            domain={domain}
-          />
+        <AuthAccountList
+          initialItems={items}
+          callback={callback}
+          atpstate={atpstate}
+          domain={domain}
+        />
 
-          <RegisterForm handleCount={items.length} />
-        </Stack>
-
-        <Footer />
-      </Container>
-    </>
+        <RegisterForm handleCount={items.length} />
+      </Stack>
+    </Container>
   );
 }

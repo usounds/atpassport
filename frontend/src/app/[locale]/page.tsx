@@ -1,8 +1,6 @@
-import { Container, Title, Text, Stack, Paper, Divider } from '@mantine/core';
+import { Container, Title, Text, Stack, Divider } from '@mantine/core';
 import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { AssociationList } from '@/components/AssociationList';
 import { RegisterForm } from '@/components/RegisterForm';
 import { ShareSection } from '@/components/ShareSection';
@@ -26,28 +24,23 @@ export default async function HomePage({
   }
 
   return (
-    <>
-      <Header />
-      <Container size="sm" py="xl" style={{ maxWidth: 500 }}>
-        <Stack gap="xl">
-          <header style={{ textAlign: 'center' }}>
-            <Title order={3} mb="xs">{t('title')}</Title>
-            <Text c="dimmed" size="xs" fw={500}>{t('description')}</Text>
-          </header>
+    <Container size="sm" py="xl" style={{ maxWidth: 500 }}>
+      <Stack gap="xl">
+        <header style={{ textAlign: 'center' }}>
+          <Title order={3} mb="xs">{t('title')}</Title>
+          <Text c="dimmed" size="xs" fw={500}>{t('description')}</Text>
+        </header>
 
-          <Divider label={t('registered_handles')} labelPosition="center" />
+        <Divider label={t('registered_handles')} labelPosition="center" />
 
-          <Suspense fallback={<Text ta="center">Loading...</Text>}>
-            <AssociationList />
-          </Suspense>
+        <Suspense fallback={<Text ta="center">Loading...</Text>}>
+          <AssociationList />
+        </Suspense>
 
-          <RegisterForm handleCount={handleCount} />
+        <RegisterForm handleCount={handleCount} />
 
-          <ShareSection />
-
-          <Footer />
-        </Stack>
-      </Container>
-    </>
+        <ShareSection />
+      </Stack>
+    </Container>
   );
 }

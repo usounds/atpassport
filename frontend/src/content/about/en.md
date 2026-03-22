@@ -75,3 +75,5 @@ It is also possible to link handle information directly via HTTP redirect withou
    ```
 
 Using these, you can provide a smooth login experience without requiring users to manually input their handles.
+
+We have a [sample application](/example) where you can check the actual behavior, including custom parameter passing and callback handling.

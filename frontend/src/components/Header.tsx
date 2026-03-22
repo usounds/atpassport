@@ -3,7 +3,7 @@
 import { Container, Group, Title, Burger, Drawer, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useTranslations } from 'next-intl';
-import { usePathname } from 'next/navigation';
+import { Link, usePathname } from '@/i18n/routing';
 import classes from './Header.module.css';
 
 import Image from 'next/image';
@@ -21,27 +21,27 @@ export function Header() {
   const [opened, { toggle, close }] = useDisclosure(false);
 
   const items = links.map((link) => {
-    // Check if current path ends with the link path (to handle locale prefix)
-    const isActive = pathname.endsWith(link.link);
+    const isActive = pathname === link.link;
     return (
-      <a
+      <Link
         key={link.labelKey}
         href={link.link}
         className={classes.link}
         onClick={close}
       >
         {tNav(link.labelKey)}
-      </a>
+      </Link>
     );
   });
 
   return (
     <header className={classes.header}>
       <Container size="sm" className={classes.inner}>
-        <a href="/" className={classes.logo}>
+        <Link href="/" className={classes.logo}>
           <Image src="/icon128.svg" alt="logo" width={24} height={24} />
-          <Title order={3}>{t('title')}</Title>
-        </a>
+          <Title order={3} m={0} style={{ lineHeight: 1 }}>{t('title')}</Title>
+        </Link>
+
 
         <Group gap={5} visibleFrom="xs">
           {items}
@@ -55,19 +55,21 @@ export function Header() {
           aria-label="Toggle navigation"
         />
 
-        <Drawer
-          opened={opened}
-          onClose={close}
-          size="70%"
-          padding="md"
-          title={t('title')}
-          hiddenFrom="xs"
-          zIndex={1000}
-        >
-          <Stack gap={0}>
-            {items}
-          </Stack>
-        </Drawer>
+        {opened && (
+          <Drawer
+            opened={opened}
+            onClose={close}
+            size="70%"
+            padding="md"
+            title={t('title')}
+            hiddenFrom="xs"
+            zIndex={1000}
+          >
+            <Stack gap={0}>
+              {items}
+            </Stack>
+          </Drawer>
+        )}
       </Container>
     </header>
   );

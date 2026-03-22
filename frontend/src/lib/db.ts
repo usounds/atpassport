@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, GetCommand, DeleteCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, GetCommand, DeleteCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 import { Resource } from "sst";
 
@@ -102,6 +102,28 @@ async function handleStubCommand(command: any) {
     const uuid = input.ExpressionAttributeValues?.[":uuid"];
     const items = table.filter((item: any) => !uuid || item.uuid === uuid);
     return { Items: items };
+  }
+
+  // UpdateCommand (Simplified: handle SET #attr = :val)
+  if (command instanceof UpdateCommand) {
+    const { Key, ExpressionAttributeValues, ExpressionAttributeNames } = input;
+    const item = table.find((item: any) => 
+      Object.keys(Key).every(k => item[k] === Key[k])
+    );
+    if (item && ExpressionAttributeNames && ExpressionAttributeValues) {
+      // Very simple parser for "SET #a = :v, #b = :v"
+      const setMatch = input.UpdateExpression?.match(/SET (.*)/);
+      if (setMatch) {
+        const assignments = setMatch[1].split(", ");
+        assignments.forEach((assign: string) => {
+          const [placeholderName, placeholderVal] = assign.split(" = ");
+          const actualName = ExpressionAttributeNames[placeholderName];
+          const actualVal = ExpressionAttributeValues[placeholderVal];
+          if (actualName) item[actualName] = actualVal;
+        });
+      }
+    }
+    return {};
   }
 
   return { Items: [], Item: null };

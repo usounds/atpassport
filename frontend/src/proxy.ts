@@ -29,10 +29,18 @@ export default async function middleware(request: NextRequest) {
     try {
       const { payload } = await jwtVerify(sessionCookie.value, SECRET_KEY);
       uuid = payload.uuid as string;
-      isValid = true;
+      
+      const now = Math.floor(Date.now() / 1000);
+      const lastTouched = (payload.lastTouched as number) || (payload.iat as number) || 0;
 
-      // Extend DynamoDB TTL asynchronously
-      touchSession(uuid).catch(e => console.error('[Middleware] touchSession failed:', e));
+      // Only update DynamoDB if more than 24 hours have passed since last touch
+      if (now - lastTouched > 24 * 60 * 60) {
+        console.log(`[Middleware] Touching session for ${uuid} (last touched: ${new Date(lastTouched * 1000).toISOString()})`);
+        await touchSession(uuid);
+        isValid = false; // Trigger cookie refresh to update lastTouched
+      } else {
+        isValid = true;
+      }
     } catch (e) {
       console.warn('[Middleware] Invalid session cookie:', e);
     }
@@ -40,12 +48,13 @@ export default async function middleware(request: NextRequest) {
 
   const response = intlMiddleware(request);
 
-  // Set cookie if it's not valid
+  // Set cookie if it's not valid (new session or throttled update)
   if (!isValid) {
     const finalUuid = uuid || crypto.randomUUID();
-    const token = await new SignJWT({ uuid: finalUuid })
+    const now = Math.floor(Date.now() / 1000);
+    const token = await new SignJWT({ uuid: finalUuid, lastTouched: now })
       .setProtectedHeader({ alg: 'HS256' })
-      .setIssuedAt()
+      .setIssuedAt(now)
       .setExpirationTime('365d')
       .sign(SECRET_KEY);
 

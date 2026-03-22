@@ -7,6 +7,7 @@ import { useDebouncedCallback, useDisclosure } from '@mantine/hooks';
 import { registerHandle } from '@/lib/actions';
 import { IconPlus } from '@tabler/icons-react';
 import { publicAgent } from '@/lib/atproto';
+import { Link } from '@/i18n/routing';
 
 export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   const [handle, setHandle] = useState('');
@@ -104,82 +105,84 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
         </Button>
       </Box>
 
-      <Modal opened={opened} onClose={handleClose} title={t('add_handle')} centered radius="lg">
-        <Stack gap="md">
-          <Autocomplete
-            label={t('handle')}
-            name="handle"
-            placeholder={t('placeholder_handle')}
-            required
-            radius="md"
-            autoCapitalize={"none"}
-            autoCorrect={"off"}
-            autoComplete={"off"}
-            spellCheck={false}
-            value={handle}
-            data={suggestions}
-            leftSection={
-              <Text size="sm">@</Text>
-            }
-            renderOption={({ option }: { option: any }) => (
-              <Group gap="sm">
-                <Avatar src={option.avatar} size={24} radius="xl" />
-                <Text size="sm">{option.value}</Text>
-              </Group>
-            )}
-            onInput={(event) => handleInput(event.currentTarget.value)}
-            onChange={(value) => {
-              const val = value.replace(/@/g, '').toLowerCase();
-              setHandle(val);
-              setSuggestions([]);
-              setError(null);
-            }}
-            onBlur={() => {
-              if (handle && !handle.includes('.')) {
-                setHandle(`${handle}.bsky.social`);
+      {opened && (
+        <Modal opened={opened} onClose={handleClose} title={t('add_handle')} centered radius="lg">
+          <Stack gap="md">
+            <Autocomplete
+              label={t('handle')}
+              name="handle"
+              placeholder={t('placeholder_handle')}
+              required
+              radius="md"
+              autoCapitalize={"none"}
+              autoCorrect={"off"}
+              autoComplete={"off"}
+              spellCheck={false}
+              value={handle}
+              data={suggestions}
+              leftSection={
+                <Text size="sm">@</Text>
               }
-            }}
-            error={error}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleRegister();
-              }
-            }}
-            styles={{
-              input: {
-                fontSize: 16,
-              },
-            }}
-          />
-          {needsConsent && (
-            <Checkbox
-              checked={agreed}
-              onChange={(e) => setAgreed(e.currentTarget.checked)}
-              label={t.rich('agree_to_terms', {
-                terms: (chunks) => (
-                  <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
-                    {chunks}
-                  </a>
-                ),
-                privacy: (chunks) => (
-                  <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
-                    {chunks}
-                  </a>
-                ),
-              })}
-              size="sm"
+              renderOption={({ option }: { option: any }) => (
+                <Group gap="sm">
+                  <Avatar src={option.avatar} size={24} radius="xl" />
+                  <Text size="sm">{option.value}</Text>
+                </Group>
+              )}
+              onInput={(event) => handleInput(event.currentTarget.value)}
+              onChange={(value) => {
+                const val = value.replace(/@/g, '').toLowerCase();
+                setHandle(val);
+                setSuggestions([]);
+                setError(null);
+              }}
+              onBlur={() => {
+                if (handle && !handle.includes('.')) {
+                  setHandle(`${handle}.bsky.social`);
+                }
+              }}
+              error={error}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleRegister();
+                }
+              }}
+              styles={{
+                input: {
+                  fontSize: 16,
+                },
+              }}
             />
-          )}
-          <Button
-            onClick={handleRegister}
-            loading={loading}
-            fullWidth
-            disabled={needsConsent && !agreed}
-          >
-            {t('register')}
-          </Button>
-        </Stack>
-      </Modal>
+            {needsConsent && (
+              <Checkbox
+                checked={agreed}
+                onChange={(e) => setAgreed(e.currentTarget.checked)}
+                label={t.rich('agree_to_terms', {
+                  terms: (chunks) => (
+                    <Link href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
+                      {chunks}
+                    </Link>
+                  ),
+                  privacy: (chunks) => (
+                    <Link href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
+                      {chunks}
+                    </Link>
+                  ),
+                })}
+                size="sm"
+              />
+            )}
+            <Button
+              onClick={handleRegister}
+              loading={loading}
+              fullWidth
+              disabled={needsConsent && !agreed}
+            >
+              {t('register')}
+            </Button>
+          </Stack>
+        </Modal>
+      )}
     </>
   );
 }
