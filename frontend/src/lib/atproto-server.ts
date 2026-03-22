@@ -16,10 +16,38 @@ const handleResolver = new CompositeHandleResolver({
   },
 });
 
+/**
+ * Custom PLC resolver that tries plc.wtf first, then falls back to plc.directory
+ */
+class FallbackPlcResolver {
+  private primary = new PlcDidDocumentResolver({ apiUrl: 'https://plc.wtf' });
+  private fallback = new PlcDidDocumentResolver(); // Default is https://plc.directory
+
+  async resolve(did: string) {
+    console.log(`[FallbackPlcResolver] Resolving ${did}`);
+    try {
+      console.log(`[FallbackPlcResolver] Attempting primary (plc.wtf)...`);
+      const result = await this.primary.resolve(did as `did:plc:${string}`);
+      console.log(`[FallbackPlcResolver] Primary (plc.wtf) success!`);
+      return result;
+    } catch (e: any) {
+      console.warn(`[FallbackPlcResolver] Primary (plc.wtf) failed, trying fallback (plc.directory). Error: ${e?.message || e}`);
+      try {
+        const fallbackResult = await this.fallback.resolve(did as `did:plc:${string}`);
+        console.log(`[FallbackPlcResolver] Fallback (plc.directory) success!`);
+        return fallbackResult;
+      } catch (e2: any) {
+        console.error(`[FallbackPlcResolver] Both resolvers failed for ${did}. Secondary error: ${e2?.message || e2}`);
+        throw e2;
+      }
+    }
+  }
+}
+
 // Setup DID document resolver for did:plc and did:web
 const didResolver = new CompositeDidDocumentResolver({
   methods: {
-    plc: new PlcDidDocumentResolver(),
+    plc: new FallbackPlcResolver(),
     web: new WebDidDocumentResolver(),
   },
 });
