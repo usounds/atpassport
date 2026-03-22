@@ -34,7 +34,7 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
       const data = await response.json();
       if (data.token) {
         setToken(data.token);
-        setTimeLeft(600); // 10 minutes
+        setTimeLeft(300); // 5 minutes
       }
     } catch (error) {
       console.error('Failed to generate sharing token', error);

@@ -50,6 +50,11 @@
     "scanInstruction": "スマートフォンのカメラ等でスキャンしてください。"
   },
   "ShareSync": {
+    "title": "デバイスの同期",
+    "confirmTitle": "ハンドル情報を同期しますか？",
+    "confirmDescription": "この操作により、現在このブラウザに保存されている内容は破棄され、共有元のデバイスの内容で上書きされます。",
+    "syncButton": "元のデバイスの内容と同期する",
+    "syncing": "同期中...",
     "invalidTokenTitle": "無効なトークン",
     "invalidTokenDescription": "この共有リンクは期限切れか、すでに使用されています。メインデバイスから新しいリンクを生成してください。",
     "backToHome": "ホームに戻る"

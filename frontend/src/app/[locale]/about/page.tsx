@@ -20,7 +20,7 @@ export default async function AboutPage({
   return (
     <Container size="sm" py="xl">
       <Stack gap="xl">
-        <Paper withBorder p="xl" radius="md" bg="transparent" style={{ borderStyle: 'dashed' }}>
+        <Paper withBorder p="xl" radius="md" shadow="sm">
           <Stack gap="lg">
             <div>
               <Title order={2}>{data.title || 'Untitled'}</Title>

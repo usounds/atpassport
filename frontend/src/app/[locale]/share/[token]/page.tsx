@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Card, Text, Title, Button, Stack, Container, Center, Loader, Box, Paper } from '@mantine/core';
-import { IconDeviceMobile } from '@tabler/icons-react';
+import { Card, Text, Title, Button, Stack, Container, Center, Loader, Box, Paper, Group } from '@mantine/core';
+import { IconDeviceMobile, IconAlertCircle, IconCheck } from '@tabler/icons-react';
+import { RefreshCw } from 'lucide-react';
 import { syncWithToken } from '@/lib/actions';
 
 interface PageProps {
@@ -19,46 +20,47 @@ export default function ShareSyncPage({ params }: PageProps) {
   const t = useTranslations('ShareSync');
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    async function performSync() {
-      try {
-        const result = await syncWithToken(token, locale);
-        if (result.success) {
-          // Force a hard reload to ensure fresh request to server
+  const handleSync = async () => {
+    setIsSyncing(true);
+    setError(null);
+    try {
+      const result = await syncWithToken(token, locale);
+      if (result.success) {
+        setSuccess(true);
+        // Delay a bit to show success state before redirecting
+        setTimeout(() => {
           window.location.href = `/${locale}`;
-        } else {
-          setError(result.error || 'unknown_error');
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error('Sync error:', err);
-        setError('connection_error');
-        setLoading(false);
+        }, 1000);
+      } else {
+        setError(result.error || 'unknown_error');
+        setIsSyncing(false);
       }
+    } catch (err) {
+      console.error('Sync error:', err);
+      setError('connection_error');
+      setIsSyncing(false);
     }
+  };
 
-    performSync();
-  }, [token, locale, router]);
-
-  if (loading) {
+  if (success) {
     return (
       <Container size="sm" py="xl">
         <Center style={{ height: '70vh' }}>
-          <Stack align="center" gap="xl" className="animate-slide-in">
-            <Loader size={60} variant="bars" color="blue.6" />
-            <Stack gap={4} align="center">
-              <Text 
-                component="h3"
-                variant="gradient" 
-                gradient={{ from: 'blue.6', to: 'cyan.6', deg: 90 }}
-                style={{ fontSize: 'var(--mantine-font-size-xl)', fontWeight: 800, margin: 0 }}
-              >
-                Syncing Devices
-              </Text>
-              <Text c="dimmed" fw={500}>ハンドル情報を同期しています...</Text>
-            </Stack>
+          <Stack align="center" gap="xl" className="animate-fade-in">
+            <Box 
+              p="md" 
+              style={{ 
+                borderRadius: '50%', 
+                backgroundColor: 'var(--mantine-color-green-0)',
+                color: 'var(--mantine-color-green-6)'
+              }}
+            >
+              <IconCheck size={60} />
+            </Box>
+            <Title order={2}>{t('syncing')}</Title>
           </Stack>
         </Center>
       </Container>
@@ -97,11 +99,10 @@ export default function ShareSyncPage({ params }: PageProps) {
 
               <Button 
                 onClick={() => router.push(`/${locale}`)} 
-                variant="gradient"
-                gradient={{ from: 'gray.6', to: 'gray.8', deg: 90 }}
+                variant="light"
+                color="gray"
                 fullWidth
                 radius="md"
-                size="md"
               >
                 {t('backToHome')}
               </Button>
@@ -112,5 +113,69 @@ export default function ShareSyncPage({ params }: PageProps) {
     );
   }
 
-  return null;
+  return (
+    <Container size="sm" py="xl">
+      <Center style={{ height: '70vh' }}>
+        <Paper 
+          withBorder 
+          p="xl" 
+          radius="lg" 
+          shadow="md"
+          style={{ maxWidth: 450, width: '100%' }}
+          className="animate-slide-in"
+        >
+          <Stack gap="xl">
+            <Group wrap="nowrap" align="flex-start">
+              <Box 
+                p="sm" 
+                style={{ 
+                  borderRadius: '12px', 
+                  backgroundColor: 'var(--mantine-color-blue-0)',
+                  color: 'var(--mantine-color-blue-6)'
+                }}
+              >
+                <IconDeviceMobile size={32} />
+              </Box>
+              <Stack gap={4}>
+                <Title order={3}>{t('confirmTitle')}</Title>
+                <Text size="sm" c="dimmed">{t('title')}</Text>
+              </Stack>
+            </Group>
+
+            <Paper withBorder p="md" radius="md" bg="var(--mantine-color-orange-0)" style={{ borderColor: 'var(--mantine-color-orange-2)' }}>
+              <Group wrap="nowrap" align="flex-start" gap="sm">
+                <IconAlertCircle size={20} color="var(--mantine-color-orange-6)" style={{ flexShrink: 0, marginTop: 2 }} />
+                <Text size="sm" c="orange.9" fw={500}>
+                  {t('confirmDescription')}
+                </Text>
+              </Group>
+            </Paper>
+
+            <Stack gap="sm">
+              <Button 
+                onClick={handleSync} 
+                loading={isSyncing}
+                size="md"
+                radius="md"
+                fullWidth
+                variant="filled"
+                color="blue"
+                leftSection={<RefreshCw size={18} />}
+              >
+                {t('syncButton')}
+              </Button>
+              <Button 
+                variant="subtle" 
+                color="gray" 
+                onClick={() => router.push(`/${locale}`)}
+                disabled={isSyncing}
+              >
+                {t('backToHome')}
+              </Button>
+            </Stack>
+          </Stack>
+        </Paper>
+      </Center>
+    </Container>
+  );
 }

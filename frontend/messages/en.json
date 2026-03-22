@@ -50,6 +50,11 @@
     "scanInstruction": "Scan this with your smartphone camera."
   },
   "ShareSync": {
+    "title": "Device Sync",
+    "confirmTitle": "Sync your handles?",
+    "confirmDescription": "This will overwrite your current browser data with the handles from the source device.",
+    "syncButton": "Sync with source device",
+    "syncing": "Syncing...",
     "invalidTokenTitle": "Invalid Token",
     "invalidTokenDescription": "This share link is expired or has already been used. Please generate a new link from your main device.",
     "backToHome": "Back to Home"
