@@ -29,7 +29,8 @@
   "Auth": {
     "title": "Selecciona un handle",
     "moving_to": "Yendo a {domain}",
-    "authenticating": "Autenticando con {domain}...",
+    "authenticating_title": "Iniciar sesión como @{handle}",
+    "authenticating_message": "Volviendo a {domain}...",
     "no_accounts": "No se encontraron handles registrados",
     "missing_callback": "Solicitud inválida (falta callbackUrl)",
     "register_and_auth": "Registrar @{handle} y continuar",
@@ -47,7 +48,8 @@
   "Nav": {
     "about": "Acerca de",
     "terms": "Términos",
-    "privacy": "Privacidad"
+    "privacy": "Privacidad",
+    "toggle_color_scheme": "Cambiar tema de colores"
   },
   "Share": {
     "title": "Compartir con\nOtros Dispositivos",

@@ -29,7 +29,8 @@
   "Auth": {
     "title": "Sélectionner un handle",
     "moving_to": "Vers {domain}",
-    "authenticating": "Authentification avec {domain}...",
+    "authenticating_title": "Connexion en tant que @{handle}",
+    "authenticating_message": "Retour vers {domain}...",
     "no_accounts": "Aucun handle enregistré trouvé",
     "missing_callback": "Requête invalide (callbackUrl manquant)",
     "register_and_auth": "Enregistrer @{handle} et continuer",
@@ -47,7 +48,8 @@
   "Nav": {
     "about": "À propos",
     "terms": "Conditions",
-    "privacy": "Confidentialité"
+    "privacy": "Confidentialité",
+    "toggle_color_scheme": "Changer le mode de couleur"
   },
   "Share": {
     "title": "Partager avec\nd'autres appareils",

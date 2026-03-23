@@ -29,11 +29,20 @@
   "Auth": {
     "title": "Select a handle",
     "moving_to": "Moving to {domain}",
-    "authenticating": "Authenticating with {domain}...",
+    "authenticating_title": "Login as @{handle}",
+    "authenticating_message": "Returning to {domain}...",
     "no_accounts": "No registered handles found",
     "missing_callback": "Invalid request (missing callbackUrl)",
     "register_and_auth": "Register @{handle} and continue",
-    "confirm_registration": "This handle is not registered in @passport yet."
+    "confirm_registration": "This handle is not registered in @passport yet.",
+    "manage_account": "Manage Account",
+    "refresh_metadata": "Refresh Metadata",
+    "move_up": "Move Up",
+    "move_down": "Move Down",
+    "delete": "Delete",
+    "confirm_delete_title": "Confirm Deletion",
+    "confirm_delete_text": "Are you sure you want to remove {handle} from your registered handles?",
+    "cancel": "Cancel"
   },
   "Add": {
     "title": "Add Handle",
@@ -47,7 +56,8 @@
   "Nav": {
     "about": "About",
     "terms": "Terms",
-    "privacy": "Privacy"
+    "privacy": "Privacy",
+    "toggle_color_scheme": "Toggle color scheme"
   },
   "Share": {
     "title": "Share with Other Devices",

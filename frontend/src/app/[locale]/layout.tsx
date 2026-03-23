@@ -76,7 +76,7 @@ export async function generateMetadata(props: {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#1A237E',
+  themeColor: '#000000',
 };
 
 const theme = createTheme({
@@ -99,7 +99,7 @@ export default async function RootLayout({
         <ColorSchemeScript defaultColorScheme="auto" />
         <NextIntlClientProvider messages={messages}>
           <MantineProvider theme={theme} defaultColorScheme="auto">
-            <NextTopLoader color="#228be6" showSpinner={false} height={3} />
+            <NextTopLoader color="#58A7F6" showSpinner={false} height={3} />
             <Notifications position="top-right" zIndex={1000} />
             <Stack gap={0} style={{ minHeight: '100vh' }}>
               <Header />

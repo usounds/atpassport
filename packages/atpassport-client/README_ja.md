@@ -27,11 +27,11 @@ import { AtPassport } from '@atpassport/client/core';
 const passport = new AtPassport({
   callbackUrl: 'https://myapp.com/api/atpassport/callback', // 必須: 認証後に戻ってくるURL
   lang: 'ja', // 任意: 'en', 'ja', 'pt', 'de', 'fr', 'es'
-  requiredParams: { returnTo: 'string' } // 型安全のための必須パラメータを定義
+  requiredParams: { returnTo: 'string' } // 任意：　必須パラメータを定義
 });
 
 // 2. 認証URLの生成と atpstate (CSRF対策用) の取得
-// TypeScript の場合、requiredParamsで定義したパラメータであるreturnToが必須となります
+// requiredParamsで定義したパラメータは必須となります
 const { url, atpstate } = passport.generateAuthUrl({
   returnTo: window.location.href
 });
@@ -53,10 +53,10 @@ export async function GET(req: Request) {
   try {
     const result = passport.parseCallback(req.url, expectedState);
     
-    console.log('ログイン成功:', result.handle);
+    console.log('ハンドル:', result.handle);
     console.log('カスタムパラメータ:', result.customParams.returnTo);
     
-    // OAuth フローの継続...（各OAuthライブラリのauthorizeを受け取ったhandleで継続する）
+    // OAuth フローの継続...（各OAuthライブラリのauthorizeを受け取ったresult.handleで継続する）
     const authUrl = await client.authorize(result.handle);
 
   } catch (err) {

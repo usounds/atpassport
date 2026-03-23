@@ -1,40 +1,56 @@
 ---
 title: "About @passport"
-last_updated: "March 21, 2026"
+last_updated: "March 23, 2026"
 ---
 
 @passport is a handle management and authentication assistant for the atproto ecosystem.
 
+Because atproto is decentralized, one-button authentication like "Login with Bluesky" is not available, and you have to enter your handle each time you authenticate with each service. Bluesky handle strings are long and can easily lead to input errors.
+
+To solve this problem, we launched @passport as a mechanism that allows handles, once registered with @passport, to be reused across multiple atproto services.
+
+Only the "handle (e.g., @alice.bsky.social)" is stored on this server. Authentication information, including passwords, is never stored on this server, so you can use it with peace of mind.
+
 ## Two Ways to Use @passport
 
-@passport consists of two approaches: "Site-side Optimization" by developers and "Browser Extensions" by users.
+This service can be used in two ways: "@passport Integration" by developers and "Browser Extension" by users.
+
+We have also prepared a sharing feature so that you can share your list of handles across multiple devices and browsers. The browser extension also automatically syncs with the browser you are using.
 
 | | @passport Integration | Browser Extension |
 | :--- | :--- | :--- |
 | Overview | Integrating features into the site | Installing into the browser |
 | Availability | Only on supported sites | All sites (works on non-ready sites) |
-| Benefits | Best login experience | 1-tap handle input anywhere |
+| Benefits | Seamless login experience | 1-tap handle input anywhere |
 | Main Method | Site-side development | [Available on Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) |
 
+1. @passport Integration
 
-## For Users
-Avoid the hassle of typing your handle every time and enjoy a smooth login experience on supported services.
+   Allows for a "@passport Login" button. While this site only provides the functionality to return the handle back to each site, depending on the site's implementation, a seamless OAuth authentication flow can be achieved.
 
-Registered handles are stored on the server. Sensitive information such as passwords is never stored on this server. The session key is stored securely in your browser's cookies.
+1. Browser Extension
 
-Extensions for Chrome are [available on the Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) to enable use on sites that do not yet support @passport.
-
-These extensions will allow you to automatically reflect your handle in input fields even on sites that do not support @passport, significantly reducing the effort required during login on any site.
+   A Chrome version of the extension is [available on the Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) so that it can be used even on sites that do not yet support @passport. This extension assists only with handle input, much like a password manager app.
 
 ---
 
 ## For Developers
-@passport is a tool designed to enhance the user experience of applications using atproto.
-Developers can integrate with @passport in the following ways:
+@passport works with the following mechanisms:
 
 ### 1. Extension Input Assist
 In your web application's login forms, set the `name` attribute of the handle input field (`<input>`) to `handle`.
-This allows the @passport extension to automatically recognize the field and reflect the selected handle directly into the input field when the user taps it in the extension.
+This allows the @passport extension to automatically recognize the field and automatically reflect the value in the input field when a user selects a handle from the extension.
+
+### 2. @passport Integration
+@passport integration works with the following mechanism:
+
+1. Each app transitions to @passport with a `callback` parameter when the authentication button in @passport is tapped.
+2. @passport lists handles corresponding to that session. When a user taps a handle, the tapped handle is added to the `callback` specified in step 1, and the user is redirected.
+3. Each app uses the returned handle to start the OAuth authentication flow.
+
+It is also possible to implement cases where the scope differs depending on where the integration starts by defining the `scope` with custom parameters.
+
+If you perform the redirection directly in step 3, you will be able to provide a more seamless login experience.
 
 ### 2-1. Using the Library
 To provide a more advanced and seamless experience (such as adding a "@passport Login" button), we provide an official client library.

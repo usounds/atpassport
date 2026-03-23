@@ -10,7 +10,7 @@
 まず、プロジェクトルートで以下の確認を行います。
 
 1. **変更箇所の特定**: `git status` および `git diff --name-only HEAD` を実行。
-   - `frontend/`、`packages/atpassport-client/`、`atpassport-extension` のいずれに変更があるかを把握する。
+   - `frontend/`、`packages/atpassport-client/`、`packages/atpassport-extension` のいずれに変更があるかを把握する。
 2. **コミット状態の確認**: 未コミットの変更がある場合は、更新内容に応じてGitに自動でコミットする。コメントのルールは遵守すること
    - すべてコミットされている場合のみ次へ進む。
 

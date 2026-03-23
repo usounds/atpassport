@@ -1,10 +1,11 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import path from "path";
 
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: "standalone",
   serverExternalPackages: [
     "sst",
     "@atcute/client",
@@ -14,6 +15,10 @@ const nextConfig: NextConfig = {
     "@atcute/bluesky"
   ],
 
+  outputFileTracingRoot: path.join(__dirname, ".."),
+  turbopack: process.env.NODE_ENV === "development" ? {
+    root: path.join(__dirname, ".."),
+  } : undefined,
   experimental: {
     serverActions: {
       allowedOrigins: ['atpassport.net', 'dev.atpassport.net', 'localhost:3001'],

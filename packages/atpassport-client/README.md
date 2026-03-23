@@ -25,9 +25,9 @@ import { AtPassport } from '@atpassport/client/core';
 
 // 1. Initialize the client
 const passport = new AtPassport({
-  callbackUrl: 'https://myapp.com/api/atpassport/callback', // The URL to redirect back to
-  lang: 'en', // Optional: 'en', 'ja', 'pt', 'de', 'fr', 'es' (default matches browser or 'en')
-  requiredParams: { returnTo: 'string' } // Define required parameters for type safety
+  callbackUrl: 'https://myapp.com/api/atpassport/callback', // Required: The URL to redirect back to
+  lang: 'en', // Optional: 'en', 'ja', 'pt', 'de', 'fr', 'es'
+  requiredParams: { returnTo: 'string' } // Optional: Define required parameters
 });
 
 // 2. Generate the authentication URL and atpstate (for CSRF protection)
@@ -53,7 +53,7 @@ export async function GET(req: Request) {
   try {
     const result = passport.parseCallback(req.url, expectedState);
     
-    console.log('Login successful:', result.handle);
+    console.log('Handle:', result.handle);
     console.log('Custom Parameters:', result.customParams.returnTo);
     
     // Continue the OAuth flow... (e.g., call authorize() with the received handle using your OAuth library)
@@ -74,10 +74,11 @@ import { AtPassportUI } from '@atpassport/client/ui';
 
 // English translations
 console.log(AtPassportUI.en.title); // "Login with @passport"
-console.log(AtPassportUI.en.description); // "@passport is a universal handle manager..."
+console.log(AtPassportUI.en.description); // "@passport is a handle manager that eliminates the need for handle entry..."
 
 // Japanese translations
 console.log(AtPassportUI.ja.title); // "@passportでログイン"
+console.log(AtPassportUI.ja.description); // "@passportは、各atprotoアプリでハンドルを都度入力する手間が省ける共通ハンドルマネージャーです。"
 
 // Standard Icon (SVG String)
 const svgString = AtPassportUI.iconSvg;

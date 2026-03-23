@@ -29,7 +29,8 @@
   "Auth": {
     "title": "Handle auswählen",
     "moving_to": "Weiterleitung zu {domain}",
-    "authenticating": "Authentifizierung bei {domain}...",
+    "authenticating_title": "Anmelden als @{handle}",
+    "authenticating_message": "Zurück zu {domain}...",
     "no_accounts": "Keine registrierten Handles gefunden",
     "missing_callback": "Ungültige Anfrage (callbackUrl fehlt)",
     "register_and_auth": "@{handle} registrieren und fortfahren",
@@ -47,7 +48,8 @@
   "Nav": {
     "about": "Über",
     "terms": "Bedingungen",
-    "privacy": "Datenschutz"
+    "privacy": "Datenschutz",
+    "toggle_color_scheme": "Farbschema umschalten"
   },
   "Share": {
     "title": "Mit anderen\nGeräten teilen",

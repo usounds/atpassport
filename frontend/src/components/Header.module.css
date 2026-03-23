@@ -41,5 +41,5 @@
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  color: inherit;
+  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
 }

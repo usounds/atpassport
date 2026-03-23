@@ -29,11 +29,20 @@
   "Auth": {
     "title": "ハンドルを選択してください",
     "moving_to": "{domain} に移動",
-    "authenticating": "{domain} へ認証中です...",
-    "no_accounts": "登録されているハンドルがありません",
+    "authenticating_title": "@{handle} でログイン",
+    "authenticating_message": "{domain} に遷移します...",
+    "no_accounts": "登録されたハンドルはありません",
     "missing_callback": "リクエストが正しくありません (callbackUrl)",
     "register_and_auth": "@{handle} を登録して進む",
-    "confirm_registration": "このハンドルはまだ@passportに登録されていません。"
+    "confirm_registration": "このハンドルはまだ@passportに登録されていません。",
+    "manage_account": "アカウントの管理",
+    "refresh_metadata": "メタデータを更新",
+    "move_up": "上に移動",
+    "move_down": "下に移動",
+    "delete": "削除",
+    "confirm_delete_title": "削除の確認",
+    "confirm_delete_text": "登録済みハンドルから {handle} を削除してもよろしいですか？",
+    "cancel": "キャンセル"
   },
   "Add": {
     "title": "ハンドルの追加",
@@ -47,7 +56,8 @@
   "Nav": {
     "about": "About",
     "terms": "利用規約",
-    "privacy": "プライバシー"
+    "privacy": "プライバシー",
+    "toggle_color_scheme": "ダークモードの切り替え"
   },
   "Share": {
     "title": "デバイス間で共有",

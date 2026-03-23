@@ -1,13 +1,12 @@
 'use client';
 
-import { Container, Group, Title, Burger, Drawer, Stack, ActionIcon, Menu } from '@mantine/core';
+import { Container, Group, Title, Burger, Drawer, Stack, ActionIcon, Menu, useMantineColorScheme } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useTranslations, useLocale } from 'next-intl';
-import { Link, usePathname, useRouter } from '@/i18n/routing';
-import { Languages } from 'lucide-react';
-import classes from './Header.module.css';
-
 import Image from 'next/image';
+import { Link, usePathname, useRouter } from '@/i18n/routing';
+import { Languages, Sun, Moon } from 'lucide-react';
+import classes from './Header.module.css';
 
 const links = [
   { link: '/about', labelKey: 'about' },
@@ -22,10 +21,28 @@ export function Header() {
   const locale = useLocale();
   const router = useRouter();
   const [opened, { toggle, close }] = useDisclosure(false);
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
 
   const handleLocaleChange = (nextLocale: string) => {
     router.replace(pathname, { locale: nextLocale });
   };
+
+  const toggleColorScheme = () => {
+    setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
+  };
+
+  const colorSchemeToggle = (
+    <ActionIcon
+      onClick={toggleColorScheme}
+      variant="light"
+      color="gray"
+      size="lg"
+      radius="md"
+      aria-label={tNav('toggle_color_scheme')}
+    >
+      {colorScheme === 'dark' ? <Sun size={20} strokeWidth={1.5} /> : <Moon size={20} strokeWidth={1.5} />}
+    </ActionIcon>
+  );
 
   const languagePicker = (
     <Menu shadow="md" width={140} position="bottom-end" transitionProps={{ transition: 'pop-top-right' }}>
@@ -35,63 +52,46 @@ export function Header() {
         </ActionIcon>
       </Menu.Target>
 
-      <Menu.Dropdown 
-        bg="light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-6))" 
-        style={{ border: '1px solid light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))' }}
-      >
-        <Menu.Label c="light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-2))" fw={700}>
-          {locale === 'ja' ? '言語を選択' : 
+      <Menu.Dropdown>
+        <Menu.Label>{locale === 'ja' ? '言語を選択' : 
            locale === 'pt' ? 'Selecionar Idioma' :
            locale === 'de' ? 'Sprache wählen' :
            locale === 'fr' ? 'Choisir la langue' :
            locale === 'es' ? 'Seleccionar idioma' :
-           'Select Language'}
-        </Menu.Label>
+           'Select Language'}</Menu.Label>
         <Menu.Item 
           onClick={() => handleLocaleChange('en')}
           fw={locale === 'en' ? 700 : 400}
-          bg={locale === 'en' ? 'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))' : 'transparent'}
-          c="light-dark(var(--mantine-color-black), var(--mantine-color-white))"
         >
           English
         </Menu.Item>
         <Menu.Item 
           onClick={() => handleLocaleChange('ja')}
           fw={locale === 'ja' ? 700 : 400}
-          bg={locale === 'ja' ? 'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))' : 'transparent'}
-          c="light-dark(var(--mantine-color-black), var(--mantine-color-white))"
         >
           日本語
         </Menu.Item>
         <Menu.Item 
           onClick={() => handleLocaleChange('pt')}
           fw={locale === 'pt' ? 700 : 400}
-          bg={locale === 'pt' ? 'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))' : 'transparent'}
-          c="light-dark(var(--mantine-color-black), var(--mantine-color-white))"
         >
           Português
         </Menu.Item>
         <Menu.Item 
           onClick={() => handleLocaleChange('de')}
           fw={locale === 'de' ? 700 : 400}
-          bg={locale === 'de' ? 'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))' : 'transparent'}
-          c="light-dark(var(--mantine-color-black), var(--mantine-color-white))"
         >
           Deutsch
         </Menu.Item>
         <Menu.Item 
           onClick={() => handleLocaleChange('fr')}
           fw={locale === 'fr' ? 700 : 400}
-          bg={locale === 'fr' ? 'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))' : 'transparent'}
-          c="light-dark(var(--mantine-color-black), var(--mantine-color-white))"
         >
           Français
         </Menu.Item>
         <Menu.Item 
           onClick={() => handleLocaleChange('es')}
           fw={locale === 'es' ? 700 : 400}
-          bg={locale === 'es' ? 'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))' : 'transparent'}
-          c="light-dark(var(--mantine-color-black), var(--mantine-color-white))"
         >
           Español
         </Menu.Item>
@@ -118,18 +118,22 @@ export function Header() {
     <header className={classes.header}>
       <Container size="sm" className={classes.inner}>
         <Link href="/" className={classes.logo}>
-          <Image src="/icon128.svg" alt="logo" width={24} height={24} />
-          <Title order={3} m={0} style={{ lineHeight: 1 }}>{t('title')}</Title>
+          <Image src="/icon128.svg" alt="logo" width={24} height={24} style={{ position: 'relative', top: '2px' }} />
+          <Title order={3} fw={700} m={0} style={{ lineHeight: 1 }}>{t('title')}</Title>
         </Link>
 
-        <Group gap={20} visibleFrom="xs">
+        <Group gap="md" visibleFrom="xs">
           <Group gap={5}>
             {items}
           </Group>
-          {languagePicker}
+          <Group gap="xs">
+            {colorSchemeToggle}
+            {languagePicker}
+          </Group>
         </Group>
 
         <Group gap="xs" hiddenFrom="xs">
+          {colorSchemeToggle}
           {languagePicker}
           <Burger
             opened={opened}
