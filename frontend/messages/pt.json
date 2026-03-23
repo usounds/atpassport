@@ -30,7 +30,7 @@
     "title": "Selecione um handle",
     "moving_to": "Indo para {domain}",
     "authenticating_title": "Entrar como @{handle}",
-    "authenticating_message": "Retornando para {domain}...",
+    "authenticating_message": "Indo para {domain} ou para o seu PDS...",
     "no_accounts": "Nenhum handle registrado encontrado",
     "missing_callback": "Solicitação inválida (sem callbackUrl)",
     "register_and_auth": "Registrar @{handle} e continuar",

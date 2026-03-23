@@ -30,7 +30,7 @@
     "title": "ハンドルを選択してください",
     "moving_to": "{domain} に移動",
     "authenticating_title": "@{handle} でログイン",
-    "authenticating_message": "{domain} に移動します...",
+    "authenticating_message": "{domain} または、あなたのPDSに移動します...",
     "no_accounts": "登録されたハンドルはありません",
     "missing_callback": "リクエストが正しくありません (callbackUrl)",
     "register_and_auth": "@{handle} を登録して進む",

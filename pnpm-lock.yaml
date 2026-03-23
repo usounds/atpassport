@@ -37,8 +37,8 @@ importers:
         specifier: ^1.0.3
         version: 1.0.3(@atcute/identity-resolver@1.2.2(@atcute/identity@1.1.4))(@atcute/identity@1.1.4)
       '@atpassport/client':
-        specifier: 0.1.22
-        version: 0.1.22(react@19.2.4)
+        specifier: ^0.1.23
+        version: 0.1.23(react@19.2.4)
       '@aws-sdk/client-dynamodb':
         specifier: ^3.1014.0
         version: 3.1014.0
@@ -267,8 +267,8 @@ packages:
   '@atcute/util-text@1.2.0':
     resolution: {integrity: sha512-b8WSh+Z7K601eUFFmTFj8QPKDO8Ic0VDDj63sdKzpkm+ySQKsYT5nXekViGqFVKbyKj1V5FyvZvgXad6/aI4QQ==}
 
-  '@atpassport/client@0.1.22':
-    resolution: {integrity: sha512-DhJZ9t95oUln1kq+wHiJyn/wTruB4lQd4os/m5+duuHmqARaSYXkPOu0waFpDEUBP84PxAp/VtTlQyC1NfuFvA==}
+  '@atpassport/client@0.1.23':
+    resolution: {integrity: sha512-/iYuYz2ebRiO6wV2VycCQfDrsErVN7AnEkGXK9/gyAjxX6HM5go9F2VxcXms4lyo6+HhcpzuPxD8lALYNEZM8A==}
     peerDependencies:
       react: '>=18.0.0'
     peerDependenciesMeta:
@@ -5277,7 +5277,7 @@ snapshots:
     dependencies:
       unicode-segmenter: 0.14.5
 
-  '@atpassport/client@0.1.22(react@19.2.4)':
+  '@atpassport/client@0.1.23(react@19.2.4)':
     optionalDependencies:
       react: 19.2.4
 
@@ -7973,7 +7973,7 @@ snapshots:
       eslint: 9.39.4
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.57.1(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4))(eslint@9.39.4)
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.57.1(eslint@9.39.4)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.57.1(eslint@9.39.4)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.57.1(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4))(eslint@9.39.4))(eslint@9.39.4)
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.4)
       eslint-plugin-react: 7.37.5(eslint@9.39.4)
       eslint-plugin-react-hooks: 7.0.1(eslint@9.39.4)
@@ -8006,7 +8006,7 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.57.1(eslint@9.39.4)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.57.1(eslint@9.39.4)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.57.1(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4))(eslint@9.39.4))(eslint@9.39.4)
     transitivePeerDependencies:
       - supports-color
 
@@ -8021,7 +8021,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.57.1(eslint@9.39.4)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.57.1(eslint@9.39.4)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.57.1(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4))(eslint@9.39.4))(eslint@9.39.4):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9

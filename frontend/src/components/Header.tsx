@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { Languages, Sun, Moon } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import classes from './Header.module.css';
 
 const links = [
@@ -18,13 +19,16 @@ export function Header() {
   const t = useTranslations('Home');
   const tNav = useTranslations('Nav');
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const locale = useLocale();
   const router = useRouter();
   const [opened, { toggle, close }] = useDisclosure(false);
   const { colorScheme, setColorScheme } = useMantineColorScheme();
 
   const handleLocaleChange = (nextLocale: string) => {
-    router.replace(pathname, { locale: nextLocale });
+    const params = searchParams.toString();
+    const href = params ? `${pathname}?${params}` : pathname;
+    router.replace(href, { locale: nextLocale });
   };
 
   const toggleColorScheme = () => {
