@@ -1,6 +1,6 @@
 {
   "name": "@atpassport/client",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "description": "AtPassport client library for integrating secure handle input assist into applications.",
   "keywords": [
     "atproto",
