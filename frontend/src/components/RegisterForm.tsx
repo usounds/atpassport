@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Autocomplete, Avatar, Group, Text, Button, Modal, Stack, Checkbox, Box } from '@mantine/core';
 import { useTranslations } from 'next-intl';
 import { useDebouncedCallback, useDisclosure } from '@mantine/hooks';
-import { registerHandle } from '@/lib/actions';
+import { registerHandle, initializeSession } from '@/lib/actions';
 import { IconPlus } from '@tabler/icons-react';
 import { publicAgent } from '@/lib/atproto';
 import { Link } from '@/i18n/routing';
@@ -19,20 +19,28 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   const t = useTranslations('Home');
 
   const needsConsent = handleCount === 0;
+  
+  const normalize = (v: string) => {
+    const f = v.trim().replace(/@/g, '').toLowerCase();
+    if (f && !f.includes('.')) {
+      return `${f}.bsky.social`;
+    }
+    return f;
+  };
 
   const handleRegister = async () => {
-    const formattedHandle = handle.trim().replace(/@/g, '').toLowerCase();
-    const finalHandle = formattedHandle && !formattedHandle.includes('.')
-      ? `${formattedHandle}.bsky.social`
-      : formattedHandle;
+    const currentHandle = normalize(handle);
+    if (!currentHandle) return;
 
-    if (!finalHandle) return;
+    // UI表示を同期させる（ユーザーの要望通り、即時に反映する）
+    setHandle(currentHandle);
+    
     if (needsConsent && !agreed) return;
     setLoading(true);
     setError(null);
 
     try {
-      const res = await registerHandle(finalHandle);
+      const res = await registerHandle(currentHandle);
       if (res && !res.success) {
         if (res.error === "Handle not found or missing PDS") {
           setError(t('handle_not_found'));
@@ -134,21 +142,21 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
                 <Text size="sm">{option.value}</Text>
               </Group>
             )}
-            onInput={(event) => handleInput(event.currentTarget.value)}
             onChange={(value) => {
               const val = value.replace(/@/g, '').toLowerCase();
               setHandle(val);
+              handleInput(val);
               setSuggestions([]);
               setError(null);
             }}
             onBlur={() => {
-              if (handle && !handle.includes('.')) {
-                setHandle(`${handle}.bsky.social`);
-              }
+              setHandle(prev => normalize(prev));
             }}
             error={error}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                e.stopPropagation();
                 handleRegister();
               }
             }}
@@ -161,7 +169,13 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
           {needsConsent && (
             <Checkbox
               checked={agreed}
-              onChange={(e) => setAgreed(e.currentTarget.checked)}
+              onChange={async (e) => {
+                const isChecked = e.currentTarget.checked;
+                setAgreed(isChecked);
+                if (isChecked) {
+                  await initializeSession();
+                }
+              }}
               label={t.rich('agree_to_terms', {
                 terms: (chunks) => (
                   <Link href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>

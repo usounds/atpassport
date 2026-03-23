@@ -48,11 +48,10 @@ export default async function middleware(request: NextRequest) {
 
   const response = intlMiddleware(request);
 
-  // Set cookie if it's not valid (new session or throttled update)
-  if (!isValid) {
-    const finalUuid = uuid || crypto.randomUUID();
+  // Set cookie only if it's not valid AND we have an existing uuid
+  if (!isValid && uuid) {
     const now = Math.floor(Date.now() / 1000);
-    const token = await new SignJWT({ uuid: finalUuid, lastTouched: now })
+    const token = await new SignJWT({ uuid, lastTouched: now })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt(now)
       .setExpirationTime('365d')

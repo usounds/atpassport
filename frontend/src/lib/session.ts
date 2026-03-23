@@ -21,9 +21,10 @@ export async function getSessionUuid(): Promise<string | null> {
 }
 
 export async function createSessionToken(uuid: string): Promise<string> {
-  return await new SignJWT({ uuid })
+  const now = Math.floor(Date.now() / 1000);
+  return await new SignJWT({ uuid, lastTouched: now })
     .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
+    .setIssuedAt(now)
     .setExpirationTime("365d")
     .sign(SECRET_KEY);
 }

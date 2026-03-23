@@ -137,3 +137,35 @@ export async function syncWithToken(token: string, locale: string): Promise<{ su
 
   return { success: true };
 }
+
+/**
+ * 手動でセッションを初期化し、クッキーを発行します。
+ * 同意チェックボックスがオンになったタイミングなどで呼び出されます。
+ */
+export async function initializeSession() {
+  const uuid = await getSessionUuid();
+  if (uuid) return; // すでにセッションが存在する場合は何もしない
+
+  let newUuid = crypto.randomUUID();
+  let attempts = 0;
+  
+  // 衝突チェック: 生成したUUIDがデータベースに既に存在しないか確認する
+  // (UUID v4 の性質上、衝突は極めて稀ですが、安全性を高めます)
+  while (attempts < 5) {
+    const associations = await getAssociations(newUuid);
+    if (associations.length === 0) break;
+    newUuid = crypto.randomUUID();
+    attempts++;
+  }
+
+  const sessionToken = await createSessionToken(newUuid);
+  const cookieStore = await cookies();
+
+  cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+}

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { registerHandle, setPrimaryAssociation, removeAssociation, moveAssociation, syncWithToken, refreshAssociation } from '../actions';
-import { getSessionUuid, createSessionToken } from '../session';
+import { registerHandle, setPrimaryAssociation, removeAssociation, moveAssociation, syncWithToken, refreshAssociation, initializeSession } from '../actions';
+import { getSessionUuid, createSessionToken, SESSION_COOKIE_NAME } from '../session';
 import { getAssociations, addAssociation, updateAssociation, deleteAssociation } from '../models';
 import { resolveIdentity } from '../atproto-server';
 import { getUuidByShareToken } from '../share';
@@ -126,6 +126,46 @@ describe('Actions Library', () => {
       const result = await syncWithToken('invalid-token', 'en');
       expect(result.success).toBe(false);
       expect(result.error).toBe('invalid_token');
+    });
+  });
+
+  describe('initializeSession', () => {
+    it('should set a new session cookie if none exists', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(null);
+      vi.mocked(getAssociations).mockResolvedValue([]);
+      vi.mocked(createSessionToken).mockResolvedValue('new-token');
+      const mockCookieSet = vi.fn();
+      vi.mocked(cookies).mockResolvedValue({ get: vi.fn(), set: mockCookieSet } as any);
+
+      await initializeSession();
+
+      expect(mockCookieSet).toHaveBeenCalledWith(SESSION_COOKIE_NAME, 'new-token', expect.any(Object));
+    });
+
+    it('should not set a cookie if one already exists', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue('existing-uuid');
+      const mockCookieSet = vi.fn();
+      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
+
+      await initializeSession();
+
+      expect(mockCookieSet).not.toHaveBeenCalled();
+    });
+
+    it('should retry if UUID collision occurs', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(null);
+      // First call returns existing, second returns empty (no collision)
+      vi.mocked(getAssociations)
+        .mockResolvedValueOnce([{ did: 'did:1' } as any])
+        .mockResolvedValueOnce([]);
+      vi.mocked(createSessionToken).mockResolvedValue('new-token');
+      const mockCookieSet = vi.fn();
+      vi.mocked(cookies).mockResolvedValue({ get: vi.fn(), set: mockCookieSet } as any);
+
+      await initializeSession();
+
+      expect(getAssociations).toHaveBeenCalledTimes(2);
+      expect(mockCookieSet).toHaveBeenCalled();
     });
   });
 });

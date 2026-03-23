@@ -71,8 +71,13 @@ export async function resolveIdentity(handleOrDid: string) {
       handle: actor.handle,
       pdsUrl: actor.pds 
     };
-  } catch (e) {
-    console.error(`Failed to resolve identity for ${handleOrDid}:`, e);
+  } catch (e: any) {
+    // 存在しないハンドルなどの「見つからない」系エラーは警告レベルに留める
+    if (e?.name === 'ActorResolutionError' || e?.cause?.name === 'DidNotFoundError') {
+      console.warn(`[resolveIdentity] Identity not found for ${handleOrDid}`);
+    } else {
+      console.error(`[resolveIdentity] Unexpected error for ${handleOrDid}:`, e);
+    }
     return null;
   }
 }
