@@ -73,7 +73,7 @@ export function AuthAccountList({
   if (authenticating && selectedItem) {
     const pds = normalizePds(selectedItem.pdsUrl);
     return (
-      <Stack gap="xl" py="lg">
+      <Stack gap="xl" py="md">
         <Box>
           <AuthAccountItem 
             item={selectedItem}
@@ -82,10 +82,11 @@ export function AuthAccountList({
             domain={domain}
             onSelect={() => {}}
             disabled={true}
+            selected={true}
             hideMenu={true}
           />
         </Box>
-        <Box px="sm">
+        <Box px="sm" ta="center">
           <Text size="sm" c="dimmed" style={{ lineHeight: 1.6 }}>
             {t('authenticating_message', { domain, pds })}
           </Text>

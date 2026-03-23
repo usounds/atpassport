@@ -38,6 +38,7 @@ AtPassportは、atprotoアプリケーションにおけるハンドルの入力
 - feat : 新機能
 - fix : バグ修正
 - lib : ライブラリの更新
+- bump : package.jsonの更新のみの場合。bump(v0.0.0の形式とする)
 
 ## 優先事項
 1. **型の安全性**: TypeScriptの型定義を厳格に守り、`any` の使用を避けてください。

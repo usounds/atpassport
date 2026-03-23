@@ -26,6 +26,7 @@ export function AuthAccountItem({
   isFirst,
   isLast,
   disabled,
+  selected,
   index = 0,
   hideMenu,
 }: {
@@ -41,6 +42,7 @@ export function AuthAccountItem({
   isFirst?: boolean;
   isLast?: boolean;
   disabled?: boolean;
+  selected?: boolean;
   index?: number;
   hideMenu?: boolean;
 }) {
@@ -127,7 +129,7 @@ export function AuthAccountItem({
             style={{
               flex: 1,
               cursor: (disabled || isUpdating) ? 'not-allowed' : 'pointer',
-              opacity: (disabled || isUpdating) ? 0.6 : undefined,
+              opacity: ((disabled || isUpdating) && !selected) ? 0.6 : undefined,
               minWidth: 0,
             }}
           >
