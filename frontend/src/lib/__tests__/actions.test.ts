@@ -5,7 +5,7 @@ import { getAssociations, addAssociation, updateAssociation, deleteAssociation }
 import { resolveIdentity } from '../atproto-server';
 import { getUuidByShareToken } from '../share';
 import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 vi.mock('../session');
 vi.mock('../models');
@@ -16,6 +16,7 @@ vi.mock('next/cache', () => ({
 }));
 vi.mock('next/headers', () => ({
   cookies: vi.fn(),
+  headers: vi.fn(),
 }));
 
 describe('Actions Library', () => {
@@ -24,6 +25,10 @@ describe('Actions Library', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default mock for headers
+    vi.mocked(headers).mockResolvedValue({
+      get: vi.fn().mockReturnValue('127.0.0.1')
+    } as any);
   });
 
   describe('registerHandle', () => {
