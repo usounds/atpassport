@@ -29,12 +29,20 @@
   "Auth": {
     "title": "Handle auswählen",
     "moving_to": "Weiterleitung zu {domain}",
-    "authenticating_title": "Anmelden als @{handle}",
-    "authenticating_message": "Weiterleitung zu {domain} oder Ihrem PDS...",
+    "authenticating_title": "Wird angemeldet",
+    "authenticating_message": "Anmeldung mit diesem Konto. Wechsel zu {domain} oder {pds} zur Authentifizierung",
     "no_accounts": "Keine registrierten Handles gefunden",
     "missing_callback": "Ungültige Anfrage (callbackUrl fehlt)",
     "register_and_auth": "@{handle} registrieren und fortfahren",
-    "confirm_registration": "Dieser Handle ist noch nicht bei @passport registriert."
+    "confirm_registration": "Dieser Handle ist noch nicht bei @passport registriert.",
+    "manage_account": "Konto verwalten",
+    "refresh_metadata": "Metadaten aktualisieren",
+    "move_up": "Nach oben verschieben",
+    "move_down": "Nach unten verschieben",
+    "delete": "Löschen",
+    "confirm_delete_title": "Löschen bestätigen",
+    "confirm_delete_text": "Sind Sie sicher, dass Sie {handle} aus Ihren registrierten Handles entfernen möchten?",
+    "cancel": "Abbrechen"
   },
   "Add": {
     "title": "Handle hinzufügen",

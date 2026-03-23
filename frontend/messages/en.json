@@ -29,8 +29,8 @@
   "Auth": {
     "title": "Select a handle",
     "moving_to": "Moving to {domain}",
-    "authenticating_title": "Login as @{handle}",
-    "authenticating_message": "Moving to {domain} or your PDS...",
+    "authenticating_title": "Logging in",
+    "authenticating_message": "Logging in with this account. Transitioning to {domain} or {pds} for authentication",
     "no_accounts": "No registered handles found",
     "missing_callback": "Invalid request (missing callbackUrl)",
     "register_and_auth": "Register @{handle} and continue",

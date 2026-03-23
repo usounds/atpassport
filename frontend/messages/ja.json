@@ -29,8 +29,8 @@
   "Auth": {
     "title": "ハンドルを選択してください",
     "moving_to": "{domain} に移動",
-    "authenticating_title": "@{handle} でログイン",
-    "authenticating_message": "{domain} または、あなたのPDSに移動します...",
+    "authenticating_title": "ログインしています",
+    "authenticating_message": "このアカウントでログインします。{domain} または {pds} に移動して認証しています",
     "no_accounts": "登録されたハンドルはありません",
     "missing_callback": "リクエストが正しくありません (callbackUrl)",
     "register_and_auth": "@{handle} を登録して進む",

@@ -1,7 +1,6 @@
-import { Container, Title, Text, Stack, Center } from '@mantine/core';
+import { Container, Text, Center } from '@mantine/core';
 import { getTranslations } from 'next-intl/server';
 import { AuthAccountList } from '@/components/AuthAccountList';
-import { RegisterForm } from '@/components/RegisterForm';
 import { getAssociations } from '@/lib/models';
 import { getSessionUuid } from '@/lib/session';
 import { getProfile } from '@/lib/atproto';
@@ -56,21 +55,12 @@ export default async function AuthPage({
 
   return (
     <Container size="sm" py="xl" style={{ maxWidth: 500 }}>
-      <Stack gap="xl">
-        <header style={{ textAlign: 'center' }}>
-          <Title order={3} mb="xs">{t('title')}</Title>
-          <Text c="dimmed" size="xs" fw={500}>{t('moving_to', { domain })}</Text>
-        </header>
-
-        <AuthAccountList
-          initialItems={items}
-          callback={callback}
-          atpstate={atpstate}
-          domain={domain}
-        />
-
-        <RegisterForm handleCount={items.length} />
-      </Stack>
+      <AuthAccountList
+        initialItems={items}
+        callback={callback}
+        atpstate={atpstate}
+        domain={domain}
+      />
     </Container>
   );
 }

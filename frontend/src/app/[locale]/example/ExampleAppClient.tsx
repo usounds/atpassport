@@ -206,31 +206,33 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
             </Tabs.Panel>
           </Tabs>
         ) : (
-          <Paper withBorder p="xl" radius="lg" shadow="sm" style={{ borderTop: '4px solid var(--mantine-color-blue-6)' }}>
+          <Paper withBorder p="xl" radius="lg" shadow="sm">
             <Stack gap="lg">
               <Group justify="space-between">
                 <Title order={4}>{t('result')}</Title>
                 <Badge color="blue" variant="light">{t('callback_received')}</Badge>
               </Group>
               
+              <Divider />
+
               <Box>
                 <Table verticalSpacing="sm">
                   <Table.Tbody>
                     <Table.Tr>
                       <Table.Td fw={600} w={140}>handle</Table.Td>
-                      <Table.Td><Code p="xs" style={{ fontSize: 13 }}>{result.handle}</Code></Table.Td>
+                      <Table.Td><Text span ff="monospace" size="sm">{result.handle}</Text></Table.Td>
                     </Table.Tr>
                     <Table.Tr>
                       <Table.Td fw={600}>did</Table.Td>
-                      <Table.Td><Code p="xs" style={{ fontSize: 12, wordBreak: 'break-all' }}>{result.did}</Code></Table.Td>
+                      <Table.Td><Text span ff="monospace" size="sm" style={{ wordBreak: 'break-all' }}>{result.did}</Text></Table.Td>
                     </Table.Tr>
                     <Table.Tr>
                       <Table.Td fw={600}>pdsurl</Table.Td>
-                      <Table.Td><Code p="xs" style={{ fontSize: 12 }}>{result.pdsUrl}</Code></Table.Td>
+                      <Table.Td><Text span ff="monospace" size="sm" style={{ wordBreak: 'break-all' }}>{result.pdsUrl}</Text></Table.Td>
                     </Table.Tr>
                     <Table.Tr>
                       <Table.Td fw={600}>atpstate</Table.Td>
-                      <Table.Td><Code p="xs" style={{ fontSize: 12, wordBreak: 'break-all' }}>{result.atpstate}</Code></Table.Td>
+                      <Table.Td><Text span ff="monospace" size="sm" style={{ wordBreak: 'break-all' }}>{result.atpstate}</Text></Table.Td>
                     </Table.Tr>
                   </Table.Tbody>
                 </Table>
@@ -250,7 +252,7 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
                       {Object.entries(result.customParams).map(([k, v]) => (
                         <Table.Tr key={k}>
                           <Table.Td><Text size="sm" fw={500}>{k}</Text></Table.Td>
-                          <Table.Td><Code p="xs" style={{ fontSize: 13 }}>{v as string}</Code></Table.Td>
+                          <Table.Td><Text span ff="monospace" size="sm">{v as string}</Text></Table.Td>
                         </Table.Tr>
                       ))}
                     </Table.Tbody>

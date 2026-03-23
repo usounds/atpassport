@@ -29,12 +29,20 @@
   "Auth": {
     "title": "Selecciona un handle",
     "moving_to": "Yendo a {domain}",
-    "authenticating_title": "Iniciar sesión como @{handle}",
-    "authenticating_message": "Yendo a {domain} o a tu PDS...",
+    "authenticating_title": "Iniciando sesión",
+    "authenticating_message": "Iniciando sesión con esta cuenta. Pasando a {domain} o {pds} para la autenticación",
     "no_accounts": "No se encontraron handles registrados",
     "missing_callback": "Solicitud inválida (falta callbackUrl)",
     "register_and_auth": "Registrar @{handle} y continuar",
-    "confirm_registration": "Este handle aún no está registrado en @passport."
+    "confirm_registration": "Este handle aún no está registrado en @passport.",
+    "manage_account": "Gestionar cuenta",
+    "refresh_metadata": "Actualizar Metadatos",
+    "move_up": "Subir",
+    "move_down": "Bajar",
+    "delete": "Eliminar",
+    "confirm_delete_title": "Confirmar eliminación",
+    "confirm_delete_text": "¿Estás seguro de que quieres eliminar {handle} de tus handles registrados?",
+    "cancel": "Cancelar"
   },
   "Add": {
     "title": "Añadir Handle",
@@ -76,7 +84,7 @@
     "title": "App de Ejemplo",
     "description": "Una demo que muestra cómo integrar la biblioteca @atpassport/client.",
     "setup": "1. Configuración",
-    "custom_params": "Parâmetros Personalizados",
+    "custom_params": "Parámetros Personalizados",
     "add_param": "Añadir Parámetro",
     "register_handle": "Handle para registrar",
     "add_specific_handle": "Registrar @{handle} en @passport",

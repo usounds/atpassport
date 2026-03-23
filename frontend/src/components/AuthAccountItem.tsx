@@ -9,7 +9,6 @@ import {
   IconTrash
 } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
-import { notifications } from '@mantine/notifications';
 import { useTranslations } from 'next-intl';
 import { useTopLoader } from 'nextjs-toploader';
 import { useState } from 'react';
@@ -28,12 +27,13 @@ export function AuthAccountItem({
   isLast,
   disabled,
   index = 0,
+  hideMenu,
 }: {
   item: any;
   callback: string;
   atpstate?: string;
   domain: string;
-  onSelect: () => void;
+  onSelect: (item: any) => void;
   onRefresh?: () => void;
   onDelete?: () => void;
   onMoveUp?: () => void;
@@ -42,6 +42,7 @@ export function AuthAccountItem({
   isLast?: boolean;
   disabled?: boolean;
   index?: number;
+  hideMenu?: boolean;
 }) {
   const t = useTranslations('Auth');
   const topLoader = useTopLoader();
@@ -49,23 +50,21 @@ export function AuthAccountItem({
   const [isUpdating, setIsUpdating] = useState(false);
   const [menuOpened, setMenuOpened] = useState(false);
 
+  const pdsHostname = (() => {
+    try {
+      return new URL(item.pdsUrl).hostname;
+    } catch (e) {
+      return item.pdsUrl;
+    }
+  })();
+
   const handleSelect = async () => {
     if (disabled || isUpdating) return;
 
     // Show top loader
     topLoader.start();
 
-    // Show notification
-    notifications.show({
-      id: 'auth-loading',
-      title: t('authenticating_title', { handle: item.handle }),
-      message: t('authenticating_message', { domain }),
-      loading: true,
-      autoClose: false,
-      withCloseButton: false,
-    });
-
-    onSelect();
+    onSelect(item);
 
     try {
       // Callback mode (default)
@@ -79,7 +78,6 @@ export function AuthAccountItem({
       window.location.replace(url.toString());
     } catch (e) {
       console.error('Failed to construct redirect URL', e);
-      notifications.hide('auth-loading');
     }
   };
 
@@ -136,7 +134,7 @@ export function AuthAccountItem({
             <Card
               padding="sm"
               radius={0}
-              className={`picker-item ${!menuOpened ? 'picker-item-hoverable picker-item-slide' : ''}`}
+              className={`picker-item ${(!menuOpened && !disabled && !isUpdating) ? 'picker-item-hoverable picker-item-slide' : ''}`}
               style={{
                 backgroundColor: 'transparent',
                 border: 'none',
@@ -150,73 +148,75 @@ export function AuthAccountItem({
                     @{item.handle}
                   </Text>
                   <Text size="10px" c="dimmed" truncate style={{ opacity: 0.8 }}>
-                    PDS:{new URL(item.pdsUrl).hostname}
+                    PDS:{pdsHostname}
                   </Text>
                 </Stack>
               </Group>
             </Card>
           </UnstyledButton>
 
-          <Box pr="xs">
-            <Menu
-              shadow="md"
-              width={200}
-              position="bottom-end"
-              radius="md"
-              opened={menuOpened}
-              onChange={setMenuOpened}
-            >
-              <Menu.Target>
-                <ActionIcon 
-                  variant="subtle" 
-                  color="gray" 
-                  size="lg" 
-                  radius="md" 
-                  loading={isUpdating}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <IconDotsVertical size={20} />
-                </ActionIcon>
-              </Menu.Target>
+          {!hideMenu && (
+            <Box pr="xs">
+              <Menu
+                shadow="md"
+                width={200}
+                position="bottom-end"
+                radius="md"
+                opened={menuOpened}
+                onChange={setMenuOpened}
+              >
+                <Menu.Target>
+                  <ActionIcon 
+                    variant="subtle" 
+                    color="gray" 
+                    size="lg" 
+                    radius="md" 
+                    loading={isUpdating}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <IconDotsVertical size={20} />
+                  </ActionIcon>
+                </Menu.Target>
 
-              <Menu.Dropdown onClick={(e) => e.stopPropagation()}>
-                <Menu.Label>{t('manage_account')}</Menu.Label>
+                <Menu.Dropdown onClick={(e) => e.stopPropagation()}>
+                  <Menu.Label>{t('manage_account')}</Menu.Label>
 
-                <Menu.Item
-                  leftSection={<IconChevronUp size={16} />}
-                  onClick={() => handleMove('up')}
-                  disabled={isFirst}
-                >
-                  {t('move_up')}
-                </Menu.Item>
+                  <Menu.Item
+                    leftSection={<IconChevronUp size={16} />}
+                    onClick={() => handleMove('up')}
+                    disabled={isFirst}
+                  >
+                    {t('move_up')}
+                  </Menu.Item>
 
-                <Menu.Item
-                  leftSection={<IconChevronDown size={16} />}
-                  onClick={() => handleMove('down')}
-                  disabled={isLast}
-                >
-                  {t('move_down')}
-                </Menu.Item>
+                  <Menu.Item
+                    leftSection={<IconChevronDown size={16} />}
+                    onClick={() => handleMove('down')}
+                    disabled={isLast}
+                  >
+                    {t('move_down')}
+                  </Menu.Item>
 
-                <Menu.Item
-                  leftSection={<IconRefresh size={16} />}
-                  onClick={handleRefresh}
-                >
-                  {t('refresh_metadata')}
-                </Menu.Item>
+                  <Menu.Item
+                    leftSection={<IconRefresh size={16} />}
+                    onClick={handleRefresh}
+                  >
+                    {t('refresh_metadata')}
+                  </Menu.Item>
 
-                <Menu.Divider />
+                  <Menu.Divider />
 
-                <Menu.Item
-                  color="red"
-                  leftSection={<IconTrash size={16} />}
-                  onClick={handleDelete}
-                >
-                  {t('delete')}
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Box>
+                  <Menu.Item
+                    color="red"
+                    leftSection={<IconTrash size={16} />}
+                    onClick={handleDelete}
+                  >
+                    {t('delete')}
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Box>
+          )}
         </Group>
       </Box>
 
