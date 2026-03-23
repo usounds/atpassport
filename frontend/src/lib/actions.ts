@@ -6,9 +6,17 @@ import { getAssociations, updateAssociation, deleteAssociation, addAssociation, 
 import { resolveIdentity } from './atproto-server';
 import { getUuidByShareToken, deleteShareToken } from './share';
 import { createSessionToken, SESSION_COOKIE_NAME } from './session';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import { isRateLimited } from './rate-limit';
 
 export async function registerHandle(handle: string): Promise<{ success: boolean; error?: string }> {
+  // Rate limiting based on IP
+  const headerList = await headers();
+  const ip = headerList.get("x-forwarded-for") || "anonymous";
+  if (isRateLimited(`action:register:${ip}`, 5, 60000)) {
+    return { success: false, error: "Too many requests. Please try again later." };
+  }
+
   const uuid = await getSessionUuid();
   if (!uuid) return { success: false, error: "No session found" };
 
@@ -63,6 +71,14 @@ export async function setPrimaryAssociation(did: string) {
 }
 
 export async function refreshAssociation(did: string) {
+  // Rate limiting based on IP
+  const headerList = await headers();
+  const ip = headerList.get("x-forwarded-for") || "anonymous";
+  if (isRateLimited(`action:refresh:${ip}`, 10, 60000)) {
+    console.warn(`[ServerAction:refreshAssociation] Rate limited for IP: ${ip}`);
+    return;
+  }
+
   const uuid = await getSessionUuid();
   if (!uuid) return;
 

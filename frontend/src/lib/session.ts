@@ -1,9 +1,16 @@
 import { cookies } from "next/headers";
 import { jwtVerify, SignJWT } from "jose";
 
-export const SESSION_COOKIE_NAME = "atpassport_session";
-const SESSION_SECRET = process.env.SESSION_SECRET || "a-very-secret-key-at-least-32-chars-long";
-export const SECRET_KEY = new TextEncoder().encode(SESSION_SECRET);
+export const SESSION_COOKIE_NAME = process.env.NODE_ENV === 'production' 
+  ? "__Host-atpassport_session" 
+  : "atpassport_session";
+const SESSION_SECRET = process.env.SESSION_SECRET;
+
+if (!SESSION_SECRET && process.env.NODE_ENV === "production") {
+  throw new Error("SESSION_SECRET environment variable is not set. Please set it in your environment variables.");
+}
+
+export const SECRET_KEY = new TextEncoder().encode(SESSION_SECRET || "dev-only-insecure-secret-key-at-least-32-chars-long");
 
 export async function getSessionUuid(): Promise<string | null> {
   try {
@@ -15,7 +22,6 @@ export async function getSessionUuid(): Promise<string | null> {
     return payload.uuid as string;
   } catch (e) {
     console.warn('[Session] jwtVerify failed:', e);
-    console.log('[Session] SESSION_SECRET hint:', SESSION_SECRET);
     return null;
   }
 }
