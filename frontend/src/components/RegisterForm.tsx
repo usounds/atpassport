@@ -8,6 +8,9 @@ import { registerHandle, initializeSession } from '@/lib/actions';
 import { IconPlus } from '@tabler/icons-react';
 import { publicAgent } from '@/lib/atproto';
 import { Link } from '@/i18n/routing';
+import { IconAlertCircle } from '@tabler/icons-react';
+
+const MAX_HANDLES = 15;
 
 export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   const [handle, setHandle] = useState('');
@@ -17,7 +20,7 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   const [agreed, setAgreed] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
   const t = useTranslations('Home');
-
+  const isLimitReached = handleCount >= MAX_HANDLES;
   const needsConsent = handleCount === 0;
   
   const normalize = (v: string) => {
@@ -29,6 +32,7 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   };
 
   const handleRegister = async () => {
+    if (isLimitReached) return;
     const currentHandle = normalize(handle);
     if (!currentHandle) return;
 
@@ -98,19 +102,36 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   return (
     <>
       <Box className="animate-slide-in">
-        <Button
-          fullWidth
-          variant="filled"
-          color="blue"
-          leftSection={<IconPlus size={16} />}
-          onClick={open}
-          radius="md"
-          style={{
-            boxShadow: '0 4px 12px rgba(0, 133, 255, 0.2)',
-          }}
-        >
-          {t('add_handle')}
-        </Button>
+        {isLimitReached ? (
+          <Group 
+            gap="xs" 
+            p="sm" 
+            style={{ 
+              borderRadius: 'var(--mantine-radius-md)', 
+              background: 'var(--mantine-color-orange-light)',
+              border: '1px solid var(--mantine-color-orange-light-hover)'
+            }}
+          >
+            <IconAlertCircle size={18} color="var(--mantine-color-orange-filled)" />
+            <Text size="sm" fw={500} c="orange.9">
+              {t('handle_limit_reached')}
+            </Text>
+          </Group>
+        ) : (
+          <Button
+            fullWidth
+            variant="filled"
+            color="blue"
+            leftSection={<IconPlus size={16} />}
+            onClick={open}
+            radius="md"
+            style={{
+              boxShadow: '0 4px 12px rgba(0, 133, 255, 0.2)',
+            }}
+          >
+            {t('add_handle')}
+          </Button>
+        )}
       </Box>
 
       <Modal 
@@ -177,12 +198,12 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
                 }
               }}
               label={t.rich('agree_to_terms', {
-                terms: (chunks) => (
+                terms: (chunks: React.ReactNode) => (
                   <Link href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
                     {chunks}
                   </Link>
                 ),
-                privacy: (chunks) => (
+                privacy: (chunks: React.ReactNode) => (
                   <Link href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
                     {chunks}
                   </Link>
@@ -195,7 +216,7 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
             onClick={handleRegister}
             loading={loading}
             fullWidth
-            disabled={needsConsent && !agreed}
+            disabled={(needsConsent && !agreed) || isLimitReached}
           >
             {t('register')}
           </Button>

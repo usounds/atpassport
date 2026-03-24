@@ -24,7 +24,8 @@
     "manage_handle": "Handle verwalten",
     "agree_to_terms": "Ich stimme den <terms>Nutzungsbedingungen</terms> und der <privacy>Datenschutzerklärung</privacy> zu",
     "share_title": "Mit anderen Geräten teilen",
-    "share_description": "Synchronisieren Sie Ihre Handles mit anderen Geräten (PC oder Smartphone) über einen QR-Code oder eine URL."
+    "share_description": "Synchronisieren Sie Ihre Handles mit anderen Geräten (PC oder Smartphone) über einen QR-Code oder eine URL.",
+    "handle_limit_reached": "Maximal 15 Handles erlaubt."
   },
   "Auth": {
     "title": "Handle auswählen",

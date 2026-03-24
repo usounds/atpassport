@@ -1,6 +1,6 @@
 ---
 title: Privacy Policy
-last_updated: "March 21, 2026"
+last_updated: "March 24, 2026"
 ---
 
 ## 1. Information We Collect
@@ -27,7 +27,7 @@ Your data is stored securely using AWS DynamoDB.
 This Service uses session cookies to maintain your authenticated state. These cookies are essential for the functioning of this Service.
 
 ## 6. Data Deletion
-You may delete your registered handles at any time through the Service interface.
+You may delete your registered handles at any time through the Service interface. Additionally, data (handle information) that has not been used for 365 days may be deleted without prior notice.
 
 ## 7. Contact
 For questions regarding this Privacy Policy, please contact usounds.work.

@@ -24,7 +24,8 @@
     "manage_handle": "Gérer le handle",
     "agree_to_terms": "J'accepte les <terms>Conditions d'utilisation</terms> et la <privacy>Politique de confidentialité</privacy>",
     "share_title": "Partager avec d'autres appareils",
-    "share_description": "Synchronisez vos handles avec d'autres appareils (PC ou smartphone) à l'aide d'un code QR ou d'une URL."
+    "share_description": "Synchronisez vos handles with d'autres appareils (PC ou smartphone) à l'aide d'un code QR ou d'une URL.",
+    "handle_limit_reached": "Maximum 15 handles autorisés."
   },
   "Auth": {
     "title": "Sélectionner un handle",
