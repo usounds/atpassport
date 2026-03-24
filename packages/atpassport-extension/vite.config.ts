@@ -10,7 +10,15 @@ export default defineConfig({
   plugins: [
     react(),
     webExtension({
-      manifest: getManifest,
+      manifest: () => {
+        const manifest = getManifest();
+        if (process.env.BROWSER === 'firefox') {
+          delete manifest.background.service_worker;
+        } else {
+          delete manifest.background.scripts;
+        }
+        return manifest;
+      },
       browser: process.env.BROWSER || 'chrome',
     }),
   ],

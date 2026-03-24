@@ -24,7 +24,8 @@
     "manage_handle": "Manage Handle",
     "agree_to_terms": "I agree to the <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>",
     "share_title": "Share with Other Devices",
-    "share_description": "Sync your handles with other devices (PC or smartphone) using a QR code or URL."
+    "share_description": "Sync your handles with other devices (PC or smartphone) using a QR code or URL.",
+    "handle_limit_reached": "Maximum 15 handles allowed."
   },
   "Auth": {
     "title": "Select a handle",

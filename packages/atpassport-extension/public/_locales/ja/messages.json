@@ -6,19 +6,16 @@
     "message": "@passportで管理しているハンドルを簡単に自動入力・コピーできます。"
   },
   "loginRequired": {
-    "message": "先に @passport にログインしてください。"
+    "message": "@passportのサイトにて利用登録をしてください。"
   },
   "fetchError": {
-    "message": "ハンドルの取得に失敗しました。"
+    "message": "ハンドルの取得に失敗しました"
   },
   "noHandles": {
-    "message": "ハンドルが見つかりません。"
-  },
-  "loginButton": {
-    "message": "ログインする"
+    "message": "ハンドルが登録されていません"
   },
   "filledSuccess": {
-    "message": "入力フォームに挿入しました！"
+    "message": "ハンドルを入力しました"
   },
   "copiedFallback": {
     "message": "クリップボードにコピーしました（入力先不明）"
@@ -28,5 +25,8 @@
   },
   "processing": {
     "message": "読み込み中..."
+  },
+  "footerNote": {
+    "message": "追加・変更は@passportのサイトからお願いします"
   }
 }

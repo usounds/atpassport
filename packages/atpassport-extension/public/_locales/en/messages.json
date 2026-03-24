@@ -6,19 +6,16 @@
     "message": "Auto-fill or copy your @passport handles effortlessly."
   },
   "loginRequired": {
-    "message": "Please login to @passport first."
+    "message": "Please register at the @passport site"
   },
   "fetchError": {
-    "message": "Failed to fetch handles."
+    "message": "Failed to fetch handles"
   },
   "noHandles": {
-    "message": "No handles found."
-  },
-  "loginButton": {
-    "message": "Login now"
+    "message": "No handles registered"
   },
   "filledSuccess": {
-    "message": "Filled into input!"
+    "message": "Handle entered"
   },
   "copiedFallback": {
     "message": "Copied to clipboard (No input found)"
@@ -28,5 +25,8 @@
   },
   "processing": {
     "message": "Loading..."
+  },
+  "footerNote": {
+    "message": "Add or change handles at the @passport site"
   }
 }

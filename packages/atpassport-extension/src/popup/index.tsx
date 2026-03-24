@@ -114,7 +114,7 @@ const Popup = () => {
   };
 
   const openAtPassport = () => {
-    chrome.tabs.create({ url: 'https://atpassport.net/login' });
+    chrome.tabs.create({ url: 'https://atpassport.net' });
   };
 
   return (
@@ -139,7 +139,7 @@ const Popup = () => {
         <h2 style={{ fontSize: '18px', margin: 0, color: '#333' }}>@passport</h2>
       </div>
 
-      {loading && (
+      {loading && !error && (
         <div style={{ padding: '20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
           <Loader2 className="animate-spin" color="#666" />
           <div style={{ fontSize: '14px', color: '#666' }}>
@@ -149,19 +149,30 @@ const Popup = () => {
       )}
 
       {error && (
-        <div style={{ color: '#d32f2f', background: '#ffebee', padding: '10px', borderRadius: '4px', marginBottom: '12px', fontSize: '14px' }}>
+        <div 
+          onClick={() => error.includes(chrome.i18n.getMessage('loginRequired')) ? openAtPassport() : null}
+          style={{ 
+            color: '#d32f2f', background: '#ffebee', padding: '10px', borderRadius: '4px', marginBottom: '12px', fontSize: '14px',
+            cursor: error.includes(chrome.i18n.getMessage('loginRequired')) ? 'pointer' : 'default',
+            transition: 'background 0.2s'
+          }}
+          onMouseOver={(e) => {
+            if (error.includes(chrome.i18n.getMessage('loginRequired'))) {
+              e.currentTarget.style.background = '#ffd8d8';
+            }
+          }}
+          onMouseOut={(e) => {
+            if (error.includes(chrome.i18n.getMessage('loginRequired'))) {
+              e.currentTarget.style.background = '#ffebee';
+            }
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <AlertCircle size={14} />
-            <span>{error}</span>
+            <span style={{ textDecoration: 'none' }}>
+              {error}
+            </span>
           </div>
-          {error.includes(chrome.i18n.getMessage('loginRequired')) && (
-            <button 
-              onClick={openAtPassport}
-              style={{ background: '#d32f2f', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', marginTop: '8px', cursor: 'pointer', width: '100%', fontSize: '14px' }}
-            >
-              {chrome.i18n.getMessage('loginButton')}
-            </button>
-          )}
         </div>
       )}
 
@@ -202,6 +213,21 @@ const Popup = () => {
               <Copy size={14} color="#adb5bd" />
             </button>
           ))}
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div 
+          onClick={openAtPassport}
+          style={{ 
+            marginTop: '12px', 
+            fontSize: '12px', 
+            color: '#888', 
+            textAlign: 'center',
+            cursor: 'pointer'
+          }}
+        >
+          {chrome.i18n.getMessage('footerNote')}
         </div>
       )}
 
