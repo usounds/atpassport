@@ -22,7 +22,7 @@ We have also prepared a sharing feature so that you can share your list of handl
 | Overview | Integrating features into the site | Installing into the browser |
 | Availability | Only on supported sites | All sites (works on non-ready sites) |
 | Benefits | Seamless login experience | 1-tap handle input anywhere |
-| Main Method | Site-side development | [Available on Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) |
+| Main Method | Site-side development | [Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) / [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/atpassport/) |
 
 1. @passport Integration
 
@@ -30,18 +30,14 @@ We have also prepared a sharing feature so that you can share your list of handl
 
 1. Browser Extension
 
-   A Chrome version of the extension is [available on the Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) so that it can be used even on sites that do not yet support @passport. This extension assists only with handle input, much like a password manager app.
+   Chrome and Firefox versions of the extension are available on the [Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) and [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/atpassport/) so that it can be used even on sites that do not yet support @passport. This extension assists only with handle input, much like a password manager app.
 
 ---
 
 ## For Developers
-@passport works with the following mechanisms:
+@passport provides two handle input methods:
 
-### 1. Extension Input Assist
-In your web application's login forms, set the `name` attribute of the handle input field (`<input>`) to `handle`.
-This allows the @passport extension to automatically recognize the field and automatically reflect the value in the input field when a user selects a handle from the extension.
-
-### 2. @passport Integration
+### 1. @passport Integration
 @passport integration works with the following mechanism:
 
 1. Each app transitions to @passport with a `callback` parameter when the authentication button in @passport is tapped.
@@ -52,8 +48,8 @@ It is also possible to implement cases where the scope differs depending on wher
 
 If you perform the redirection directly in step 3, you will be able to provide a more seamless login experience.
 
-### 2-1. Using the Library
-To provide a more advanced and seamless experience (such as adding a "@passport Login" button), we provide an official client library.
+### 1-1. Using the Library
+We provide an official client library written in TypeScript to provide a more advanced and seamless experience (such as adding a "@passport Login" button).
 
 ```bash
 npm install @atpassport/client
@@ -61,7 +57,7 @@ npm install @atpassport/client
 
 This library includes React components and helper classes for integration that can be directly integrated into your application. For more details, please check [@atpassport/client (npm)](https://www.npmjs.com/package/@atpassport/client) and the [GitHub repository](https://github.com/usounds/atpassport).
 
-### 2-2. Without Using the Library
+### 1-2. Without Using the Library
 It is also possible to link handle information directly via HTTP redirect without using the library.
 
 1. **Redirect to Authentication Screen**
@@ -93,3 +89,7 @@ It is also possible to link handle information directly via HTTP redirect withou
 Using these, you can provide a smooth login experience without requiring users to manually input their handles.
 
 We have a [sample application](/example) where you can check the actual behavior, including custom parameter passing and callback handling.
+
+### 2. Extension Input Assist
+In your web application's login forms, set the `name` attribute of the handle input field (`<input>`) to `handle`.
+This allows the @passport extension to automatically recognize the field and automatically reflect the value in the input field when a user selects a handle from the extension.

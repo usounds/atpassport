@@ -101,7 +101,7 @@ export function AssociationItem({
                     <Text size="xs" c="dimmed" truncate="end">
                       @{item.handle}
                     </Text>
-                    <Text size="10px" c="dimmed" truncate="end" style={{ opacity: 0.8 }}>
+                    <Text fz={10} lh={1.2} pb={1} c="dimmed" truncate="end" style={{ opacity: 0.8 }}>
                       PDS:{pdsHostname}
                     </Text>
                   </Box>
