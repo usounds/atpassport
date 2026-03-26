@@ -4,11 +4,10 @@ import {
   CompositeDidDocumentResolver, 
   PlcDidDocumentResolver, 
   WebDidDocumentResolver, 
-  LocalActorResolver,
-  type DidDocumentResolver
+  LocalActorResolver
 } from "@atcute/identity-resolver";
 import { NodeDnsHandleResolver } from "@atcute/identity-resolver-node";
-import { type ActorIdentifier, isActorIdentifier, type Did } from "@atcute/lexicons/syntax";
+import { isActorIdentifier } from "@atcute/lexicons/syntax";
 
 // Setup handle resolver with DNS and HTTP methods
 const handleResolver = new CompositeHandleResolver({
@@ -18,40 +17,11 @@ const handleResolver = new CompositeHandleResolver({
   },
 });
 
-/**
- * Custom PLC resolver that tries plc.wtf first, then falls back to plc.directory
- */
-class FallbackPlcResolver implements DidDocumentResolver {
-  private primary = new PlcDidDocumentResolver({ apiUrl: 'https://plc.wtf' });
-  private fallback = new PlcDidDocumentResolver(); // Default is https://plc.directory
-
-  async resolve(did: Did) {
-    console.log(`[FallbackPlcResolver] Resolving ${did}`);
-    try {
-      console.log(`[FallbackPlcResolver] Attempting primary (plc.wtf)...`);
-      const result = await this.primary.resolve(did as any);
-      console.log(`[FallbackPlcResolver] Primary (plc.wtf) success!`);
-      return result;
-    } catch (e: unknown) {
-      const error = e as { message?: string };
-      console.warn(`[FallbackPlcResolver] Primary (plc.wtf) failed, trying fallback (plc.directory). Error: ${error?.message || e}`);
-      try {
-        const fallbackResult = await this.fallback.resolve(did as any);
-        console.log(`[FallbackPlcResolver] Fallback (plc.directory) success!`);
-        return fallbackResult;
-      } catch (e2: unknown) {
-        const error2 = e2 as { message?: string };
-        console.error(`[FallbackPlcResolver] Both resolvers failed for ${did}. Secondary error: ${error2?.message || e2}`);
-        throw e2;
-      }
-    }
-  }
-}
-
 // Setup DID document resolver for did:plc and did:web
+// 使用するのは標準の PlcDidDocumentResolver (plc.directory)
 const didResolver = new CompositeDidDocumentResolver({
   methods: {
-    plc: new FallbackPlcResolver() as any,
+    plc: new PlcDidDocumentResolver(),
     web: new WebDidDocumentResolver(),
   },
 });
@@ -63,15 +33,26 @@ const actorResolver = new LocalActorResolver({
 });
 
 export async function resolveIdentity(handleOrDid: string) {
+  console.log(`[resolveIdentity] Start: ${handleOrDid}`);
+  
   if (!isActorIdentifier(handleOrDid)) {
-    console.warn(`[resolveIdentity] Invalid actor identifier: ${handleOrDid}`);
+    console.warn(`[resolveIdentity] Invalid identifier format: ${handleOrDid}`);
     return null;
   }
 
   try {
+    console.log(`[resolveIdentity] Calling actorResolver.resolve...`);
+    // タイムアウトを防ぐため、念のためPromise.race等でのタイムアウト制御も検討可能ですが、
+    // まずは標準的な呼び出しでログを確認します。
     const actor = await actorResolver.resolve(handleOrDid);
+    console.log(`[resolveIdentity] Successfully resolved:`, JSON.stringify({
+      did: actor.did,
+      handle: actor.handle,
+      pds: actor.pds
+    }));
     
     if (!actor.did || !actor.pds) {
+      console.warn(`[resolveIdentity] Result missing DID or PDS: ${handleOrDid}`);
       return null;
     }
 
@@ -81,12 +62,19 @@ export async function resolveIdentity(handleOrDid: string) {
       pdsUrl: actor.pds 
     };
   } catch (e: unknown) {
-    // 存在しないハンドルなどの「見つからない」系エラーは警告レベルに留める
-    const error = e as { name?: string; cause?: { name?: string } };
+    const error = e as { name?: string; message?: string; cause?: { name?: string; message?: string } };
+    
+    // ActorResolutionError や DidNotFoundError は想定内のエラーとして扱う
     if (error?.name === 'ActorResolutionError' || error?.cause?.name === 'DidNotFoundError') {
-      console.warn(`[resolveIdentity] Identity not found for ${handleOrDid}`);
+      console.warn(`[resolveIdentity] Identity not found: ${handleOrDid} (${error.message})`);
     } else {
-      console.error(`[resolveIdentity] Unexpected error for ${handleOrDid}:`, e);
+      // それ以外の予期せぬエラーは詳細に出力
+      console.error(`[resolveIdentity] UNEXPECTED ERROR for ${handleOrDid}:`, {
+        name: error?.name,
+        message: error?.message,
+        cause: error?.cause,
+        stack: (e as Error)?.stack
+      });
     }
     return null;
   }

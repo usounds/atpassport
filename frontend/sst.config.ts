@@ -35,6 +35,12 @@ export default $config({
       environment: {
         SESSION_SECRET: sessionSecret.value,
       },
+      transform: {
+        server: {
+          memory: "1024 MB",
+          timeout: "30 seconds",
+        },
+      },
       domain: $app.stage === "production" ? {
         name: "atpassport.net",
         dns: false,
