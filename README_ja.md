@@ -16,10 +16,9 @@
 - `/frontend`: Next.js (App Router) による本体アプリケーション。セットアップやビルドの詳細は [frontend/README.md](./frontend/README.md) を参照してください。
 - `/packages/atpassport-client`: 外部アプリケーション向けのクライアントライブラリ。
 - `/packages/atpassport-extension`: Chrome/Firefox 向けのブラウザ拡張機能。
-19: 
-20: ## 貢献 (Contributing)
-21: 
-22: 開発、バグ報告、翻訳の提供など、あらゆる形での貢献を歓迎します。詳細は [CONTRIBUTING_ja.md](./CONTRIBUTING_ja.md) を参照してください。
+
+## 貢献 (Contributing)
+開発、バグ報告、翻訳の提供など、あらゆる形での貢献を歓迎します。詳細は [CONTRIBUTING_ja.md](./CONTRIBUTING_ja.md) を参照してください。
 
 ## ライセンス
 
