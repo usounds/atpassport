@@ -3,7 +3,7 @@
 import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Card, Text, Title, Button, Stack, Container, Center, Loader, Box, Paper, Group } from '@mantine/core';
+import { Text, Title, Button, Stack, Container, Center, Box, Paper, Group } from '@mantine/core';
 import { IconDeviceMobile, IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { RefreshCw } from 'lucide-react';
 import { syncWithToken } from '@/lib/actions';
@@ -27,7 +27,7 @@ export default function ShareSyncPage({ params }: PageProps) {
     setIsSyncing(true);
     setError(null);
     try {
-      const result = await syncWithToken(token, locale);
+      const result = await syncWithToken(token);
       if (result.success) {
         setSuccess(true);
         // Delay a bit to show success state before redirecting

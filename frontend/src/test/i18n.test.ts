@@ -13,12 +13,15 @@ const contents = files.map(file => {
   };
 });
 
-function getAllKeys(obj: any, prefix = ''): string[] {
+type NestedRecord = { [key: string]: string | NestedRecord };
+
+function getAllKeys(obj: NestedRecord, prefix = ''): string[] {
   let keys: string[] = [];
   for (const key in obj) {
     const fullKey = prefix ? `${prefix}.${key}` : key;
-    if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-      keys = keys.concat(getAllKeys(obj[key], fullKey));
+    const value = obj[key];
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      keys = keys.concat(getAllKeys(value as NestedRecord, fullKey));
     } else {
       keys.push(fullKey);
     }
@@ -26,14 +29,15 @@ function getAllKeys(obj: any, prefix = ''): string[] {
   return keys;
 }
 
-function getEntries(obj: any, prefix = ''): Record<string, string> {
-  let entries: Record<string, string> = {};
+function getEntries(obj: NestedRecord, prefix = ''): Record<string, string> {
+  const entries: Record<string, string> = {};
   for (const key in obj) {
     const fullKey = prefix ? `${prefix}.${key}` : key;
-    if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-      Object.assign(entries, getEntries(obj[key], fullKey));
+    const value = obj[key];
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      Object.assign(entries, getEntries(value as NestedRecord, fullKey));
     } else {
-      entries[fullKey] = obj[key];
+      entries[fullKey] = value as string;
     }
   }
   return entries;

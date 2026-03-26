@@ -12,7 +12,7 @@ describe('Markdown Library', () => {
     vi.mocked(matter.read).mockReturnValue({
       data: { title: 'Test Title', last_updated: '2024-01-01' },
       content: '# Test Content',
-    } as any);
+    } as unknown as ReturnType<typeof matter.read>);
 
     const result = await getMarkdownContent('test-slug', 'en');
 
@@ -21,14 +21,14 @@ describe('Markdown Library', () => {
   });
 
   it('should fallback to English if locale not found', async () => {
-    vi.mocked(fs.existsSync).mockImplementation((path: any) => {
+    vi.mocked(fs.existsSync).mockImplementation((path: string | Buffer | URL) => {
       // Return false for Japanese, true for English
       return !path.toString().endsWith('ja.md');
     });
     vi.mocked(matter.read).mockReturnValue({
       data: { title: 'English Title', last_updated: '2024-01-01' },
       content: '# English Content',
-    } as any);
+    } as unknown as ReturnType<typeof matter.read>);
 
     const result = await getMarkdownContent('test-slug', 'ja');
 

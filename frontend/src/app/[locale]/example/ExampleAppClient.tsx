@@ -1,16 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { Container, Title, Text, Stack, TextInput, ActionIcon, Group, Button, Paper, Divider, Code, Table, Box, Tabs, Badge } from '@mantine/core';
+import { Container, Title, Text, Stack, TextInput, ActionIcon, Group, Button, Paper, Divider, Table, Box, Tabs, Badge } from '@mantine/core';
 import { IconPlus, IconTrash, IconUserCircle, IconUserPlus, IconSettings, IconRefresh } from '@tabler/icons-react';
 import { useTranslations } from 'next-intl';
 import { useRouter, usePathname } from 'next/navigation';
 import { AtPassport } from '@atpassport/client/core';
 import { AtPassportIcon, AtPassportUI } from '@atpassport/client/ui';
 
+interface AuthResult {
+  handle: string | null;
+  did: string | null;
+  pdsUrl: string | null;
+  atpstate?: string | null;
+  customParams: Record<string, string>;
+}
+
+type SupportedLang = 'en' | 'ja' | 'pt' | 'de' | 'fr' | 'es';
+
 interface ExampleAppClientProps {
   locale: string;
-  initialResult?: any;
+  initialResult?: AuthResult | null;
 }
 
 export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProps) {
@@ -23,7 +33,7 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
   ]);
 
   const [suggestHandle, setSuggestHandle] = useState('');
-  const [result, setResult] = useState<any>(initialResult || null);
+  const [result, setResult] = useState<AuthResult | null>(initialResult || null);
 
   const addParam = () => setCustomParams([...customParams, { key: '', value: '' }]);
   const removeParam = (index: number) => setCustomParams(customParams.filter((_, i) => i !== index));
@@ -45,7 +55,7 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
     const atp = new AtPassport({
       callbackUrl: window.location.origin + window.location.pathname,
       baseUrl: window.location.origin,
-      lang: locale as any
+      lang: locale as SupportedLang
     });
     const { url } = atp.generateAuthUrl(getParamsObj());
     window.location.href = url;
@@ -56,7 +66,7 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
     const atp = new AtPassport({
       callbackUrl: window.location.origin + window.location.pathname,
       baseUrl: window.location.origin,
-      lang: locale as any
+      lang: locale as SupportedLang
     });
     const { url } = atp.generateAddUrl(suggestHandle, getParamsObj());
     window.location.href = url;
@@ -66,6 +76,8 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
     setResult(null);
     router.replace(pathname);
   };
+
+  const uiTexts = AtPassportUI[locale as SupportedLang] || AtPassportUI.en;
 
   const CustomParamsEditor = (
     <Stack gap="sm">
@@ -159,7 +171,7 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
                       radius="md"
                       size="md"
                     >
-                      {(AtPassportUI as any)[locale]?.title || AtPassportUI.en.title}
+                      {uiTexts.title}
                     </Button>
                   </Stack>
 
@@ -195,7 +207,7 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
                       radius="md"
                       size="md"
                     >
-                      {(AtPassportUI as any)[locale]?.add || AtPassportUI.en.add}
+                      {uiTexts.add}
                     </Button>
                   </Stack>
 
@@ -252,7 +264,7 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
                       {Object.entries(result.customParams).map(([k, v]) => (
                         <Table.Tr key={k}>
                           <Table.Td><Text size="sm" fw={500}>{k}</Text></Table.Td>
-                          <Table.Td><Text span ff="monospace" size="sm">{v as string}</Text></Table.Td>
+                          <Table.Td><Text span ff="monospace" size="sm">{v}</Text></Table.Td>
                         </Table.Tr>
                       ))}
                     </Table.Tbody>

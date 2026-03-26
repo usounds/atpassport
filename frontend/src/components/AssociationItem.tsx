@@ -11,6 +11,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { type AssociationWithProfile } from '@/lib/models';
 
 export function AssociationItem({
   item,
@@ -22,7 +23,7 @@ export function AssociationItem({
   isLast,
   index = 0
 }: {
-  item: any;
+  item: AssociationWithProfile;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   onDelete?: () => void;
@@ -75,7 +76,7 @@ export function AssociationItem({
   let pdsHostname = '';
   try {
     pdsHostname = new URL(item.pdsUrl).hostname;
-  } catch (e) {
+  } catch {
     pdsHostname = item.pdsUrl;
   }
 

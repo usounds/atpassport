@@ -1,5 +1,6 @@
 'use client';
 
+import { type AssociationWithProfile } from '@/lib/models';
 import { Card, Avatar, Text, Group, UnstyledButton, Stack, Box, Checkbox, Button } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useTranslations } from 'next-intl';
@@ -16,7 +17,7 @@ export function AuthSuggestedAccountItem({
   disabled,
   needsConsent
 }: {
-  item: any;
+  item: AssociationWithProfile;
   callback: string;
   atpstate?: string;
   domain: string;
@@ -60,11 +61,11 @@ export function AuthSuggestedAccountItem({
         url.searchParams.set('atpstate', atpstate);
       }
       window.location.replace(url.toString());
-    } catch (e: any) {
+    } catch (e) {
       console.error('Failed to register and auth', e);
       notifications.update({
         id: 'auth-loading',
-        message: e.message || 'Authentication failed',
+        message: e instanceof Error ? e.message : 'Authentication failed',
         color: 'red',
         loading: false,
         autoClose: 5000,

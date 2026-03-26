@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createSessionToken, getSessionUuid, SECRET_KEY, SESSION_COOKIE_NAME } from '../session';
+import { createSessionToken, getSessionUuid, SECRET_KEY } from '../session';
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
@@ -48,7 +48,7 @@ describe('Session Library', () => {
     it('should return null if no session cookie exists', async () => {
       vi.mocked(cookies).mockResolvedValue({
         get: vi.fn().mockReturnValue(null),
-      } as any);
+      } as unknown as Awaited<ReturnType<typeof cookies>>);
 
       const result = await getSessionUuid();
       expect(result).toBeNull();
@@ -58,7 +58,7 @@ describe('Session Library', () => {
       const token = await createSessionToken(mockUuid);
       vi.mocked(cookies).mockResolvedValue({
         get: vi.fn().mockReturnValue({ value: token }),
-      } as any);
+      } as unknown as Awaited<ReturnType<typeof cookies>>);
 
       const result = await getSessionUuid();
       expect(result).toBe(mockUuid);
@@ -67,7 +67,7 @@ describe('Session Library', () => {
     it('should return null and handle errors for invalid token', async () => {
       vi.mocked(cookies).mockResolvedValue({
         get: vi.fn().mockReturnValue({ value: 'invalid-token' }),
-      } as any);
+      } as unknown as Awaited<ReturnType<typeof cookies>>);
 
       const result = await getSessionUuid();
       expect(result).toBeNull();

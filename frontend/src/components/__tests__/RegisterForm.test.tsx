@@ -7,7 +7,7 @@ import * as actions from '@/lib/actions';
 // Mock navigation
 vi.mock('next-intl/navigation', () => ({
   createNavigation: () => ({
-    Link: ({ children }: any) => <a>{children}</a>,
+    Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
     redirect: vi.fn(),
     usePathname: () => '/',
     useRouter: () => ({
@@ -22,7 +22,7 @@ vi.mock('next-intl/navigation', () => ({
 
 // Mock routing
 vi.mock('@/i18n/routing', () => ({
-  Link: ({ children }: any) => <a>{children}</a>,
+  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
   useRouter: () => ({ refresh: vi.fn() }),
 }));
 

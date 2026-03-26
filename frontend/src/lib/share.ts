@@ -34,14 +34,14 @@ export async function createShareToken(targetUuid: string): Promise<string> {
  * Returns null if the token is invalid or expired.
  */
 export async function getUuidByShareToken(token: string): Promise<string | null> {
-  const result = await db.send(
+  const result = (await db.send(
     new GetCommand({
       TableName: SHARE_TOKENS_TABLE_NAME,
       Key: { token },
     })
-  );
+  )) as { Item: ShareTokenRecord };
 
-  const item = result.Item as ShareTokenRecord;
+  const item = result.Item;
   if (!item) return null;
 
   // Verify expiration (DynamoDB TTL might not have deleted it yet)

@@ -1,8 +1,9 @@
 'use client';
 
+import { type AssociationWithProfile } from '@/lib/models';
 import { Stack, Card, Group, Avatar, Text, Box } from '@mantine/core';
 
-export function PickerList({ items }: { items: any[] }) {
+export function PickerList({ items }: { items: AssociationWithProfile[] }) {
   const handleSelect = (handle: string) => {
     if (window.opener) {
       window.opener.postMessage(

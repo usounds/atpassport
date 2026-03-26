@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../route';
 import { NextRequest } from 'next/server';
 import { getSessionUuid } from '@/lib/session';
-import { getAssociations } from '@/lib/models';
+import { getAssociations, type AssociationWithProfile } from '@/lib/models';
 
 vi.mock('@/lib/session', () => ({
   getSessionUuid: vi.fn(),
@@ -32,8 +32,8 @@ describe('GET /api/user/handles', () => {
     const mockUuid = 'test-uuid';
     vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
     vi.mocked(getAssociations).mockResolvedValue([
-      { handle: 'user1.bsky.social' } as any,
-      { handle: 'user2.bsky.social' } as any,
+      { handle: 'user1.bsky.social' } as unknown as AssociationWithProfile,
+      { handle: 'user2.bsky.social' } as unknown as AssociationWithProfile,
     ]);
 
     const request = new NextRequest('http://localhost/api/user/handles');
@@ -47,7 +47,7 @@ describe('GET /api/user/handles', () => {
   it('should handle CORS for extensions', async () => {
     const mockUuid = 'test-uuid';
     vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-    vi.mocked(getAssociations).mockResolvedValue([{ handle: 'user.bsky.social' } as any]);
+    vi.mocked(getAssociations).mockResolvedValue([{ handle: 'user.bsky.social' } as unknown as AssociationWithProfile]);
 
     const extensionOrigin = 'chrome-extension://abcdef';
     const request = new NextRequest('http://localhost/api/user/handles', {

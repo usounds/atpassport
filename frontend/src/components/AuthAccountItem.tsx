@@ -12,12 +12,12 @@ import { useDisclosure } from '@mantine/hooks';
 import { useTranslations } from 'next-intl';
 import { useTopLoader } from 'nextjs-toploader';
 import { useState } from 'react';
+import { type AssociationWithProfile } from '@/lib/models';
 
 export function AuthAccountItem({
   item,
   callback,
   atpstate,
-  domain,
   onSelect,
   onRefresh,
   onDelete,
@@ -30,11 +30,10 @@ export function AuthAccountItem({
   index = 0,
   hideMenu,
 }: {
-  item: any;
+  item: AssociationWithProfile;
   callback: string;
   atpstate?: string;
-  domain: string;
-  onSelect: (item: any) => void;
+  onSelect: (item: AssociationWithProfile) => void;
   onRefresh?: () => void;
   onDelete?: () => void;
   onMoveUp?: () => void;
@@ -55,7 +54,7 @@ export function AuthAccountItem({
   const pdsHostname = (() => {
     try {
       return new URL(item.pdsUrl).hostname;
-    } catch (e) {
+    } catch {
       return item.pdsUrl;
     }
   })();

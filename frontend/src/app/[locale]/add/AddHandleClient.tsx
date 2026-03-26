@@ -65,10 +65,10 @@ export function AddHandleClient({
         });
         window.location.href = '/';
       }
-    } catch (e: any) {
+    } catch (e) {
       console.error('Registration failed:', e);
       notifications.show({
-        message: e.message || 'Registration failed',
+        message: e instanceof Error ? e.message : 'Registration failed',
         color: 'red',
       });
       setLoading(false);

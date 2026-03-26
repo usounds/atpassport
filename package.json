@@ -5,9 +5,11 @@
   "scripts": {
     "test": "pnpm -r test",
     "build": "pnpm -r build",
-    "dev": "pnpm -r dev"
+    "dev": "pnpm -r dev",
+    "update": "pnpm -r update"
   },
   "devDependencies": {
+    "npm-check-updates": "^17.1.14",
     "sst": "^4.5.1",
     "typescript": "^5.9.3"
   },

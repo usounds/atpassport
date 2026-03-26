@@ -1,20 +1,9 @@
-import { Client } from "@atcute/client";
+import { Client, ok, simpleFetchHandler } from '@atcute/client';
+import { isDid } from '@atcute/lexicons/syntax';
+import type { AppBskyActorDefs } from '@atcute/bluesky';
 
-export const publicAgent = new Client<any, any>({
-  handler: (pathname, { params, body, headers, signal }: any) => {
-    const url = new URL(pathname, "https://public.api.bsky.app");
-    if (params) {
-      for (const [key, value] of Object.entries(params)) {
-        if (value !== undefined) url.searchParams.set(key, String(value));
-      }
-    }
-    return fetch(url, {
-      method: body ? "POST" : "GET",
-      headers: headers as any,
-      body: body ? JSON.stringify(body) : undefined,
-      signal,
-    });
-  },
+export const publicAgent = new Client({
+  handler: simpleFetchHandler({ service: 'https://public.api.bsky.app' }),
 });
 
 export interface BskyProfile {
@@ -27,13 +16,14 @@ export interface BskyProfile {
   [key: string]: unknown;
 }
 
-export async function getProfile(did: string): Promise<BskyProfile | null> {
+export async function getProfile(did: string): Promise<AppBskyActorDefs.ProfileViewDetailed | null> {
   try {
-    const { data } = await publicAgent.get("app.bsky.actor.getProfile", {
+    if (!isDid(did)) return null;
+    const profile = await ok(publicAgent.get('app.bsky.actor.getProfile', {
       params: { actor: did },
-    });
-    return data as BskyProfile;
-  } catch (e) {
+    }));
+    return profile;
+  } catch {
     return null;
   }
 }

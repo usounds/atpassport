@@ -1,5 +1,6 @@
 import { db, SESSION_TABLE_NAME } from "./db";
-import { PutCommand, QueryCommand, DeleteCommand, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, QueryCommand, DeleteCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { type BskyProfile } from "./atproto";
 
 export interface IdentityAssociation {
   uuid: string;
@@ -11,6 +12,10 @@ export interface IdentityAssociation {
   isPrimary?: boolean;
   sortOrder?: number;
 }
+
+export type AssociationWithProfile = IdentityAssociation & {
+  profile?: BskyProfile | null;
+};
 
 const TTL_DURATION = 60 * 60 * 24 * 365; // 365 days
 
@@ -51,7 +56,7 @@ export async function touchSession(uuid: string) {
 }
 
 export async function getAssociations(uuid: string): Promise<IdentityAssociation[]> {
-  const result = await db.send(
+  const result = (await db.send(
     new QueryCommand({
       TableName: SESSION_TABLE_NAME,
       KeyConditionExpression: "#uuid = :uuid",
@@ -62,9 +67,9 @@ export async function getAssociations(uuid: string): Promise<IdentityAssociation
         ":uuid": uuid,
       },
     })
-  );
+  )) as { Items: IdentityAssociation[] };
 
-  const items = (result.Items as IdentityAssociation[]) || [];
+  const items = result.Items || [];
   // Sort by sortOrder then createdAt
   return items.sort((a, b) => {
     if ((a.sortOrder ?? Infinity) !== (b.sortOrder ?? Infinity)) {
@@ -80,7 +85,7 @@ export async function updateAssociation(uuid: string, did: string, updates: Part
 
   const updateExpressionParts: string[] = [];
   const expressionAttributeNames: Record<string, string> = {};
-  const expressionAttributeValues: Record<string, any> = {};
+  const expressionAttributeValues: Record<string, unknown> = {};
 
   filteredEntries.forEach(([key, value], index) => {
     const attrName = `#attr${index}`;

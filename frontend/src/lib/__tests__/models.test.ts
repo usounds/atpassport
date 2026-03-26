@@ -66,7 +66,7 @@ describe('Models Library (IdentityAssociation)', () => {
     });
 
     it('should not call UpdateCommand if no valid fields provided', async () => {
-      await updateAssociation(mockUuid, mockDid, { uuid: 'new-uuid' } as any);
+      await updateAssociation(mockUuid, mockDid, { uuid: 'new-uuid' } as Partial<IdentityAssociation>);
       expect(db.send).not.toHaveBeenCalled();
     });
   });

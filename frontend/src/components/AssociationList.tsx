@@ -1,7 +1,7 @@
 import { getAssociations } from "@/lib/models";
 import { getProfile } from "@/lib/atproto";
 import { getSessionUuid } from "@/lib/session";
-import { Text, Stack } from '@mantine/core';
+import { Text } from '@mantine/core';
 import { AssociationListClient } from "./AssociationListClient";
 import { getTranslations } from "next-intl/server";
 

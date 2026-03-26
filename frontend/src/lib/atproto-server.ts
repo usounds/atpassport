@@ -4,7 +4,8 @@ import {
   CompositeDidDocumentResolver, 
   PlcDidDocumentResolver, 
   WebDidDocumentResolver, 
-  LocalActorResolver 
+  LocalActorResolver,
+  type DidDocumentResolver
 } from "@atcute/identity-resolver";
 import { NodeDnsHandleResolver } from "@atcute/identity-resolver-node";
 
@@ -19,25 +20,27 @@ const handleResolver = new CompositeHandleResolver({
 /**
  * Custom PLC resolver that tries plc.wtf first, then falls back to plc.directory
  */
-class FallbackPlcResolver {
+class FallbackPlcResolver implements DidDocumentResolver {
   private primary = new PlcDidDocumentResolver({ apiUrl: 'https://plc.wtf' });
   private fallback = new PlcDidDocumentResolver(); // Default is https://plc.directory
 
-  async resolve(did: string) {
+  async resolve(did: `did:${string}`) {
     console.log(`[FallbackPlcResolver] Resolving ${did}`);
     try {
       console.log(`[FallbackPlcResolver] Attempting primary (plc.wtf)...`);
       const result = await this.primary.resolve(did as `did:plc:${string}`);
       console.log(`[FallbackPlcResolver] Primary (plc.wtf) success!`);
       return result;
-    } catch (e: any) {
-      console.warn(`[FallbackPlcResolver] Primary (plc.wtf) failed, trying fallback (plc.directory). Error: ${e?.message || e}`);
+    } catch (e: unknown) {
+      const error = e as { message?: string };
+      console.warn(`[FallbackPlcResolver] Primary (plc.wtf) failed, trying fallback (plc.directory). Error: ${error?.message || e}`);
       try {
         const fallbackResult = await this.fallback.resolve(did as `did:plc:${string}`);
         console.log(`[FallbackPlcResolver] Fallback (plc.directory) success!`);
         return fallbackResult;
-      } catch (e2: any) {
-        console.error(`[FallbackPlcResolver] Both resolvers failed for ${did}. Secondary error: ${e2?.message || e2}`);
+      } catch (e2: unknown) {
+        const error2 = e2 as { message?: string };
+        console.error(`[FallbackPlcResolver] Both resolvers failed for ${did}. Secondary error: ${error2?.message || e2}`);
         throw e2;
       }
     }
@@ -60,7 +63,7 @@ const actorResolver = new LocalActorResolver({
 
 export async function resolveIdentity(handleOrDid: string) {
   try {
-    const actor = await actorResolver.resolve(handleOrDid as any);
+    const actor = await actorResolver.resolve(handleOrDid);
     
     if (!actor.did || !actor.pds) {
       return null;
@@ -71,9 +74,10 @@ export async function resolveIdentity(handleOrDid: string) {
       handle: actor.handle,
       pdsUrl: actor.pds 
     };
-  } catch (e: any) {
+  } catch (e: unknown) {
     // 存在しないハンドルなどの「見つからない」系エラーは警告レベルに留める
-    if (e?.name === 'ActorResolutionError' || e?.cause?.name === 'DidNotFoundError') {
+    const error = e as { name?: string; cause?: { name?: string } };
+    if (error?.name === 'ActorResolutionError' || error?.cause?.name === 'DidNotFoundError') {
       console.warn(`[resolveIdentity] Identity not found for ${handleOrDid}`);
     } else {
       console.error(`[resolveIdentity] Unexpected error for ${handleOrDid}:`, e);

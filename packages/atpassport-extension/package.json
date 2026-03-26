@@ -10,7 +10,8 @@
     "build": "pnpm run build:chrome && pnpm run build:firefox",
     "package:source": "zip -r atpassport-extension-source.zip . -x \"node_modules/*\" \"dist/*\" \".git/*\" \"*.zip\" \".pnpm-store/*\" \".DS_Store\"",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "update": "npx ncu -u && pnpm install"
   },
   "dependencies": {
     "lucide-react": "^0.344.0",

@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { registerHandle, setPrimaryAssociation, removeAssociation, moveAssociation, syncWithToken, refreshAssociation, initializeSession } from '../actions';
+import { registerHandle, setPrimaryAssociation, moveAssociation, syncWithToken, refreshAssociation, initializeSession } from '../actions';
 import { getSessionUuid, createSessionToken, SESSION_COOKIE_NAME } from '../session';
-import { getAssociations, addAssociation, updateAssociation, deleteAssociation } from '../models';
+import { getAssociations, addAssociation, updateAssociation, type AssociationWithProfile } from '../models';
 import { resolveIdentity } from '../atproto-server';
 import { getUuidByShareToken } from '../share';
-import { revalidatePath } from 'next/cache';
 import { cookies, headers } from 'next/headers';
 
 vi.mock('../session');
@@ -28,7 +27,7 @@ describe('Actions Library', () => {
     // Default mock for headers
     vi.mocked(headers).mockResolvedValue({
       get: vi.fn().mockReturnValue('127.0.0.1')
-    } as any);
+    } as unknown as Headers);
   });
 
   describe('registerHandle', () => {
@@ -36,7 +35,7 @@ describe('Actions Library', () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:plc:new', handle: 'new.handle', pdsUrl: 'http://pds' });
       vi.mocked(getAssociations).mockResolvedValue([]);
-      vi.mocked(addAssociation).mockResolvedValue({} as any);
+      vi.mocked(addAssociation).mockResolvedValue({} as unknown as AssociationWithProfile);
 
       const result = await registerHandle(mockHandle);
 
@@ -47,7 +46,7 @@ describe('Actions Library', () => {
     it('should update metadata if DID already exists', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:plc:existing', handle: 'new.handle', pdsUrl: 'http://new-pds' });
-      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:plc:existing', handle: 'old.handle' } as any]);
+      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:plc:existing', handle: 'old.handle' } as unknown as AssociationWithProfile]);
 
       const result = await registerHandle(mockHandle);
 
@@ -64,8 +63,8 @@ describe('Actions Library', () => {
     it('should update primary status', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { did: 'did:plc:1', isPrimary: true } as any,
-        { did: 'did:plc:2', isPrimary: false } as any,
+        { did: 'did:plc:1', isPrimary: true } as unknown as AssociationWithProfile,
+        { did: 'did:plc:2', isPrimary: false } as unknown as AssociationWithProfile,
       ]);
 
       await setPrimaryAssociation('did:plc:2');
@@ -93,8 +92,8 @@ describe('Actions Library', () => {
     it('should swap sort orders when moving up', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { did: 'did:plc:1', sortOrder: 0 } as any,
-        { did: 'did:plc:2', sortOrder: 1 } as any,
+        { did: 'did:plc:1', sortOrder: 0 } as unknown as AssociationWithProfile,
+        { did: 'did:plc:2', sortOrder: 1 } as unknown as AssociationWithProfile,
       ]);
 
       await moveAssociation('did:plc:2', 'up');
@@ -105,7 +104,7 @@ describe('Actions Library', () => {
 
     it('should not move if already at the top', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:plc:1', sortOrder: 0 } as any]);
+      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:plc:1', sortOrder: 0 } as unknown as AssociationWithProfile]);
 
       await moveAssociation('did:plc:1', 'up');
 
@@ -118,7 +117,7 @@ describe('Actions Library', () => {
       vi.mocked(getUuidByShareToken).mockResolvedValue('target-uuid');
       vi.mocked(createSessionToken).mockResolvedValue('session-token');
       const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
+      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as Awaited<ReturnType<typeof cookies>>);
 
       const result = await syncWithToken('valid-token', 'en');
 
@@ -140,7 +139,7 @@ describe('Actions Library', () => {
       vi.mocked(getAssociations).mockResolvedValue([]);
       vi.mocked(createSessionToken).mockResolvedValue('new-token');
       const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ get: vi.fn(), set: mockCookieSet } as any);
+      vi.mocked(cookies).mockResolvedValue({ get: vi.fn(), set: mockCookieSet } as unknown as Awaited<ReturnType<typeof cookies>>);
 
       await initializeSession();
 
@@ -150,7 +149,7 @@ describe('Actions Library', () => {
     it('should not set a cookie if one already exists', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue('existing-uuid');
       const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
+      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as Awaited<ReturnType<typeof cookies>>);
 
       await initializeSession();
 
@@ -161,11 +160,11 @@ describe('Actions Library', () => {
       vi.mocked(getSessionUuid).mockResolvedValue(null);
       // First call returns existing, second returns empty (no collision)
       vi.mocked(getAssociations)
-        .mockResolvedValueOnce([{ did: 'did:1' } as any])
+        .mockResolvedValueOnce([{ did: 'did:1' } as unknown as AssociationWithProfile])
         .mockResolvedValueOnce([]);
       vi.mocked(createSessionToken).mockResolvedValue('new-token');
       const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ get: vi.fn(), set: mockCookieSet } as any);
+      vi.mocked(cookies).mockResolvedValue({ get: vi.fn(), set: mockCookieSet } as unknown as Awaited<ReturnType<typeof cookies>>);
 
       await initializeSession();
 

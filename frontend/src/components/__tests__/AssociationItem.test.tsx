@@ -42,7 +42,7 @@ describe('AssociationItem', () => {
     fireEvent.click(deleteMenuBtn);
     
     // In modal
-    const modal = await screen.findByRole('dialog');
+    await screen.findByRole('dialog');
     const confirmBtn = screen.getAllByRole('button').find(b => b.textContent === 'Delete');
     if (confirmBtn) {
       fireEvent.click(confirmBtn);

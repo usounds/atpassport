@@ -1,9 +1,9 @@
-import { SignJWT, importPKCS8 } from "jose";
+import { SignJWT, importPKCS8, type JWTPayload } from "jose";
 
 const PRIVATE_KEY = process.env.JWT_PRIVATE_KEY; // Base64 encoded PKCS8 or literal
 const ALG = "RS256";
 
-export async function signPassportToken(payload: any): Promise<string> {
+export async function signPassportToken(payload: JWTPayload): Promise<string> {
   if (!PRIVATE_KEY) {
     // Development fallback or throw error
     throw new Error("JWT_PRIVATE_KEY is not defined");

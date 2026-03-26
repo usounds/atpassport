@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createShareToken, getUuidByShareToken, deleteShareToken } from '../share';
 import { db } from '../db';
-import { PutCommand, GetCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import { PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 
 vi.mock('../db', () => ({
   db: {

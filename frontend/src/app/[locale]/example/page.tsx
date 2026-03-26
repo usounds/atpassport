@@ -23,7 +23,7 @@ export default async function ExamplePage({
     const atp = new AtPassport({
       callbackUrl,
       baseUrl,
-      lang: locale as any,
+      lang: locale as 'en' | 'ja' | 'pt' | 'de' | 'fr' | 'es',
     });
     
     // Construct the full URL for parseCallback

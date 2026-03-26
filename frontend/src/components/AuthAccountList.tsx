@@ -6,6 +6,7 @@ import { RegisterForm } from "./RegisterForm";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from 'react';
 import { refreshAssociation, removeAssociation, moveAssociation } from '@/lib/actions';
+import { type AssociationWithProfile } from '@/lib/models';
 
 export function AuthAccountList({ 
   initialItems, 
@@ -13,7 +14,7 @@ export function AuthAccountList({
   atpstate, 
   domain,
 }: { 
-  initialItems: any[]; 
+  initialItems: AssociationWithProfile[]; 
   callback: string; 
   atpstate?: string;
   domain: string;
@@ -21,7 +22,7 @@ export function AuthAccountList({
   const t = useTranslations('Auth');
   const [items, setItems] = useState(initialItems);
   const [authenticating, setAuthenticating] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<AssociationWithProfile | null>(null);
 
   useEffect(() => {
     setItems(initialItems);
@@ -34,13 +35,18 @@ export function AuthAccountList({
         return 'bsky.social';
       }
       return hostname;
-    } catch (e) {
+    } catch {
       return url;
     }
   };
 
   const handleRefresh = async (did: string) => {
     await refreshAssociation(did);
+  };
+
+  const handleSelect = (item: AssociationWithProfile) => {
+    setSelectedItem(item);
+    setAuthenticating(true);
   };
 
   const handleDelete = async (did: string) => {
@@ -65,11 +71,6 @@ export function AuthAccountList({
     await moveAssociation(did, direction);
   };
 
-  const handleSelect = (item: any) => {
-    setSelectedItem(item);
-    setAuthenticating(true);
-  };
-
   if (authenticating && selectedItem) {
     const pds = normalizePds(selectedItem.pdsUrl);
     return (
@@ -79,7 +80,6 @@ export function AuthAccountList({
             item={selectedItem}
             callback={callback}
             atpstate={atpstate}
-            domain={domain}
             onSelect={() => {}}
             disabled={true}
             selected={true}
@@ -114,7 +114,6 @@ export function AuthAccountList({
               item={item} 
               callback={callback}
               atpstate={atpstate}
-              domain={domain}
               onSelect={handleSelect}
               onRefresh={() => handleRefresh(item.did)}
               onDelete={() => handleDelete(item.did)}

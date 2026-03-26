@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { Stack } from '@mantine/core';
 import { AssociationItem } from './AssociationItem';
 import { moveAssociation, removeAssociation, refreshAssociation } from '@/lib/actions';
+import { type AssociationWithProfile } from '@/lib/models';
 
-export function AssociationListClient({ initialItems }: { initialItems: any[] }) {
+export function AssociationListClient({ initialItems }: { initialItems: AssociationWithProfile[] }) {
   const [items, setItems] = useState(initialItems);
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Autocomplete, Avatar, Group, Text, Button, Modal, Stack, Checkbox, Box } from '@mantine/core';
+import { Autocomplete, Avatar, Group, Text, Button, Modal, Stack, Checkbox, Box, type ComboboxItem } from '@mantine/core';
 import { useTranslations } from 'next-intl';
 import { useDebouncedCallback, useDisclosure } from '@mantine/hooks';
 import { registerHandle, initializeSession } from '@/lib/actions';
@@ -9,14 +9,19 @@ import { IconPlus } from '@tabler/icons-react';
 import { publicAgent } from '@/lib/atproto';
 import { Link } from '@/i18n/routing';
 import { IconAlertCircle } from '@tabler/icons-react';
+import { ok } from '@atcute/client';
 
 const MAX_HANDLES = 15;
+
+interface SuggestionItem extends ComboboxItem {
+  avatar?: string;
+}
 
 export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   const [handle, setHandle] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<{ value: string; label: string; avatar?: string }[]>([]);
+  const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [agreed, setAgreed] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
   const t = useTranslations('Home');
@@ -58,9 +63,9 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
       setHandle('');
       setAgreed(false);
       close();
-    } catch (e: any) {
+    } catch (e) {
       console.error('Registration failed:', e);
-      setError(e.message || 'Failed to register');
+      setError(e instanceof Error ? e.message : 'Failed to register');
     } finally {
       setLoading(false);
     }
@@ -73,22 +78,22 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
     }
 
     try {
-      const res = await publicAgent.get("app.bsky.actor.searchActorsTypeahead", {
+      const res = await ok(publicAgent.get("app.bsky.actor.searchActorsTypeahead", {
         params: {
           q: val,
           limit: 5,
         },
-      });
+      }));
 
-      if (res.ok && res.data) {
-        setSuggestions(res.data.actors.map((a: any) => ({
+      if (res.actors) {
+        setSuggestions(res.actors.map((a) => ({
           value: a.handle,
           label: a.handle,
           avatar: a.avatar
         })));
       }
-    } catch (err) {
-      // console.error("searchActorsTypeahead error", err);
+    } catch {
+      // console.error("searchActorsTypeahead error");
     }
   }, 300);
 
@@ -157,12 +162,15 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
             leftSection={
               <Text size="sm">@</Text>
             }
-            renderOption={({ option }: { option: any }) => (
-              <Group gap="sm">
-                <Avatar src={option.avatar} size={24} radius="xl" />
-                <Text size="sm">{option.value}</Text>
-              </Group>
-            )}
+            renderOption={({ option }) => {
+              const item = option as SuggestionItem;
+              return (
+                <Group gap="sm">
+                  <Avatar src={item.avatar} size={24} radius="xl" />
+                  <Text size="sm">{item.value}</Text>
+                </Group>
+              );
+            }}
             onChange={(value) => {
               const val = value.replace(/@/g, '').toLowerCase();
               setHandle(val);

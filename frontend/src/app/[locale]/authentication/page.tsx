@@ -1,7 +1,7 @@
 import { Container, Text, Center } from '@mantine/core';
 import { getTranslations } from 'next-intl/server';
 import { AuthAccountList } from '@/components/AuthAccountList';
-import { getAssociations } from '@/lib/models';
+import { getAssociations, type AssociationWithProfile } from '@/lib/models';
 import { getSessionUuid } from '@/lib/session';
 import { getProfile } from '@/lib/atproto';
 
@@ -30,7 +30,7 @@ export default async function AuthPage({
   try {
     const url = new URL(callback);
     domain = url.hostname;
-  } catch (e) {
+  } catch {
     return (
       <Container size="sm" py="xl">
         <Center style={{ minHeight: '60vh' }}>
@@ -42,7 +42,7 @@ export default async function AuthPage({
 
   // Fetch associations on the server
   const uuid = await getSessionUuid();
-  let items: any[] = [];
+  let items: AssociationWithProfile[] = [];
   if (uuid) {
     const associations = await getAssociations(uuid);
     items = await Promise.all(

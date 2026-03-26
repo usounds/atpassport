@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Modal, Button, Stack, Text, Group, ActionIcon, Tooltip, Title, Center, Box, Loader, Badge, Paper } from '@mantine/core';
+import { useState, useEffect, useCallback } from 'react';
+import { Modal, Button, Stack, Text, Group, ActionIcon, Tooltip, Center, Box, Loader, Badge, Paper } from '@mantine/core';
 import { QRCodeSVG } from 'qrcode.react';
-import { IconCopy, IconCheck, IconShare, IconDeviceMobile } from '@tabler/icons-react';
+import { IconCopy, IconCheck, IconDeviceMobile } from '@tabler/icons-react';
 import { useTranslations, useLocale } from 'next-intl';
 
 export interface ShareModalProps {
@@ -20,7 +20,7 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [rateError, setRateError] = useState(false);
 
-  const generateToken = async () => {
+  const generateToken = useCallback(async () => {
     setLoading(true);
     setRateError(false);
     try {
@@ -41,13 +41,13 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (opened && !token && !loading) {
       generateToken();
     }
-  }, [opened]);
+  }, [opened, token, loading, generateToken]);
 
   useEffect(() => {
     if (timeLeft > 0) {

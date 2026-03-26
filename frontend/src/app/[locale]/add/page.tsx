@@ -1,4 +1,4 @@
-import { Container, Title, Text, Stack, Center, Paper, Group, Avatar, Box } from '@mantine/core';
+import { Container, Title, Text, Stack, Center, Paper, Group, Avatar } from '@mantine/core';
 import { getTranslations } from 'next-intl/server';
 import { getAssociations } from '@/lib/models';
 import { getSessionUuid } from '@/lib/session';

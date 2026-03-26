@@ -2,9 +2,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSessionUuid } from './session';
-import { getAssociations, updateAssociation, deleteAssociation, addAssociation, IdentityAssociation } from './models';
+import { getAssociations, updateAssociation, deleteAssociation, addAssociation } from './models';
 import { resolveIdentity } from './atproto-server';
-import { getUuidByShareToken, deleteShareToken } from './share';
+import { getUuidByShareToken } from './share';
 import { createSessionToken, SESSION_COOKIE_NAME } from './session';
 import { cookies, headers } from 'next/headers';
 import { isRateLimited } from './rate-limit';
@@ -45,7 +45,7 @@ export async function registerHandle(handle: string): Promise<{ success: boolean
     
     revalidatePath('/[locale]', 'page');
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[ServerAction:registerHandle] ERROR:', error);
     return { success: false, error: "Internal server error" };
   }
@@ -130,9 +130,7 @@ export async function moveAssociation(did: string, direction: 'up' | 'down') {
   // Removed revalidatePath for picker
 }
 
-import { redirect } from 'next/navigation';
-
-export async function syncWithToken(token: string, locale: string): Promise<{ success: boolean; error?: string }> {
+export async function syncWithToken(token: string): Promise<{ success: boolean; error?: string }> {
   const targetUuid = await getUuidByShareToken(token);
 
   if (!targetUuid) {
