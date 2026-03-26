@@ -10,15 +10,16 @@ vi.mock('../db', () => ({
   SHARE_TOKENS_TABLE_NAME: 'share-tokens-table',
 }));
 
+vi.mock('uuid', () => ({
+  v4: () => 'mock-uuid-v4-token',
+}));
+
 describe('Share Library', () => {
   const mockUuid = 'target-uuid-123';
   const mockToken = 'mock-uuid-v4-token';
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mock('uuid', () => ({
-      v4: () => 'mock-uuid-v4-token',
-    }));
   });
 
   describe('createShareToken', () => {

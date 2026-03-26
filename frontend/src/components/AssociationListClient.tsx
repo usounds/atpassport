@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Stack } from '@mantine/core';
 import { AssociationItem } from './AssociationItem';
 import { moveAssociation, removeAssociation, refreshAssociation } from '@/lib/actions';
@@ -9,9 +9,12 @@ import { type AssociationWithProfile } from '@/lib/models';
 export function AssociationListClient({ initialItems }: { initialItems: AssociationWithProfile[] }) {
   const [items, setItems] = useState(initialItems);
 
-  useEffect(() => {
+  // Props sync with render-phase state update
+  const [prevInitialItems, setPrevInitialItems] = useState(initialItems);
+  if (initialItems !== prevInitialItems) {
     setItems(initialItems);
-  }, [initialItems]);
+    setPrevInitialItems(initialItems);
+  }
 
   const handleMove = async (did: string, direction: 'up' | 'down') => {
     const index = items.findIndex(item => item.did === did);

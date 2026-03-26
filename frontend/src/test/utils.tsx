@@ -19,11 +19,13 @@ const messages = {
     add_handle: 'Add Handle',
     handle: 'Handle',
     placeholder_handle: 'e.g. alice.bsky.social',
-    register: 'Register',
+    register: 'Add',
     agree_to_terms: 'I agree to the <terms>Terms</terms> and <privacy>Privacy Policy</privacy>',
     handle_not_found: 'Handle not found or missing PDS',
     already_registered: 'This handle is already registered',
     invalid_handle: 'Invalid handle format',
+    handle_limit_reached: 'Maximum 15 handles allowed.',
+    title: '@passport',
   }
 };
 

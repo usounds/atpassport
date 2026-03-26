@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Paper, Stack, Title, Text, Button, Group, Box } from '@mantine/core';
 import { IconShare } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
@@ -10,10 +11,19 @@ export function ShareSection() {
   const t = useTranslations('Home');
   const tShare = useTranslations('Share');
   const [opened, { open, close }] = useDisclosure(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
+  }, []);
 
   return (
     <>
-    <Box className="animate-slide-in">
+    <Box 
+      className={isMounted ? "animate-slide-in" : ""}
+      style={{ opacity: isMounted ? 1 : 0 }}
+    >
       <Paper 
         p="md" 
         radius="lg" 

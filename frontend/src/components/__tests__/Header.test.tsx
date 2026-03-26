@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@/test/utils';
+import { render, screen, fireEvent, waitFor } from '@/test/utils';
 import { Header } from '../Header';
 
 // Mock routing
@@ -13,7 +13,7 @@ vi.mock('@/i18n/routing', () => ({
   }),
 }));
 
-// Add missing translations for Nav
+// Mock next-intl
 vi.mock('next-intl', async () => {
   const actual = await vi.importActual('next-intl');
   return {
@@ -33,5 +33,20 @@ describe('Header', () => {
     expect(screen.getByText('about')).toBeInTheDocument();
     expect(screen.getByText('terms')).toBeInTheDocument();
     expect(screen.getByText('privacy')).toBeInTheDocument();
+  });
+
+  it('toggles mobile menu when burger is clicked', async () => {
+    render(<Header />);
+    
+    // Find burger by aria-label
+    const burger = screen.getByLabelText(/toggle navigation/i);
+    fireEvent.click(burger);
+    
+    // Links should be rendered in the mobile menu (drawer)
+    // Use waitFor because Drawer might have a slight delay or animation
+    await waitFor(() => {
+      const mobileLinks = screen.getAllByText('about');
+      expect(mobileLinks.length).toBeGreaterThan(1);
+    });
   });
 });

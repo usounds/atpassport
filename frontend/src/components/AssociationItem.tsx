@@ -10,7 +10,7 @@ import {
 } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { type AssociationWithProfile } from '@/lib/models';
 
 export function AssociationItem({
@@ -35,6 +35,11 @@ export function AssociationItem({
   const t = useTranslations('Home');
   const [opened, { open, close }] = useDisclosure(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleDelete = () => {
     open();
@@ -82,7 +87,10 @@ export function AssociationItem({
 
   return (
     <>
-      <Box className={`animate-slide-in stagger-${Math.min(index + 1, 10)}`}>
+      <Box 
+        className={isMounted ? `animate-slide-in stagger-${Math.min(index + 1, 10)}` : ''}
+        style={{ opacity: isMounted ? 1 : 0 }}
+      >
         <Group gap="md" align="center" wrap="nowrap" style={{ minWidth: 0 }}>
           <Box style={{ flex: 1, opacity: isUpdating ? 0.6 : undefined, minWidth: 0 }}>
             <Card

@@ -66,13 +66,19 @@ describe('AssociationItem', () => {
     
     const moveUpBtn = await screen.findByText('Move Up');
     fireEvent.click(moveUpBtn);
-    expect(mockHandlers.onMoveUp).toHaveBeenCalled();
+    
+    await waitFor(() => {
+      expect(mockHandlers.onMoveUp).toHaveBeenCalled();
+    });
 
     // Re-open menu for move down
     fireEvent.click(screen.getByRole('button'));
     const moveDownBtn = await screen.findByText('Move Down');
     fireEvent.click(moveDownBtn);
-    expect(mockHandlers.onMoveDown).toHaveBeenCalled();
+    
+    await waitFor(() => {
+      expect(mockHandlers.onMoveDown).toHaveBeenCalled();
+    });
   });
 
   it('handles refresh', async () => {
@@ -82,6 +88,8 @@ describe('AssociationItem', () => {
     const refreshBtn = await screen.findByText('Refresh Metadata');
     fireEvent.click(refreshBtn);
     
-    expect(mockHandlers.onRefresh).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockHandlers.onRefresh).toHaveBeenCalled();
+    });
   });
 });

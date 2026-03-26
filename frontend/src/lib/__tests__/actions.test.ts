@@ -5,11 +5,13 @@ import { getAssociations, addAssociation, updateAssociation, type AssociationWit
 import { resolveIdentity } from '../atproto-server';
 import { getUuidByShareToken } from '../share';
 import { cookies, headers } from 'next/headers';
+import { isRateLimited } from '../rate-limit';
 
 vi.mock('../session');
 vi.mock('../models');
 vi.mock('../atproto-server');
 vi.mock('../share');
+vi.mock('../rate-limit');
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }));
@@ -28,6 +30,8 @@ describe('Actions Library', () => {
     vi.mocked(headers).mockResolvedValue({
       get: vi.fn().mockReturnValue('127.0.0.1')
     } as unknown as Headers);
+    // Default mock for rate-limit
+    vi.mocked(isRateLimited).mockReturnValue(false);
   });
 
   describe('registerHandle', () => {
@@ -41,6 +45,28 @@ describe('Actions Library', () => {
 
       expect(result.success).toBe(true);
       expect(addAssociation).toHaveBeenCalledWith(mockUuid, 'did:plc:new', 'new.handle', 'http://pds');
+    });
+
+    it('should return rate limit error if exceeded', async () => {
+      vi.mocked(isRateLimited).mockReturnValue(true);
+      const result = await registerHandle(mockHandle);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Too many requests');
+    });
+
+    it('should return error if no session found', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(null);
+      const result = await registerHandle(mockHandle);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('No session found');
+    });
+
+    it('should return error if handle resolution fails', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(resolveIdentity).mockResolvedValue(null);
+      const result = await registerHandle(mockHandle);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Handle not found or missing PDS');
     });
 
     it('should update metadata if DID already exists', async () => {
@@ -86,6 +112,12 @@ describe('Actions Library', () => {
         pdsUrl: 'http://new-pds' 
       });
     });
+
+    it('should not update if rate limited', async () => {
+      vi.mocked(isRateLimited).mockReturnValue(true);
+      await refreshAssociation('did:plc:1');
+      expect(updateAssociation).not.toHaveBeenCalled();
+    });
   });
 
   describe('moveAssociation', () => {
@@ -100,6 +132,15 @@ describe('Actions Library', () => {
 
       expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:plc:2', { sortOrder: 0 });
       expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:plc:1', { sortOrder: 1 });
+    });
+
+    it('should not move if DID not found in associations', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: 'did:plc:1', sortOrder: 0 } as unknown as AssociationWithProfile,
+      ]);
+      await moveAssociation('non-existent', 'up');
+      expect(updateAssociation).not.toHaveBeenCalled();
     });
 
     it('should not move if already at the top', async () => {
@@ -119,7 +160,7 @@ describe('Actions Library', () => {
       const mockCookieSet = vi.fn();
       vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as Awaited<ReturnType<typeof cookies>>);
 
-      const result = await syncWithToken('valid-token', 'en');
+      const result = await syncWithToken('valid-token');
 
       expect(result.success).toBe(true);
       expect(mockCookieSet).toHaveBeenCalledWith(expect.any(String), 'session-token', expect.any(Object));
@@ -127,7 +168,7 @@ describe('Actions Library', () => {
 
     it('should return error if token is invalid', async () => {
       vi.mocked(getUuidByShareToken).mockResolvedValue(null);
-      const result = await syncWithToken('invalid-token', 'en');
+      const result = await syncWithToken('invalid-token');
       expect(result.success).toBe(false);
       expect(result.error).toBe('invalid_token');
     });

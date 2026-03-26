@@ -51,6 +51,9 @@ describe('AssociationListClient', () => {
     fireEvent.click(menuBtns[1]);
     const moveUpBtn = await screen.findByText('Move Up');
     fireEvent.click(moveUpBtn);
-    expect(actions.moveAssociation).toHaveBeenCalled();
+    
+    await waitFor(() => {
+      expect(actions.moveAssociation).toHaveBeenCalled();
+    });
   });
 });
