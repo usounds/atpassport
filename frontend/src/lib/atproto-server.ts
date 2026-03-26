@@ -8,7 +8,7 @@ import {
   type DidDocumentResolver
 } from "@atcute/identity-resolver";
 import { NodeDnsHandleResolver } from "@atcute/identity-resolver-node";
-import { type ActorIdentifier } from "@atcute/lexicons/syntax";
+import { type ActorIdentifier, isActorIdentifier, type Did } from "@atcute/lexicons/syntax";
 
 // Setup handle resolver with DNS and HTTP methods
 const handleResolver = new CompositeHandleResolver({
@@ -25,18 +25,18 @@ class FallbackPlcResolver implements DidDocumentResolver {
   private primary = new PlcDidDocumentResolver({ apiUrl: 'https://plc.wtf' });
   private fallback = new PlcDidDocumentResolver(); // Default is https://plc.directory
 
-  async resolve(did: `did:${string}`) {
+  async resolve(did: Did) {
     console.log(`[FallbackPlcResolver] Resolving ${did}`);
     try {
       console.log(`[FallbackPlcResolver] Attempting primary (plc.wtf)...`);
-      const result = await this.primary.resolve(did as `did:plc:${string}`);
+      const result = await this.primary.resolve(did as any);
       console.log(`[FallbackPlcResolver] Primary (plc.wtf) success!`);
       return result;
     } catch (e: unknown) {
       const error = e as { message?: string };
       console.warn(`[FallbackPlcResolver] Primary (plc.wtf) failed, trying fallback (plc.directory). Error: ${error?.message || e}`);
       try {
-        const fallbackResult = await this.fallback.resolve(did as `did:plc:${string}`);
+        const fallbackResult = await this.fallback.resolve(did as any);
         console.log(`[FallbackPlcResolver] Fallback (plc.directory) success!`);
         return fallbackResult;
       } catch (e2: unknown) {
@@ -51,7 +51,7 @@ class FallbackPlcResolver implements DidDocumentResolver {
 // Setup DID document resolver for did:plc and did:web
 const didResolver = new CompositeDidDocumentResolver({
   methods: {
-    plc: new FallbackPlcResolver(),
+    plc: new FallbackPlcResolver() as any,
     web: new WebDidDocumentResolver(),
   },
 });
@@ -63,8 +63,13 @@ const actorResolver = new LocalActorResolver({
 });
 
 export async function resolveIdentity(handleOrDid: string) {
+  if (!isActorIdentifier(handleOrDid)) {
+    console.warn(`[resolveIdentity] Invalid actor identifier: ${handleOrDid}`);
+    return null;
+  }
+
   try {
-    const actor = await actorResolver.resolve(handleOrDid as ActorIdentifier);
+    const actor = await actorResolver.resolve(handleOrDid);
     
     if (!actor.did || !actor.pds) {
       return null;

@@ -43,4 +43,9 @@ describe('atproto-server Identity Resolution', () => {
     const result = await resolveIdentity('invalid.handle');
     expect(result).toBeNull();
   });
+
+  it('should return null for malformed identifier', async () => {
+    const result = await resolveIdentity('not-a-handle');
+    expect(result).toBeNull();
+  });
 });
