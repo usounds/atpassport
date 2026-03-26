@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001 -H 0.0.0.0",
@@ -19,7 +19,7 @@
     "@atcute/identity-resolver": "^1.2.2",
     "@atcute/identity-resolver-node": "^1.0.3",
     "@atcute/lexicons": "^1.2.9",
-    "@atpassport/client": "^0.1.23",
+    "@atpassport/client": "^0.1.24",
     "@aws-sdk/client-dynamodb": "^3.1017.0",
     "@aws-sdk/lib-dynamodb": "^3.1017.0",
     "@emotion/react": "^11.14.0",
