@@ -9,8 +9,8 @@
     "update": "pnpm -r update"
   },
   "devDependencies": {
-    "npm-check-updates": "^17.1.14",
-    "sst": "^4.5.1",
+    "npm-check-updates": "^17.1.18",
+    "sst": "^4.5.11",
     "typescript": "^5.9.3"
   },
   "pnpm": {
