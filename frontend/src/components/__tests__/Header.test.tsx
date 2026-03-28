@@ -72,7 +72,11 @@ describe('Header', () => {
     vi.mocked(useRouter).mockReturnValue({
       replace: mockReplace,
       push: vi.fn(),
-    } as any);
+      prefetch: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+      refresh: vi.fn(),
+    } as ReturnType<typeof useRouter>);
 
     render(<Header />);
     

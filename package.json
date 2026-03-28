@@ -2,6 +2,7 @@
   "name": "atpassport",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "test": "pnpm -r test",
     "build": "pnpm -r build",
@@ -9,6 +10,7 @@
     "update": "pnpm -r update"
   },
   "devDependencies": {
+    "@atcute/lex-cli": "^2.5.3",
     "npm-check-updates": "^17.1.18",
     "sst": "^4.5.11",
     "typescript": "^5.9.3"

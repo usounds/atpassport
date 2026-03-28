@@ -159,7 +159,9 @@
     "login_button": "Login",
     "go_back": "Back",
     "logout": "Log out",
-    "login_failed": "Failed to start login"
+    "login_failed": "Failed to start login",
+    "withdraw_success": "Verification withdrawn.",
+    "update_success": "Settings updated."
   },
   "Directory": {
     "title": "Verified Domains",

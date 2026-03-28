@@ -3,10 +3,10 @@
 import { Table, Badge, ActionIcon, Group, Text, Menu, Stack, Center } from '@mantine/core';
 import { IconDotsVertical, IconTrash, IconWorld, IconShieldCheck, IconFileCheck, IconEye, IconEyeOff } from '@tabler/icons-react';
 import { useTranslations } from 'next-intl';
-import { VerifiedDomain } from '@/lib/security';
+import { NetAtpassportVerifyList } from '@/lexicons/index';
 
 interface DomainListProps {
-  domains: VerifiedDomain[];
+  domains: NetAtpassportVerifyList.Domain[];
   onWithdraw: (domain: string) => void;
   onUpdatePublic: (domain: string, isPublic: boolean) => void;
   loading?: boolean;
@@ -45,7 +45,7 @@ export function DomainList({ domains, onWithdraw, onUpdatePublic, loading }: Dom
                   <Text size="sm" fw={600}>{d.domain}</Text>
                   <Text size="xs" c="dimmed">@{d.handle}</Text>
                 </Stack>
-                {d.isPublic === 'true' ? (
+                {d.isPublic ? (
                   <Badge variant="dot" size="sm" color="green">{t('public')}</Badge>
                 ) : (
                    <Badge variant="dot" size="sm" color="gray">{t('private')}</Badge>
@@ -81,11 +81,11 @@ export function DomainList({ domains, onWithdraw, onUpdatePublic, loading }: Dom
                   <Menu.Dropdown>
                     <Menu.Label>Settings</Menu.Label>
                     <Menu.Item
-                      leftSection={d.isPublic === 'true' ? <IconEyeOff size={14} /> : <IconEye size={14} />}
-                      onClick={() => onUpdatePublic(d.domain, d.isPublic !== 'true')}
+                      leftSection={d.isPublic ? <IconEyeOff size={14} /> : <IconEye size={14} />}
+                      onClick={() => onUpdatePublic(d.domain, !d.isPublic)}
                       disabled={loading}
                     >
-                      {d.isPublic === 'true' ? '非公開にする' : '公開にする'}
+                      {d.isPublic ? '非公開にする' : '公開にする'}
                     </Menu.Item>
                     
                     <Menu.Divider />

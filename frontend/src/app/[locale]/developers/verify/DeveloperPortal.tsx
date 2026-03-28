@@ -2,11 +2,11 @@
 
 import { Stack, Title, Text, Button, Group, Box, Paper, Avatar, Loader, Divider, Tabs, TextInput, Center } from '@mantine/core';
 import { IconPlus, IconLayoutDashboard, IconLogin, IconInfoCircle, IconExternalLink, IconLogout } from '@tabler/icons-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import { initOAuth } from '@/lib/oauth';
 import { createAuthorizationUrl, finalizeAuthorization, getSession, listStoredSessions, deleteStoredSession, OAuthUserAgent, Session } from '@atcute/oauth-browser-client';
-import { getVerifiedDomains, verifyDomainByFile, resolveHandle, updateDomainSettings } from '@/lib/actions';
+import { verifyDomainByFile, resolveHandle, updateDomainSettings } from '@/lib/actions';
 import { DomainList } from './DomainList';
 import { VerifyDomainStepper } from './VerifyDomainStepper';
 import Link from 'next/link';
@@ -15,8 +15,8 @@ import { AtPassport } from '@atpassport/client/core';
 import { AtPassportIcon } from '@atpassport/client/ui';
 import { getProfile } from '@/lib/atproto';
 import { Client } from '@atcute/client';
-import { VerifiedDomain } from '@/lib/security';
 import { isActorIdentifier } from '@atcute/lexicons/syntax';
+import { NetAtpassportVerifyList, NetAtpassportVerifySubmit, NetAtpassportVerifyWithdraw } from '@/lexicons/index';
 
 export function DeveloperPortal({ 
   locale, 
@@ -36,11 +36,25 @@ export function DeveloperPortal({
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [domains, setDomains] = useState<VerifiedDomain[]>([]);
+  const [domains, setDomains] = useState<NetAtpassportVerifyList.Domain[]>([]);
   const [handleInput, setHandleInput] = useState('');
   const [activeTab, setActiveTab] = useState<string | null>('dashboard');
   const [showManualInput, setShowManualInput] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // Proxy client setup
+  const getProxyClient = useCallback((s?: Session) => {
+    const activeSession = s || session;
+    if (!activeSession) return null;
+    const agent = new OAuthUserAgent(activeSession);
+    return new Client({
+      handler: agent,
+      proxy: {
+        did: `did:web:${window.location.host}`,
+        serviceId: '#atpassport_appview',
+      },
+    });
+  }, [session]);
 
   const fetchData = useCallback(async (s: Session) => {
     try {
@@ -55,14 +69,19 @@ export function DeveloperPortal({
         pdsUrl: identity?.pdsUrl || (s.info.aud as string) || ''
       });
 
-      const domainItems = await getVerifiedDomains(s.info.sub);
-      setDomains(domainItems);
+      const proxyClient = getProxyClient(s);
+      if (proxyClient) {
+        const { data } = await proxyClient.get('net.atpassport.verify.list', { params: {} }) as { data: NetAtpassportVerifyList.Output };
+        if (data && data.domains) {
+          setDomains(data.domains);
+        }
+      }
     } catch (error: unknown) {
       console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getProxyClient]);
 
   const handleLogin = useCallback(async (manualHandle?: string) => {
     const handle = manualHandle || handleInput;
@@ -164,38 +183,16 @@ export function DeveloperPortal({
     }
   };
 
-  // Proxy call helper with DPoP nonce retry
-  const callProxy = async (method: string, input: Record<string, unknown>) => {
-    if (!session) throw new Error('No session');
-    const agent = new OAuthUserAgent(session);
-    const proxyClient = new Client({
-      handler: agent,
-      proxy: {
-        did: `did:web:${window.location.host}`,
-        serviceId: '#atpassport_appview',
-      },
-    });
-
-    try {
-      const result = await (proxyClient as { post: (m: string, i: { input: Record<string, unknown> }) => Promise<unknown> }).post(method, { input });
-      return result;
-    } catch (err: unknown) {
-      const error = err as { status?: number; error?: string };
-      // DPoP nonce negotiation: first call always fails, retry with same agent
-      if (error?.status === 401 || error?.error === 'use_dpop_nonce') {
-        console.log(`[Proxy] DPoP nonce negotiation, retrying ${method}...`);
-        const result = await (proxyClient as { post: (m: string, i: { input: Record<string, unknown> }) => Promise<unknown> }).post(method, { input });
-        return result;
-      }
-      throw err;
-    }
-  };
 
   const handleVerifyOAuth = async (isPublic: boolean) => {
     if (!session) return;
     setActionLoading(true);
     try {
-      await callProxy('net.atpassport.verify.submit', { isPublic });
+      const proxyClient = getProxyClient();
+      if (!proxyClient) throw new Error('Client setup failed');
+
+      const input: NetAtpassportVerifySubmit.Input = { isPublic };
+      await proxyClient.post('net.atpassport.verify.submit', { input });
       notifications.show({ title: t('success_title'), message: t('success_message', { domain: profile?.handle || '' }), color: 'green' });
       await fetchData(session);
       setActiveTab('dashboard');
@@ -231,7 +228,12 @@ export function DeveloperPortal({
     if (!session) return;
     setActionLoading(true);
     try {
-      await callProxy('net.atpassport.verify.withdraw', { domain });
+      const proxyClient = getProxyClient();
+      if (!proxyClient) throw new Error('Client setup failed');
+
+      const input: NetAtpassportVerifyWithdraw.Input = { domain };
+      await proxyClient.post('net.atpassport.verify.withdraw', { input });
+      notifications.show({ title: t('success_title'), message: t('withdraw_success'), color: 'blue' });
       await fetchData(session);
     } catch (error: unknown) {
       const err = error as Error;
@@ -247,6 +249,7 @@ export function DeveloperPortal({
     setActionLoading(true);
     try {
       await updateDomainSettings(domain, session.info.sub, isPublic);
+      notifications.show({ title: t('success_title'), message: t('update_success'), color: 'green' });
       await fetchData(session);
     } finally {
       setActionLoading(false);
@@ -327,7 +330,7 @@ export function DeveloperPortal({
                     label={t('login_handle')}
                     placeholder="example.bsky.social"
                     value={handleInput}
-                    onChange={(e) => setHandleInput(e.currentTarget.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setHandleInput(e.currentTarget.value)}
                     size="md"
                     radius="md"
                     autoFocus

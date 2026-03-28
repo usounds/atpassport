@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, OPTIONS } from '../route';
 import { NextRequest } from 'next/server';
 import { getSessionUuid } from '@/lib/session';
-import { getAssociations } from '@/lib/models';
+import { getAssociations, IdentityAssociation } from '@/lib/models';
 
 vi.mock('@/lib/session');
 vi.mock('@/lib/models');
@@ -18,8 +18,8 @@ describe('API: /api/user/handles', () => {
     it('should return handles if authorized', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { handle: 'user1.test' } as any,
-        { handle: 'user2.test' } as any
+        { handle: 'user1.test' } as Partial<IdentityAssociation> as IdentityAssociation,
+        { handle: 'user2.test' } as Partial<IdentityAssociation> as IdentityAssociation
       ]);
 
       const request = new NextRequest('https://atpassport.net/api/user/handles');

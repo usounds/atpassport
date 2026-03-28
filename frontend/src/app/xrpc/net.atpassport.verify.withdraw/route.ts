@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyServiceAuth } from '@/lib/verify-service-auth';
 import { getVerifiedDomainFromDb, deleteVerifiedDomainFromDb } from '@/lib/security';
+import { NetAtpassportVerifyWithdraw } from '@/lexicons/index';
 
 export async function POST(request: Request) {
   try {
@@ -8,28 +9,33 @@ export async function POST(request: Request) {
     const did = await verifyServiceAuth(request);
     
     if (!did) {
-      return NextResponse.json({ success: false, error: 'Unauthorized: Invalid Service Auth token' }, { status: 401 });
+      const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Unauthorized: Invalid Service Auth token' };
+      return NextResponse.json(output, { status: 401 });
     }
 
     // 2. リクエストボディから検証取り消し対象を取得
-    const body = await request.json();
+    const body: NetAtpassportVerifyWithdraw.Input = await request.json();
     const domain = body.domain;
 
     if (!domain) {
-      return NextResponse.json({ success: false, error: 'Missing domain to withdraw' }, { status: 400 });
+      const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Missing domain to withdraw' };
+      return NextResponse.json(output, { status: 400 });
     }
 
     // 3. 所有権の確認と削除
     const existing = await getVerifiedDomainFromDb(domain);
     if (!existing || existing.verifiedByDid !== did) {
-      return NextResponse.json({ success: false, error: "Unauthorized or domain not found" }, { status: 403 });
+      const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: "Unauthorized or domain not found" };
+      return NextResponse.json(output, { status: 403 });
     }
 
     await deleteVerifiedDomainFromDb(domain);
 
-    return NextResponse.json({ success: true });
+    const output: NetAtpassportVerifyWithdraw.Output = { success: true };
+    return NextResponse.json(output);
   } catch (error: unknown) {
     console.error('[xrpc/net.atpassport.verify.withdraw] Error:', error);
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+    const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Internal server error' };
+    return NextResponse.json(output, { status: 500 });
   }
 }

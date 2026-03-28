@@ -33,26 +33,14 @@ const actorResolver = new LocalActorResolver({
 });
 
 export async function resolveIdentity(handleOrDid: string) {
-  console.log(`[resolveIdentity] Start: ${handleOrDid}`);
-  
   if (!isActorIdentifier(handleOrDid)) {
-    console.warn(`[resolveIdentity] Invalid identifier format: ${handleOrDid}`);
     return null;
   }
 
   try {
-    console.log(`[resolveIdentity] Calling actorResolver.resolve...`);
-    // タイムアウトを防ぐため、念のためPromise.race等でのタイムアウト制御も検討可能ですが、
-    // まずは標準的な呼び出しでログを確認します。
     const actor = await actorResolver.resolve(handleOrDid);
-    console.log(`[resolveIdentity] Successfully resolved:`, JSON.stringify({
-      did: actor.did,
-      handle: actor.handle,
-      pds: actor.pds
-    }));
     
     if (!actor.did || !actor.pds) {
-      console.warn(`[resolveIdentity] Result missing DID or PDS: ${handleOrDid}`);
       return null;
     }
 
@@ -65,9 +53,7 @@ export async function resolveIdentity(handleOrDid: string) {
     const error = e as { name?: string; message?: string; cause?: { name?: string; message?: string } };
     
     // ActorResolutionError や DidNotFoundError は想定内のエラーとして扱う
-    if (error?.name === 'ActorResolutionError' || error?.cause?.name === 'DidNotFoundError') {
-      console.warn(`[resolveIdentity] Identity not found: ${handleOrDid} (${error.message})`);
-    } else {
+    if (error?.name !== 'ActorResolutionError' && error?.cause?.name !== 'DidNotFoundError') {
       // それ以外の予期せぬエラーは詳細に出力
       console.error(`[resolveIdentity] UNEXPECTED ERROR for ${handleOrDid}:`, {
         name: error?.name,

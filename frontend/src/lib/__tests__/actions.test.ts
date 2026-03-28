@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { 
   registerHandle, 
-  setPrimaryAssociation, 
   moveAssociation, 
   syncWithToken, 
   refreshAssociation, 
@@ -11,8 +10,6 @@ import {
   verifyDomainByFile,
   withdrawDomain,
   updateDomainSettings,
-  getVerificationStatus,
-  getVerifiedDomains,
   removeAssociation
 } from '../actions';
 import { getSessionUuid, createSessionToken, SESSION_COOKIE_NAME } from '../session';
@@ -21,7 +18,7 @@ import { resolveIdentity } from '../atproto-server';
 import { getUuidByShareToken } from '../share';
 import { cookies, headers } from 'next/headers';
 import { isRateLimited } from '../rate-limit';
-import { verifyDomainInDb, getVerifiedDomainFromDb, getVerifiedDomainsByDid, deleteVerifiedDomainFromDb } from '../security';
+import { verifyDomainInDb, getVerifiedDomainFromDb, deleteVerifiedDomainFromDb } from '../security';
 import { revalidatePath } from 'next/cache';
 
 vi.mock('../session');
@@ -273,7 +270,7 @@ describe('Actions Library', () => {
     it('should return early if uuid exists', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue('existing');
       const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
+      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
       await initializeSession();
       expect(mockCookieSet).not.toHaveBeenCalled();
     });
@@ -282,11 +279,11 @@ describe('Actions Library', () => {
       vi.mocked(getSessionUuid).mockResolvedValue(null);
       // First call returns existing, second returns empty (no collision)
       vi.mocked(getAssociations)
-        .mockResolvedValueOnce([{ did: 'did:1' } as any])
+        .mockResolvedValueOnce([{ did: 'did:1' } as AssociationWithProfile])
         .mockResolvedValueOnce([]);
       
       const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
+      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
 
       await initializeSession();
 
@@ -335,7 +332,7 @@ describe('Actions Library', () => {
       vi.mocked(getUuidByShareToken).mockResolvedValue('target-uuid');
       vi.mocked(createSessionToken).mockResolvedValue('session-token');
       const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
+      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
 
       const result = await syncWithToken('valid-token');
 
@@ -350,7 +347,7 @@ describe('Actions Library', () => {
       vi.mocked(getAssociations).mockResolvedValue([]);
       vi.mocked(createSessionToken).mockResolvedValue('new-token');
       const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ get: vi.fn(), set: mockCookieSet } as any);
+      vi.mocked(cookies).mockResolvedValue({ get: vi.fn(), set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
 
       await initializeSession();
 

@@ -1,0 +1,40 @@
+{
+  "lexicon": 1,
+  "id": "net.atpassport.verify.submit",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Submit a domain verification request.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "ref",
+          "ref": "#input"
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "ref",
+          "ref": "#output"
+        }
+      }
+    },
+    "input": {
+      "type": "object",
+      "required": ["isPublic"],
+      "properties": {
+        "isPublic": { "type": "boolean" },
+        "domain": { "type": "string" }
+      }
+    },
+    "output": {
+      "type": "object",
+      "required": ["success"],
+      "properties": {
+        "success": { "type": "boolean" },
+        "error": { "type": "string" }
+      }
+    }
+  }
+}

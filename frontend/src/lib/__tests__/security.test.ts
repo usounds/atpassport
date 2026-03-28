@@ -55,7 +55,7 @@ describe('Security Library', () => {
       vi.stubEnv('NODE_ENV', 'production');
       vi.stubEnv('AWS_ACCESS_KEY_ID', 'fake');
       
-      const mockSend = vi.spyOn(db, 'send').mockResolvedValue({ Item: { domain: 'prod.com' } } as any);
+      const mockSend = vi.spyOn(db, 'send').mockResolvedValue({ Item: { domain: 'prod.com' } } as never);
       
       const result = await getVerifiedDomainFromDb('prod.com');
       expect(result?.domain).toBe('prod.com');

@@ -159,7 +159,9 @@
     "login_button": "ログイン",
     "go_back": "戻る",
     "logout": "ログアウト",
-    "login_failed": "ログインの開始に失敗しました"
+    "login_failed": "ログインの開始に失敗しました",
+    "withdraw_success": "認証を解除しました。",
+    "update_success": "設定を更新しました。"
   },
   "Directory": {
     "title": "認証済みドメイン一覧",

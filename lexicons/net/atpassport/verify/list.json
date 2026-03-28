@@ -1,0 +1,45 @@
+{
+  "lexicon": 1,
+  "id": "net.atpassport.verify.list",
+  "defs": {
+    "main": {
+      "type": "query",
+      "description": "List verified domains for a DID.",
+      "parameters": {
+        "type": "params",
+        "properties": {}
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "ref",
+          "ref": "#output"
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "required": ["success", "domains"],
+      "properties": {
+        "success": { "type": "boolean" },
+        "domains": {
+          "type": "array",
+          "items": { "type": "ref", "ref": "#domain" }
+        },
+        "error": { "type": "string" }
+      }
+    },
+    "domain": {
+      "type": "object",
+      "required": ["domain", "handle", "status", "verifiedAt", "isPublic", "method"],
+      "properties": {
+        "domain": { "type": "string", "format": "at-identifier" },
+        "handle": { "type": "string", "format": "at-identifier" },
+        "status": { "type": "string", "knownValues": ["approved", "pending", "rejected"] },
+        "verifiedAt": { "type": "string", "format": "datetime" },
+        "isPublic": { "type": "boolean" },
+        "method": { "type": "string", "knownValues": ["oauth", "file"] }
+      }
+    }
+  }
+}
