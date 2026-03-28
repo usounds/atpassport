@@ -30,28 +30,53 @@ export default async function DirectoryPage({
           </Text>
         </header>
 
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-          {domainsWithProfiles.map((domain) => (
-            <Card key={domain.domain} withBorder padding="lg" radius="lg" shadow="sm">
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+          {domainsWithProfiles.map((domain, index) => (
+            <Card 
+              key={domain.domain} 
+              className={`premium-card animate-slide-in stagger-${Math.min((index % 10) + 1, 10)}`}
+              padding="xl" 
+              radius="lg"
+              bg="transparent"
+              style={{ overflow: 'visible' }}
+            >
               <Stack gap="md">
-                <Group justify="space-between">
-                  <Title order={5} style={{ wordBreak: 'break-all' }}>{domain.domain}</Title>
-                  <IconShieldCheck size={20} color="var(--mantine-color-green-6)" />
+                <Group justify="space-between" align="center" wrap="nowrap">
+                  <Box style={{ flex: 1, minWidth: 0 }}>
+                    <Title order={5} style={{ 
+                      wordBreak: 'break-all', 
+                      fontSize: '1.1rem',
+                      letterSpacing: '0.01em'
+                    }}>
+                      {domain.domain}
+                    </Title>
+                  </Box>
+                  <IconShieldCheck 
+                    size={24} 
+                    color="var(--mantine-color-blue-6)" 
+                    style={{ filter: 'drop-shadow(0 0 8px rgba(34, 139, 230, 0.3))' }}
+                  />
                 </Group>
 
-                <Divider />
+                <Divider variant="dashed" />
 
-                <Group gap="sm">
-                  <Avatar src={domain.profile?.avatar} radius="xl" size="sm" />
+                <Group gap="sm" align="center">
+                  <Avatar 
+                    src={domain.profile?.avatar} 
+                    radius="md" 
+                    size="md" 
+                    style={{ border: '2px solid var(--mantine-color-white)' }}
+                  />
                   <Box style={{ flex: 1, minWidth: 0 }}>
-                    <Text size="xs" c="dimmed" mb={2}>{t('verified_by')}</Text>
+                    <Text size="xs" c="dimmed" fw={500}>{t('verified_by')}</Text>
                     <Anchor
                       href={`https://bsky.app/profile/${domain.handle}`}
                       target="_blank"
-                      size="xs"
-                      fw={600}
+                      size="sm"
+                      fw={700}
                       truncate="end"
                       display="block"
+                      c="blue.7"
                     >
                       @{domain.handle}
                     </Anchor>

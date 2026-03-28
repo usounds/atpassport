@@ -45,7 +45,7 @@
     "confirm_delete_text": "登録済みハンドルから {handle} を削除してもよろしいですか？",
     "cancel": "キャンセル",
     "unverified_domain_title": "未確認のドメイン",
-    "unverified_domain_message": "このドメイン ({domain}) は、@passport による認証を受けていません。信頼できるサイトであることを確認してください。"
+    "unverified_domain_message": "このドメイン ({domain}) は、@passport による所有権の確認が完了していません。信頼できるサイトであることを確認してください。"
   },
   "Add": {
     "title": "ハンドルの追加",
