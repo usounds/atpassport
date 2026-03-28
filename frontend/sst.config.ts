@@ -50,11 +50,11 @@ export default $config({
           actions: ["dynamodb:Query", "dynamodb:Scan", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"],
           resources: [
             table.arn,
-            `${table.arn}/index/*`,
+            $util.interpolate`${table.arn}/index/*`,
             shareTokensTable.arn,
-            `${shareTokensTable.arn}/index/*`,
+            $util.interpolate`${shareTokensTable.arn}/index/*`,
             verifiedDomainsTable.arn,
-            `${verifiedDomainsTable.arn}/index/*`
+            $util.interpolate`${verifiedDomainsTable.arn}/index/*`
           ],
         },
       ],
