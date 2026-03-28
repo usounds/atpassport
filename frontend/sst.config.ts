@@ -7,10 +7,8 @@ export default $config({
     };
   },
   async run() {
-    // 1. Secret を定義
     const sessionSecret = new sst.Secret("SessionSecret");
 
-    // 2. DynamoDB テーブルを定義
     const table = new sst.aws.Dynamo("AtPassportSessions", {
       fields: {
         uuid: "string",
@@ -28,12 +26,41 @@ export default $config({
       ttl: "expiresAt",
     });
 
-    // 3. Next.js (frontend) を定義
+    const verifiedDomainsTable = new sst.aws.Dynamo("AtPassportVerifiedDomains", {
+      fields: {
+        domain: "string",
+        isPublic: "string",
+        verifiedAt: "string",
+      },
+      primaryIndex: { hashKey: "domain" },
+      globalIndexes: {
+        PublicVerifiedIndex: {
+          hashKey: "isPublic",
+          rangeKey: "verifiedAt",
+          projection: "all",
+        },
+      },
+    });
+
     new sst.aws.Nextjs("AtPassportApp", {
       path: ".",
-      link: [table, shareTokensTable, sessionSecret],
+      link: [table, shareTokensTable, verifiedDomainsTable, sessionSecret],
+      permissions: [
+        {
+          actions: ["dynamodb:Query", "dynamodb:Scan", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"],
+          resources: [
+            table.arn,
+            `${table.arn}/index/*`,
+            shareTokensTable.arn,
+            `${shareTokensTable.arn}/index/*`,
+            verifiedDomainsTable.arn,
+            `${verifiedDomainsTable.arn}/index/*`
+          ],
+        },
+      ],
       environment: {
         SESSION_SECRET: sessionSecret.value,
+        NEXT_PUBLIC_URL: $app.stage === "production" ? "https://atpassport.net" : "https://dev.atpassport.net",
       },
       transform: {
         server: {

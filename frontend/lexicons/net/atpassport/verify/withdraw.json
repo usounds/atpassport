@@ -1,0 +1,31 @@
+{
+  "lexicon": 1,
+  "id": "net.atpassport.verify.withdraw",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Withdraw a domain verification request via OAuth.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["domain"],
+          "properties": {
+            "domain": { "type": "string" }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["success"],
+          "properties": {
+            "success": { "type": "boolean" },
+            "error": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

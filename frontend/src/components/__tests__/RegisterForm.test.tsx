@@ -155,5 +155,18 @@ describe('RegisterForm', () => {
     await waitFor(() => {
       expect(screen.getByText('suggestion1.bsky.social')).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByText('suggestion1.bsky.social'));
+    expect(input).toHaveValue('suggestion1.bsky.social');
+  });
+
+  it('shows error if handle is empty when clicking register', async () => {
+    render(<RegisterForm handleCount={1} />);
+    fireEvent.click(screen.getByText(/add handle/i));
+    
+    const registerBtn = await screen.findByText(/^add$/i);
+    fireEvent.click(registerBtn);
+    
+    expect(actions.registerHandle).not.toHaveBeenCalled();
   });
 });

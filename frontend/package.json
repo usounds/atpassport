@@ -19,6 +19,7 @@
     "@atcute/identity-resolver": "^1.2.2",
     "@atcute/identity-resolver-node": "^1.0.3",
     "@atcute/lexicons": "^1.2.9",
+    "@atcute/oauth-browser-client": "^3.0.0",
     "@atpassport/client": "^0.1.24",
     "@aws-sdk/client-dynamodb": "^3.1017.0",
     "@aws-sdk/lib-dynamodb": "^3.1017.0",

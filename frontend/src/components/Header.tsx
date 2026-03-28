@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Container, Group, Title, Burger, Drawer, Stack, ActionIcon, Menu, useMantineColorScheme } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useTranslations, useLocale } from 'next-intl';
@@ -11,6 +12,7 @@ import classes from './Header.module.css';
 
 const links = [
   { link: '/about', labelKey: 'about' },
+  { link: '/directory', labelKey: 'directory' },
   { link: '/terms', labelKey: 'terms' },
   { link: '/privacy', labelKey: 'privacy' },
 ];
@@ -24,6 +26,12 @@ export function Header() {
   const router = useRouter();
   const [opened, { toggle, close }] = useDisclosure(false);
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   const handleLocaleChange = (nextLocale: string) => {
     const params = searchParams.toString();
@@ -32,7 +40,9 @@ export function Header() {
   };
 
   const toggleColorScheme = () => {
-    setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
+    const nextScheme = colorScheme === 'dark' ? 'light' : 'dark';
+    setColorScheme(nextScheme);
+    document.cookie = `mantine-color-scheme=${nextScheme}; path=/; max-age=31536000`;
   };
 
   const colorSchemeToggle = (
@@ -44,56 +54,60 @@ export function Header() {
       radius="md"
       aria-label={tNav('toggle_color_scheme')}
     >
-      {colorScheme === 'dark' ? <Sun size={20} strokeWidth={1.5} /> : <Moon size={20} strokeWidth={1.5} />}
+      {!mounted ? (
+        <div style={{ width: 20, height: 20 }} />
+      ) : (
+        colorScheme === 'dark' ? <Sun size={20} strokeWidth={1.5} /> : <Moon size={20} strokeWidth={1.5} />
+      )}
     </ActionIcon>
   );
 
   const languagePicker = (
     <Menu shadow="md" width={140} position="bottom-end" transitionProps={{ transition: 'pop-top-right' }}>
       <Menu.Target>
-        <ActionIcon variant="light" color="gray" size="lg" radius="md">
+        <ActionIcon variant="light" color="gray" size="lg" radius="md" aria-label="change_language">
           <Languages size={20} strokeWidth={1.5} />
         </ActionIcon>
       </Menu.Target>
 
       <Menu.Dropdown>
-        <Menu.Label>{locale === 'ja' ? '言語を選択' : 
-           locale === 'pt' ? 'Selecionar Idioma' :
-           locale === 'de' ? 'Sprache wählen' :
-           locale === 'fr' ? 'Choisir la langue' :
-           locale === 'es' ? 'Seleccionar idioma' :
-           'Select Language'}</Menu.Label>
-        <Menu.Item 
+        <Menu.Label>{locale === 'ja' ? '言語を選択' :
+          locale === 'pt' ? 'Selecionar Idioma' :
+            locale === 'de' ? 'Sprache wählen' :
+              locale === 'fr' ? 'Choisir la langue' :
+                locale === 'es' ? 'Seleccionar idioma' :
+                  'Select Language'}</Menu.Label>
+        <Menu.Item
           onClick={() => handleLocaleChange('en')}
           fw={locale === 'en' ? 700 : 400}
         >
           English
         </Menu.Item>
-        <Menu.Item 
+        <Menu.Item
           onClick={() => handleLocaleChange('ja')}
           fw={locale === 'ja' ? 700 : 400}
         >
           日本語
         </Menu.Item>
-        <Menu.Item 
+        <Menu.Item
           onClick={() => handleLocaleChange('pt')}
           fw={locale === 'pt' ? 700 : 400}
         >
           Português
         </Menu.Item>
-        <Menu.Item 
+        <Menu.Item
           onClick={() => handleLocaleChange('de')}
           fw={locale === 'de' ? 700 : 400}
         >
           Deutsch
         </Menu.Item>
-        <Menu.Item 
+        <Menu.Item
           onClick={() => handleLocaleChange('fr')}
           fw={locale === 'fr' ? 700 : 400}
         >
           Français
         </Menu.Item>
-        <Menu.Item 
+        <Menu.Item
           onClick={() => handleLocaleChange('es')}
           fw={locale === 'es' ? 700 : 400}
         >
@@ -120,7 +134,8 @@ export function Header() {
 
   return (
     <header className={classes.header}>
-      <Container size="sm" className={classes.inner}>
+      {/* 以前は size="sm" 定義でしたが、項目が増えたため wider な "lg" に変更 */}
+      <Container size="lg" className={classes.inner}>
         <Link href="/" className={classes.logo}>
           <Image src="/icon128.svg" alt="logo" width={24} height={24} style={{ position: 'relative', top: '2px' }} />
           <Title order={3} fw={700} m={0} style={{ lineHeight: 1 }}>{t('title')}</Title>

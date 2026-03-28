@@ -8,30 +8,202 @@ import { getUuidByShareToken } from './share';
 import { createSessionToken, SESSION_COOKIE_NAME } from './session';
 import { cookies, headers } from 'next/headers';
 import { isRateLimited } from './rate-limit';
+import { verifyDomainInDb, getVerifiedDomainFromDb, getVerifiedDomainsByDid, VerifiedDomain, deleteVerifiedDomainFromDb } from './security';
 
-export async function registerHandle(handle: string): Promise<{ success: boolean; error?: string }> {
-  // Rate limiting based on IP
-  const headerList = await headers();
-  const ip = headerList.get("x-forwarded-for") || "anonymous";
-  if (isRateLimited(`action:register:${ip}`, 5, 60000)) {
-    return { success: false, error: "Too many requests. Please try again later." };
-  }
-
+export async function claimDomainOwnership(did: string, isPublic: boolean = true): Promise<{ success: boolean; error?: string }> {
   const uuid = await getSessionUuid();
   if (!uuid) return { success: false, error: "No session found" };
 
-  const result = await resolveIdentity(handle);
-  if (!result || !result.did || !result.pdsUrl || !result.handle) {
-    return { success: false, error: "Handle not found or missing PDS" };
+  const associations = await getAssociations(uuid);
+  const target = associations.find(a => a.did === did);
+
+  if (!target) {
+    return { success: false, error: "Handle not found in your account" };
   }
 
-  const { did, pdsUrl, handle: resolvedHandle } = result;
-  const associations = await getAssociations(uuid);
+  const handle = target.handle.toLowerCase();
   
-  // DIDベースで既存の登録を確認
-  const existing = associations.find(a => a.did === did);
+  // インフラドメイン（bsky.socialなど）は除外する簡易チェック
+  const INFRA_DOMAINS = ['bsky.social', 'bsky.network', 'atproto.com', 'bluesky.app'];
+  if (INFRA_DOMAINS.some(infra => handle === infra || handle.endsWith('.' + infra))) {
+    return { success: false, error: "Infrastructure domains cannot be verified" };
+  }
+
+  // ドメインとして妥当か（ピリオドを含み、かつインフラでない）
+  if (!handle.includes('.')) {
+    return { success: false, error: "Invalid handle format for domain verification" };
+  }
 
   try {
+    // DBに登録（これが「申請・承認」のステップとなる）
+    await verifyDomainInDb(handle, did, handle, isPublic, 'oauth');
+    revalidatePath('/[locale]', 'page');
+    revalidatePath('/[locale]/directory', 'page');
+    return { success: true };
+  } catch (error) {
+    console.error('[ServerAction:claimDomainOwnership] ERROR:', error);
+    return { success: false, error: "Internal server error" };
+  }
+}
+
+/**
+ * DID からハンドル名を解決します。
+ */
+export async function resolveHandle(did: string) {
+  return await resolveIdentity(did);
+}
+
+/**
+ * OAuth で認証された DID に基づいてドメイン検証を DB に登録します。
+ */
+export async function verifyDomainViaOAuth(did: string, isPublic: boolean) {
+  try {
+    const identity = await resolveIdentity(did);
+    if (!identity || !identity.handle) {
+      return { success: false, error: "Identity not found" };
+    }
+
+    await verifyDomainInDb(identity.handle, did, identity.handle, isPublic, 'oauth');
+    
+    revalidatePath('/[locale]/directory');
+    revalidatePath('/[locale]/developers/verify');
+    
+    return { success: true };
+  } catch (error) {
+    console.error('[ServerAction:verifyDomainViaOAuth] ERROR:', error);
+    return { success: false, error: "Internal server error" };
+  }
+}
+
+/**
+ * ファイルベース (.well-known) でドメイン検証を行います。
+ */
+export async function verifyDomainByFile(domain: string, did: string, isPublic: boolean): Promise<{ success: boolean; error?: string }> {
+  try {
+    const lowerDomain = domain.toLowerCase().trim();
+    if (!lowerDomain.includes('.')) {
+      return { success: false, error: "Invalid domain format" };
+    }
+
+    const url = `https://${lowerDomain}/.well-known/atpassport`;
+    
+    // タイムアウト付きの fetch
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const response = await fetch(url, { 
+      cache: 'no-store',
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      return { success: false, error: `Could not reach ${url} (Status: ${response.status})` };
+    }
+
+    const content = await response.text();
+    const expectedPrefix = 'atpassport-verification:';
+    if (!content.includes(expectedPrefix) || !content.includes(did)) {
+      return { success: false, error: `Verification content mismatch. Expected: ${expectedPrefix} ${did}` };
+    }
+
+    const identity = await resolveIdentity(did);
+    const handle = identity?.handle || did;
+
+    await verifyDomainInDb(lowerDomain, did, handle, isPublic, 'file');
+    
+    revalidatePath('/[locale]/directory');
+    revalidatePath('/[locale]/developers/verify');
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('[ServerAction:verifyDomainByFile] ERROR:', error);
+    if ((error as Error).name === 'AbortError') {
+      return { success: false, error: "Connection timed out. Check if server is accessible." };
+    }
+    return { success: false, error: "Connection failed. Ensure HTTPS is working and the domain is correct." };
+  }
+}
+
+/**
+ * ドメイン検証を取り消します。
+ */
+export async function withdrawDomain(domain: string, did: string) {
+  try {
+    // 物理削除
+    // セキュリティ上の確認: その DID が本当にそのドメインの所有者かチェック
+    const existing = await getVerifiedDomainFromDb(domain);
+    if (!existing || existing.verifiedByDid !== did) {
+      return { success: false, error: "Unauthorized or domain not found" };
+    }
+
+    await deleteVerifiedDomainFromDb(domain);
+    
+    revalidatePath('/[locale]/directory');
+    revalidatePath('/[locale]/developers/verify');
+    
+    return { success: true };
+  } catch (error) {
+    console.error('[ServerAction:withdrawDomain] ERROR:', error);
+    return { success: false, error: "Internal server error" };
+  }
+}
+
+/**
+ * ドメインの設定（公開状態など）を更新します。
+ */
+export async function updateDomainSettings(domain: string, did: string, isPublic: boolean) {
+  try {
+    const existing = await getVerifiedDomainFromDb(domain);
+    if (!existing || existing.verifiedByDid !== did) {
+      return { success: false, error: "Unauthorized or domain not found" };
+    }
+
+    await verifyDomainInDb(domain, did, existing.handle, isPublic, existing.method || 'oauth');
+    
+    revalidatePath('/[locale]/directory');
+    revalidatePath('/[locale]/developers/verify');
+    
+    return { success: true };
+  } catch (error) {
+    console.error('[ServerAction:updateDomainSettings] ERROR:', error);
+    return { success: false, error: "Internal server error" };
+  }
+}
+
+/**
+ * 基幹互換性のためのエイリアス
+ */
+export async function withdrawDomainViaOAuth(did: string) {
+  const identity = await resolveIdentity(did);
+  if (!identity || !identity.handle) return { success: false };
+  return await withdrawDomain(identity.handle, did);
+}
+
+export async function registerHandle(handle: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Rate limiting based on IP
+    const headerList = await headers();
+    const ip = headerList.get("x-forwarded-for") || "anonymous";
+    if (isRateLimited(`action:register:${ip}`, 5, 60000)) {
+      return { success: false, error: "Too many requests. Please try again later." };
+    }
+
+    const uuid = await getSessionUuid();
+    if (!uuid) return { success: false, error: "No session found" };
+
+    const result = await resolveIdentity(handle);
+    if (!result || !result.did || !result.pdsUrl || !result.handle) {
+      return { success: false, error: "Handle not found or missing PDS" };
+    }
+
+    const { did, pdsUrl, handle: resolvedHandle } = result;
+    const associations = await getAssociations(uuid);
+    
+    // DIDベースで既存の登録を確認
+    const existing = associations.find(a => a.did === did);
+
     if (existing) {
       // 既にDIDが登録されている場合は、最新のハンドルとPDS URLで更新する
       await updateAssociation(uuid, did, {
@@ -66,12 +238,9 @@ export async function setPrimaryAssociation(did: string) {
       await updateAssociation(uuid, assoc.did, { isPrimary: false });
     }
   }
-
-  // Removed revalidatePath for picker
 }
 
 export async function refreshAssociation(did: string) {
-  // Rate limiting based on IP
   const headerList = await headers();
   const ip = headerList.get("x-forwarded-for") || "anonymous";
   if (isRateLimited(`action:refresh:${ip}`, 10, 60000)) {
@@ -82,7 +251,6 @@ export async function refreshAssociation(did: string) {
   const uuid = await getSessionUuid();
   if (!uuid) return;
 
-  // DID をキーに最新のアイデンティティ情報を取得
   const result = await resolveIdentity(did);
   if (result && result.handle && result.pdsUrl) {
     await updateAssociation(uuid, did, {
@@ -98,7 +266,6 @@ export async function removeAssociation(did: string) {
   if (!uuid) return;
 
   await deleteAssociation(uuid, did);
-  // Removed revalidatePath for picker
 }
 
 export async function moveAssociation(did: string, direction: 'up' | 'down') {
@@ -126,8 +293,6 @@ export async function moveAssociation(did: string, direction: 'up' | 'down') {
     await updateAssociation(uuid, curr.did, { sortOrder: nextOrder });
     await updateAssociation(uuid, next.did, { sortOrder: currOrder });
   }
-
-  // Removed revalidatePath for picker
 }
 
 export async function syncWithToken(token: string): Promise<{ success: boolean; error?: string }> {
@@ -148,23 +313,16 @@ export async function syncWithToken(token: string): Promise<{ success: boolean; 
     maxAge: 60 * 60 * 24 * 365,
   });
 
-
   return { success: true };
 }
 
-/**
- * 手動でセッションを初期化し、クッキーを発行します。
- * 同意チェックボックスがオンになったタイミングなどで呼び出されます。
- */
 export async function initializeSession() {
   const uuid = await getSessionUuid();
-  if (uuid) return; // すでにセッションが存在する場合は何もしない
+  if (uuid) return;
 
   let newUuid = crypto.randomUUID();
   let attempts = 0;
   
-  // 衝突チェック: 生成したUUIDがデータベースに既に存在しないか確認する
-  // (UUID v4 の性質上、衝突は極めて稀ですが、安全性を高めます)
   while (attempts < 5) {
     const associations = await getAssociations(newUuid);
     if (associations.length === 0) break;
@@ -182,4 +340,21 @@ export async function initializeSession() {
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
   });
+}
+
+/**
+ * DID から現在の検証ステータスを取得します。
+ */
+export async function getVerificationStatus(did: string) {
+  const identity = await resolveIdentity(did);
+  if (!identity || !identity.handle) return null;
+
+  return await getVerifiedDomainFromDb(identity.handle);
+}
+
+/**
+ * DID に紐づく認証済みドメインをすべて取得します。
+ */
+export async function getVerifiedDomains(did: string): Promise<VerifiedDomain[]> {
+  return await getVerifiedDomainsByDid(did);
 }

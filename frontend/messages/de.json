@@ -43,7 +43,9 @@
     "delete": "Löschen",
     "confirm_delete_title": "Löschen bestätigen",
     "confirm_delete_text": "Sind Sie sicher, dass Sie {handle} aus Ihren registrierten Handles entfernen möchten?",
-    "cancel": "Abbrechen"
+    "cancel": "Abbrechen",
+    "unverified_domain_title": "Unverified Domain",
+    "unverified_domain_message": "This domain ({domain}) is not verified by @passport. Make sure you trust this site."
   },
   "Add": {
     "title": "Handle hinzufügen",
@@ -58,7 +60,9 @@
     "about": "Über",
     "terms": "Bedingungen",
     "privacy": "Datenschutz",
-    "toggle_color_scheme": "Farbschema umschalten"
+    "toggle_color_scheme": "Farbschema umschalten",
+    "directory": "Verified Domains",
+    "developers": "Developers"
   },
   "Share": {
     "title": "Mit anderen\nGeräten teilen",
@@ -107,5 +111,60 @@
     "atpstate": "atpstate",
     "returned_params": "Zurückgegebene benutzerdefinierte Parameter",
     "try_another": "Mit anderem Handle versuchen"
+  },
+  "Developers": {
+    "title": "Developer Portal",
+    "description": "Verify your domain ownership to remove warnings during @passport authentication.",
+    "verification_info": "You can verify ownership of a domain that matches your handle, e.g., skyblur.uk. Once verified, warnings will be removed for that domain and all its subdomains.",
+    "auth_required": "Auth Required",
+    "auth_required_description": "To use the Developer Portal, you must log in.",
+    "authenticating_title": "Authenticating...",
+    "authenticating_message": "Connecting to {domain} or {pds} for authentication...",
+    "no_associations_found": "No registered handles found. Please login or register below.",
+    "login_handle": "Handle to Login",
+    "verified": "Verified",
+    "public": "Public",
+    "private": "Private",
+    "infra_domain_warning": "Infrastructure domains cannot be verified.",
+    "invalid_domain_format": "This handle is not in a valid domain format.",
+    "list_in_directory": "List in public directory",
+    "verify_domain": "Verify Domain",
+    "verify_with_oauth": "Verify via @passport",
+    "cancel_verification": "Cancel verification",
+    "update_settings": "Update Settings",
+    "view_directory": "View Verified Domains",
+    "dashboard_tab": "My Domains",
+    "new_domain_tab": "Add New Domain",
+    "method_oauth": "Verify via handle domain",
+    "method_file": "Verify via File",
+    "oauth_description": "Instantly verify domains that match your Bluesky handle via @passport login.",
+    "file_description": "Prove ownership of any domain by placing a file under its document root.",
+    "step_method": "Choose Method",
+    "step_verify": "Verify",
+    "step_done": "Complete",
+    "domain_input_label": "Domain to verify",
+    "domain_placeholder": "example.com",
+    "file_verify_instruction": "Create a text file with the following content and place it at `/.well-known/atpassport` on your domain.",
+    "file_content_label": "File Content atpassport",
+    "verify_now": "Verify Now",
+    "success_title": "Verification Success",
+    "success_message": "Domain {domain} has been successfully verified.",
+    "back_to_dashboard": "Back to dashboard",
+    "cancel": "Cancel",
+    "empty_domains": "No verified domains yet.",
+    "last_verified": "Last Verified",
+    "method_label": "Method",
+    "passport_login": "Mit @passport anmelden",
+    "manual_handle_input": "Handle manuell eingeben...",
+    "login_button": "Anmelden",
+    "go_back": "Zurück",
+    "logout": "Abmelden",
+    "login_failed": "Anmeldung konnte nicht gestartet werden"
+  },
+  "Directory": {
+    "title": "Verified Domains",
+    "description": "List of domains whose ownership has been officially verified by @passport.",
+    "verified_by": "Verified by",
+    "no_domains": "No verified domains yet."
   }
 }

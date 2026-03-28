@@ -104,3 +104,14 @@ body {
 .stagger-8 { animation-delay: 0.45s; }
 .stagger-9 { animation-delay: 0.5s; }
 .stagger-10 { animation-delay: 0.55s; }
+
+.hover-action-card {
+  transition: all 0.2s ease;
+}
+
+.hover-action-card:hover {
+  border-color: var(--mantine-color-blue-filled) !important;
+  transform: translateY(-2px);
+  background-color: light-dark(var(--mantine-color-blue-0), rgba(0, 133, 255, 0.05)) !important;
+  box-shadow: var(--mantine-shadow-sm);
+}

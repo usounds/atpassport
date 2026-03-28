@@ -58,7 +58,11 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
       lang: locale as SupportedLang
     });
     const { url } = atp.generateAuthUrl(getParamsObj());
-    window.location.href = url;
+    if (url.startsWith('https://')) {
+      window.location.href = url;
+    } else {
+      console.error('Invalid redirect URL (HTTPS required):', url);
+    }
   };
 
   const handleAdd = () => {
@@ -69,7 +73,11 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
       lang: locale as SupportedLang
     });
     const { url } = atp.generateAddUrl(suggestHandle, getParamsObj());
-    window.location.href = url;
+    if (url.startsWith('https://')) {
+      window.location.href = url;
+    } else {
+      console.error('Invalid redirect URL (HTTPS required):', url);
+    }
   };
 
   const handleReset = () => {

@@ -45,6 +45,9 @@ importers:
       '@atcute/lexicons':
         specifier: ^1.2.9
         version: 1.2.9
+      '@atcute/oauth-browser-client':
+        specifier: ^3.0.0
+        version: 3.0.0(@atcute/identity@1.1.4)
       '@atpassport/client':
         specifier: ^0.1.24
         version: 0.1.24(react@19.2.4)
@@ -272,6 +275,21 @@ packages:
 
   '@atcute/lexicons@1.2.9':
     resolution: {integrity: sha512-/RRHm2Cw9o8Mcsrq0eo8fjS9okKYLGfuFwrQ0YoP/6sdSDsXshaTLJsvLlcUcaDaSJ1YFOuHIo3zr2Om2F/16g==}
+
+  '@atcute/multibase@1.2.0':
+    resolution: {integrity: sha512-ZK2GRra+qIYq9nNuQB52m2ul0hOmCQEtPobGfTSUxm7pF0OGEkWGkWHugFhNEDVzHzTwPxHp6VGotdZFue4lYQ==}
+
+  '@atcute/oauth-browser-client@3.0.0':
+    resolution: {integrity: sha512-7AbKV8tTe7aRJNJV7gCcWHSVEADb2nr58O1p7dQsf73HSe9pvlBkj/Vk1yjjtH691uAVYkwhHSh0bC7D8XdwJw==}
+
+  '@atcute/oauth-crypto@0.1.0':
+    resolution: {integrity: sha512-qZYDCNLF/4B6AndYT1rsQelN8621AC5u/sL5PHvlr/qqAbmmUwCBGjEgRSyZtHE1AqD60VNiSMlOgAuEQTSl3w==}
+
+  '@atcute/oauth-keyset@0.1.0':
+    resolution: {integrity: sha512-+wqT/+I5Lg9VzKnKY3g88+N45xbq+wsdT6bHDGqCVa2u57gRvolFF4dY+weMfc/OX641BIZO6/o+zFtKBsMQnQ==}
+
+  '@atcute/oauth-types@0.1.1':
+    resolution: {integrity: sha512-u+3KMjse3Uc/9hDyilu1QVN7IpcnjVXgRzhddzBB8Uh6wePHNVBDdi9wQvFTVVA3zmxtMJVptXRyLLg6Ou9bqg==}
 
   '@atcute/uint8array@1.1.1':
     resolution: {integrity: sha512-3LsC8XB8TKe9q/5hOA5sFuzGaIFdJZJNewC5OKa3o/eU6+K7JR6see9Zy2JbQERNVnRl11EzbNov1efgLMAs4g==}
@@ -3739,6 +3757,11 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
+  nanoid@5.1.7:
+    resolution: {integrity: sha512-ua3NDgISf6jdwezAheMOk4mbE1LXjm1DfMUDMuJf4AqxLFK3ccGpgWizwa5YV7Yz9EpXwEaWoRXSb/BnV0t5dQ==}
+    engines: {node: ^18 || >=20}
+    hasBin: true
+
   napi-postinstall@0.3.4:
     resolution: {integrity: sha512-PHI5f1O0EP5xJ9gQmFGMS6IZcrVvTjpXjz7Na41gTE7eE2hK11lg04CECCYEEjdc17EV4DO+fkGEtt7TpTaTiQ==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
@@ -5147,6 +5170,40 @@ snapshots:
       '@atcute/util-text': 1.2.0
       '@standard-schema/spec': 1.1.0
       esm-env: 1.2.2
+
+  '@atcute/multibase@1.2.0':
+    dependencies:
+      '@atcute/uint8array': 1.1.1
+
+  '@atcute/oauth-browser-client@3.0.0(@atcute/identity@1.1.4)':
+    dependencies:
+      '@atcute/client': 4.2.1
+      '@atcute/identity-resolver': 1.2.2(@atcute/identity@1.1.4)
+      '@atcute/lexicons': 1.2.9
+      '@atcute/multibase': 1.2.0
+      '@atcute/oauth-crypto': 0.1.0
+      '@atcute/oauth-types': 0.1.1
+      nanoid: 5.1.7
+    transitivePeerDependencies:
+      - '@atcute/identity'
+
+  '@atcute/oauth-crypto@0.1.0':
+    dependencies:
+      '@atcute/multibase': 1.2.0
+      '@atcute/uint8array': 1.1.1
+      '@badrap/valita': 0.4.6
+      nanoid: 5.1.7
+
+  '@atcute/oauth-keyset@0.1.0':
+    dependencies:
+      '@atcute/oauth-crypto': 0.1.0
+
+  '@atcute/oauth-types@0.1.1':
+    dependencies:
+      '@atcute/identity': 1.1.4
+      '@atcute/lexicons': 1.2.9
+      '@atcute/oauth-keyset': 0.1.0
+      '@badrap/valita': 0.4.6
 
   '@atcute/uint8array@1.1.1': {}
 
@@ -9131,6 +9188,8 @@ snapshots:
       thenify-all: 1.6.0
 
   nanoid@3.3.11: {}
+
+  nanoid@5.1.7: {}
 
   napi-postinstall@0.3.4: {}
 

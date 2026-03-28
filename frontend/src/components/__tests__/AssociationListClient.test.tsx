@@ -56,4 +56,28 @@ describe('AssociationListClient', () => {
       expect(actions.moveAssociation).toHaveBeenCalled();
     });
   });
+
+  it('handles item move down', async () => {
+    render(<AssociationListClient initialItems={mockItems} />);
+    const menuBtns = screen.getAllByRole('button');
+    fireEvent.click(menuBtns[0]);
+    const moveDownBtn = await screen.findByText('Move Down');
+    fireEvent.click(moveDownBtn);
+    
+    await waitFor(() => {
+      expect(actions.moveAssociation).toHaveBeenCalled();
+    });
+  });
+
+  it('handles item refresh', async () => {
+    render(<AssociationListClient initialItems={mockItems} />);
+    const menuBtns = screen.getAllByRole('button');
+    fireEvent.click(menuBtns[0]);
+    const refreshBtn = await screen.findByText('Refresh Metadata');
+    fireEvent.click(refreshBtn);
+    
+    await waitFor(() => {
+      expect(actions.refreshAssociation).toHaveBeenCalledWith('did:1');
+    });
+  });
 });

@@ -1,4 +1,5 @@
 import type { Viewport } from 'next';
+import { cookies } from 'next/headers';
 import { Geist, Geist_Mono } from "next/font/google";
 import { ColorSchemeScript, MantineProvider, createTheme, Stack } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
@@ -92,13 +93,15 @@ export default async function RootLayout({
 }) {
   const { locale } = await params;
   const messages = await getMessages();
+  const cookieStore = await cookies();
+  const colorScheme = (cookieStore.get('mantine-color-scheme')?.value as 'light' | 'dark' | 'auto') || 'light';
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ColorSchemeScript defaultColorScheme="auto" />
+        <ColorSchemeScript defaultColorScheme={colorScheme} />
         <NextIntlClientProvider messages={messages}>
-          <MantineProvider theme={theme} defaultColorScheme="auto">
+          <MantineProvider theme={theme} defaultColorScheme={colorScheme}>
             <NextTopLoader color="#58A7F6" showSpinner={false} height={3} />
             <Notifications position="top-right" zIndex={1000} />
             <Stack gap={0} style={{ minHeight: '100vh' }}>

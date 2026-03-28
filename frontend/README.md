@@ -1,6 +1,6 @@
-# AtPassport Frontend
+# @passport Frontend
 
-This is the frontend for AtPassport, built with Next.js.
+This is the frontend for @passport, built with Next.js.
 
 ## Getting Started
 

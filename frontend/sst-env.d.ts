@@ -18,6 +18,10 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Dynamo"
     }
+    "AtPassportVerifiedDomains": {
+      "name": string
+      "type": "sst.aws.Dynamo"
+    }
     "SessionSecret": {
       "type": "sst.sst.Secret"
       "value": string

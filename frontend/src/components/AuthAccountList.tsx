@@ -1,23 +1,26 @@
 'use client';
 
-import { Text, Stack, Box, Title } from '@mantine/core';
+import { Text, Stack, Box, Title, Alert } from '@mantine/core';
 import { AuthAccountItem } from "./AuthAccountItem";
 import { RegisterForm } from "./RegisterForm";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from 'react';
 import { refreshAssociation, removeAssociation, moveAssociation } from '@/lib/actions';
 import { type AssociationWithProfile } from '@/lib/models';
+import { IconAlertTriangle } from '@tabler/icons-react';
 
 export function AuthAccountList({ 
   initialItems, 
   callback, 
   atpstate, 
   domain,
+  isVerified = false,
 }: { 
   initialItems: AssociationWithProfile[]; 
   callback: string; 
   atpstate?: string;
   domain: string;
+  isVerified?: boolean;
 }) {
   const t = useTranslations('Auth');
   const [items, setItems] = useState(initialItems);
@@ -36,7 +39,7 @@ export function AuthAccountList({
       }
       return hostname;
     } catch {
-      return url;
+      return '';
     }
   };
 
@@ -101,6 +104,14 @@ export function AuthAccountList({
         <Title order={3} mb="xs">{t('title')}</Title>
         <Text c="dimmed" size="xs" fw={500}>{t('moving_to', { domain })}</Text>
       </header>
+
+      {!isVerified && (
+        <Alert variant="light" color="orange" title={t('unverified_domain_title')} icon={<IconAlertTriangle size={16} />}>
+          <Text size="xs">
+            {t('unverified_domain_message', { domain })}
+          </Text>
+        </Alert>
+      )}
 
       {items.length === 0 ? (
         <Text c="dimmed" ta="center" py="xl">
