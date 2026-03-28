@@ -168,6 +168,7 @@ export function Header() {
           size="70%"
           padding="md"
           title={t('title')}
+          position="right"
           hiddenFrom="xs"
           zIndex={1000}
           styles={{
