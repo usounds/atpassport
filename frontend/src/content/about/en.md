@@ -35,9 +35,11 @@ We have also prepared a sharing feature so that you can share your list of handl
 ---
 
 ## For Developers
-@passport provides two handle input methods:
+@passport provides two handle input methods.
 
 ### 1. @passport Integration
+When users go through the @passport authentication flow, if the domain is not registered with @passport, a warning will be displayed indicating that the domain is unverified. To provide a smooth authentication experience and build trust, we recommend registering your domain via the [Developer Portal](/developers/verify).
+
 @passport integration works with the following mechanism:
 
 1. Each app transitions to @passport with a `callback` parameter when the authentication button in @passport is tapped.
@@ -62,14 +64,14 @@ It is also possible to link handle information directly via HTTP redirect withou
 
 1. **Redirect to Authentication Screen**
    Redirect users to the following URL with the required parameters.
-   - `https://atpassport.net/en/authentication`
+   - `https://atpassport.net/authentication`
    - **Parameters**:
      - `callback`: The return URL after successful authentication.
      - `atpstate` (Optional): A random string for CSRF protection. If provided, it will be returned as-is on callback. Recommended for security.
 
    **Redirect Example:**
    ```url
-   https://atpassport.net/en/authentication
+   https://atpassport.net/authentication
      ?callback=https%3A%2F%2Fyour-app.com%2Fcallback
      &atpstate=xyz123
    ```

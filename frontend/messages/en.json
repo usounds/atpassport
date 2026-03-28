@@ -60,7 +60,7 @@
     "about": "About",
     "terms": "Terms",
     "privacy": "Privacy",
-    "directory": "Verified Domains",
+    "directory": "Domains",
     "developers": "Developers",
     "toggle_color_scheme": "Toggle color scheme"
   },
@@ -131,7 +131,7 @@
     "verify_domain": "Verify Domain",
     "verify_with_oauth": "Verify via @passport",
     "update_settings": "Update Settings",
-    "view_directory": "View Verified Domains",
+    "view_directory": "View Domains",
     "dashboard_tab": "My Domains",
     "new_domain_tab": "Add New Domain",
     "method_oauth": "Verify via handle domain",
@@ -149,7 +149,7 @@
     "success_title": "Verification Success",
     "success_message": "Domain {domain} has been successfully verified.",
     "cancel": "Cancel",
-    "empty_domains": "No verified domains yet.",
+    "empty_domains": "No domains yet.",
     "last_verified": "Last Verified",
     "method_label": "Method",
     "cancel_verification": "Cancel verification",
@@ -160,13 +160,17 @@
     "go_back": "Back",
     "logout": "Log out",
     "login_failed": "Failed to start login",
-    "withdraw_success": "Verification withdrawn.",
-    "update_success": "Settings updated."
+    "withdraw_success": "Withdrawal successful.",
+    "update_success": "Settings updated.",
+    "processing": "Processing...",
+    "make_public": "Make Public",
+    "make_private": "Make Private",
+    "settings": "Settings"
   },
   "Directory": {
-    "title": "Verified Domains",
-    "description": "List of domains whose ownership has been officially verified by @passport.",
+    "title": "Domains",
+    "description": "List of domains registered and verified for ownership.",
     "verified_by": "Verified by",
-    "no_domains": "No verified domains yet."
+    "no_domains": "No domains yet."
   }
 }

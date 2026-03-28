@@ -9,6 +9,8 @@ export async function GET() {
     "client_id": `${origin}/oauth-client-metadata.json`,
     "client_name": "@passport",
     "client_uri": origin,
+    "tos_uri": `${origin}/terms`,
+    "policy_uri": `${origin}/privacy`,
     "redirect_uris": [
       `${origin}/en/developers/verify`,
       `${origin}/ja/developers/verify`

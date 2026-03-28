@@ -1,7 +1,7 @@
 'use client';
 
 import { Stepper, Button, Group, TextInput, Text, Stack, Paper, Box, Alert, Code, CopyButton, ActionIcon, Tooltip, Checkbox, Badge } from '@mantine/core';
-import { IconShieldCheck, IconFileCheck, IconCopy, IconCheck, IconInfoCircle, IconLogin } from '@tabler/icons-react';
+import { IconCircleCheck, IconFileCheck, IconCopy, IconCheck, IconInfoCircle, IconLogin } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 
@@ -64,7 +64,7 @@ export function VerifyDomainStepper({ did, handle, isHandleVerified, onVerifyOAu
                   </Badge>
                 )}
                 <Stack align="center" gap="sm">
-                  <IconShieldCheck size={32} color={isHandleVerified ? 'var(--mantine-color-gray-5)' : 'var(--mantine-color-blue-filled)'} />
+                  <IconCircleCheck size={32} color={isHandleVerified ? 'var(--mantine-color-gray-5)' : 'var(--mantine-color-blue-filled)'} />
                   <Text fw={600} c={isHandleVerified ? 'dimmed' : undefined}>{t('method_oauth')}</Text>
                   <Text size="xs" c="dimmed" ta="center">{t('oauth_description')}</Text>
                 </Stack>
@@ -93,7 +93,7 @@ export function VerifyDomainStepper({ did, handle, isHandleVerified, onVerifyOAu
           </Stack>
         </Stepper.Step>
 
-        <Stepper.Step label={t('step_verify')} description={t('verify_now')} icon={<IconShieldCheck size={18} />}>
+        <Stepper.Step label={t('step_verify')} description={t('verify_now')} icon={<IconCircleCheck size={18} />}>
           <Stack gap="lg" mt="xl">
             {method === 'file' ? (
               <>
@@ -158,7 +158,7 @@ export function VerifyDomainStepper({ did, handle, isHandleVerified, onVerifyOAu
                 onClick={() => method === 'oauth' ? onVerifyOAuth(isPublic) : onVerifyFile(domain, isPublic)}
                 loading={loading}
                 disabled={method === 'oauth' && isHandleVerified}
-                leftSection={method === 'oauth' ? <IconLogin size={16} /> : <IconShieldCheck size={16} />}
+                leftSection={<IconCircleCheck size={16} />}
               >
                 {t('verify_now')}
               </Button>
@@ -168,7 +168,7 @@ export function VerifyDomainStepper({ did, handle, isHandleVerified, onVerifyOAu
 
         <Stepper.Completed>
           <Stack align="center" py="xl" gap="md">
-            <IconShieldCheck size={48} color="var(--mantine-color-green-filled)" />
+            <IconCircleCheck size={48} color="var(--mantine-color-green-filled)" />
             <Text fw={700} size="lg">{t('success_title')}</Text>
             <Text size="sm" c="dimmed">
                {t('success_message', { domain })}

@@ -1,6 +1,6 @@
 ---
 title: Terms of Service
-last_updated: "March 24, 2026"
+last_updated: "March 29, 2026"
 ---
 
 ## 1. Acceptance of Terms
@@ -10,7 +10,8 @@ By using @passport (hereinafter "this Service"), you agree to these Terms of Ser
 This Service is a handle manager for the atproto ecosystem. It provides the following features:
 
 - Registration and management of atproto handles
-- DID resolution
+- DID and PDS URL resolution
+- Domain ownership verification and registration (for developers)
 
 ## 3. User Responsibilities
 Users must:
@@ -23,7 +24,7 @@ Users must:
 This Service is provided "as is" without any warranty. The operator assumes no liability for any damages arising from the use of this Service.
 
 ## 5. Service Changes and Termination
-The operator reserves the right to modify, suspend, or terminate this Service at any time without prior notice. Additionally, data (handle information) that has not been used for 365 days may be deleted without prior notice.
+The operator reserves the right to modify, suspend, or terminate this Service at any time without prior notice. Additionally, handle information (registered handle lists) that has not been used for 365 days may be deleted without prior notice.
 
 ## 6. Changes to Terms
 These terms may be updated at any time. Continued use of this Service after changes constitute acceptance of the revised terms.

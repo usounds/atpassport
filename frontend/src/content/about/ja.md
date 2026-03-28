@@ -38,6 +38,8 @@ atprotoは分散型であるがゆえに、「Blueskyでログイン」のよう
 @passportは、下記の2つのハンドル入力方法を提供します。
 
 ### 1.　@passport連携
+エンドユーザーが @passport 経由で認証フローを進める際、そのドメインが @passport に登録されていない場合は、ドメインの所有権が確認されていない旨の警告が表示されます。安心して利用していただくために、[開発者ポータル](/developers/verify) からドメインの登録を行うことをお勧めします。
+
 @passport連携は下記のメカニズムで動作します。
 
 1.各アプリは、@passportで認証ボタンをタップすると、callbackパラメータを指定し@passportに遷移する
@@ -62,14 +64,14 @@ Reactコンポーネントや連携用のヘルパークラスが含まれてお
 
 1. **認証画面へのリダイレクト**
    以下のURLに、必要なパラメータを付与してユーザーをリダイレクトさせます。
-   - `https://atpassport.net/ja/authentication`
+   - `https://atpassport.net/authentication`
    - **パラメータ**:
      - `callback`: 認証完了後の戻り先URL
      - `atpstate` (任意): CSRF対策用のランダムな文字列。指定した場合、コールバック時にそのまま返されます。セキュリティのため指定を推奨します。
 
    **リダイレクト例:**
    ```url
-   https://atpassport.net/ja/authentication?callback=https%3A%2F%2Fyour-app.com%2Fcallback&atpstate=xyz123
+   https://atpassport.net/authentication?callback=https%3A%2F%2Fyour-app.com%2Fcallback&atpstate=xyz123
    ```
 
 2. **コールバックの処理**

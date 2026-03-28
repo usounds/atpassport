@@ -187,19 +187,20 @@ export function DeveloperPortal({
   const handleVerifyOAuth = async (isPublic: boolean) => {
     if (!session) return;
     setActionLoading(true);
+    const id = notifications.show({ title: t('processing'), message: '', loading: true, autoClose: false, withCloseButton: false });
     try {
       const proxyClient = getProxyClient();
       if (!proxyClient) throw new Error('Client setup failed');
 
       const input: NetAtpassportVerifySubmit.Input = { isPublic };
       await proxyClient.post('net.atpassport.verify.submit', { input });
-      notifications.show({ title: t('success_title'), message: t('success_message', { domain: profile?.handle || '' }), color: 'green' });
       await fetchData(session);
+      notifications.update({ id, title: t('success_title'), message: t('success_message', { domain: profile?.handle || '' }), color: 'green', loading: false, autoClose: true, withCloseButton: true });
       setActiveTab('dashboard');
     } catch (error: unknown) {
       const err = error as Error;
       console.error('[Verify Proxy] Error:', err);
-      notifications.show({ title: 'Error', message: err.message || 'Failed', color: 'red' });
+      notifications.update({ id, title: 'Error', message: err.message || 'Failed', color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }
@@ -208,17 +209,19 @@ export function DeveloperPortal({
   const handleVerifyFile = async (domain: string, isPublic: boolean) => {
     if (!session) return;
     setActionLoading(true);
+    const id = notifications.show({ title: t('processing'), message: '', loading: true, autoClose: false, withCloseButton: false });
     try {
       const res = await verifyDomainByFile(domain, session.info.sub, isPublic);
       if (res.success) {
-        notifications.show({ title: t('success_title'), message: t('success_message', { domain }), color: 'green' });
         await fetchData(session);
+        notifications.update({ id, title: t('success_title'), message: t('success_message', { domain }), color: 'green', loading: false, autoClose: true, withCloseButton: true });
         setActiveTab('dashboard');
       } else {
-        notifications.show({ title: 'Error', message: res.error || 'Failed', color: 'red' });
+        notifications.update({ id, title: 'Error', message: res.error || 'Failed', color: 'red', loading: false, autoClose: true, withCloseButton: true });
       }
     } catch (error: unknown) {
       console.error('[Verify File] Error:', error);
+      notifications.update({ id, title: 'Error', message: 'Unexpected failure', color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }
@@ -227,18 +230,19 @@ export function DeveloperPortal({
   const handleWithdraw = async (domain: string) => {
     if (!session) return;
     setActionLoading(true);
+    const id = notifications.show({ title: t('processing'), message: '', loading: true, autoClose: false, withCloseButton: false });
     try {
       const proxyClient = getProxyClient();
       if (!proxyClient) throw new Error('Client setup failed');
 
       const input: NetAtpassportVerifyWithdraw.Input = { domain };
       await proxyClient.post('net.atpassport.verify.withdraw', { input });
-      notifications.show({ title: t('success_title'), message: t('withdraw_success'), color: 'blue' });
       await fetchData(session);
+      notifications.update({ id, title: t('success_title'), message: t('withdraw_success'), color: 'blue', loading: false, autoClose: true, withCloseButton: true });
     } catch (error: unknown) {
       const err = error as Error;
       console.error('[Withdraw Proxy] Error:', err);
-      notifications.show({ title: 'Error', message: err.message || 'Failed', color: 'red' });
+      notifications.update({ id, title: 'Error', message: err.message || 'Failed', color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }
@@ -247,10 +251,13 @@ export function DeveloperPortal({
   const handleUpdatePublic = async (domain: string, isPublic: boolean) => {
     if (!session) return;
     setActionLoading(true);
+    const id = notifications.show({ title: t('processing'), message: '', loading: true, autoClose: false, withCloseButton: false });
     try {
       await updateDomainSettings(domain, session.info.sub, isPublic);
-      notifications.show({ title: t('success_title'), message: t('update_success'), color: 'green' });
       await fetchData(session);
+      notifications.update({ id, title: t('success_title'), message: t('update_success'), color: 'green', loading: false, autoClose: true, withCloseButton: true });
+    } catch (error: unknown) {
+      notifications.update({ id, title: 'Error', message: 'Failed to update settings', color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }

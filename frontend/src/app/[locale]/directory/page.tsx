@@ -1,4 +1,4 @@
-import { Container, Title, Text, Stack, Paper, Group, Avatar, Box, SimpleGrid, Card, Anchor } from '@mantine/core';
+import { Container, Title, Text, Stack, Paper, Group, Avatar, Box, SimpleGrid, Card, Anchor, Divider } from '@mantine/core';
 import { getTranslations } from 'next-intl/server';
 import { getPublicVerifiedDomains } from '@/lib/security';
 import { getProfile } from '@/lib/atproto';
@@ -25,7 +25,7 @@ export default async function DirectoryPage({
       <Stack gap="xl">
         <header>
           <Title order={2}>{t('title')}</Title>
-          <Text c="dimmed" size="xs" mt="xs">
+          <Text c="dimmed" size="sm" mt="xs">
             {t('description')}
           </Text>
         </header>
@@ -45,11 +45,11 @@ export default async function DirectoryPage({
                   <Avatar src={domain.profile?.avatar} radius="xl" size="sm" />
                   <Box style={{ flex: 1, minWidth: 0 }}>
                     <Text size="xs" c="dimmed" mb={2}>{t('verified_by')}</Text>
-                    <Anchor 
-                      href={`https://bsky.app/profile/${domain.handle}`} 
-                      target="_blank" 
-                      size="xs" 
-                      fw={600} 
+                    <Anchor
+                      href={`https://bsky.app/profile/${domain.handle}`}
+                      target="_blank"
+                      size="xs"
+                      fw={600}
                       truncate="end"
                       display="block"
                     >
@@ -70,8 +70,4 @@ export default async function DirectoryPage({
       </Stack>
     </Container>
   );
-}
-
-function Divider() {
-  return <div style={{ height: '1px', backgroundColor: 'var(--mantine-color-gray-2)' }} />;
 }

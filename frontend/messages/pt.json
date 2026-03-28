@@ -61,7 +61,7 @@
     "terms": "Termos",
     "privacy": "Privacidade",
     "toggle_color_scheme": "Alternar tema de cores",
-    "directory": "Verified Domains",
+    "directory": "Domínios",
     "developers": "Developers"
   },
   "Share": {
@@ -132,7 +132,7 @@
     "verify_with_oauth": "Verify via @passport",
     "cancel_verification": "Cancel verification",
     "update_settings": "Update Settings",
-    "view_directory": "View Verified Domains",
+    "view_directory": "Ver domínios",
     "dashboard_tab": "My Domains",
     "new_domain_tab": "Add New Domain",
     "method_oauth": "Verify via handle domain",
@@ -161,11 +161,12 @@
     "logout": "Sair",
     "login_failed": "Não foi possível iniciar o login",
     "withdraw_success": "Verification withdrawn.",
-    "update_success": "Settings updated."
+    "update_success": "Settings updated.",
+    "processing": "Processando..."
   },
   "Directory": {
-    "title": "Verified Domains",
-    "description": "List of domains whose ownership has been officially verified by @passport.",
+    "title": "Domínios",
+    "description": "Lista de domínios registrados com propriedade verificada.",
     "verified_by": "Verified by",
     "no_domains": "No verified domains yet."
   }

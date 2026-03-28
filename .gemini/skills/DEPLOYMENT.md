@@ -18,12 +18,14 @@
 `frontend/` に変更がある場合に実行します。
 
 1. **ディレクトリ移動**: `cd frontend`
-2. **ビルド確認**: `pnpm run build`
+2. **準備**: `pnpm lint` と `pnpm test`を実行
+    - 失敗した場合は、トラブルシュートを行いエラーが無くなるまで繰り返すこと
+3. **ビルド確認**: `pnpm run build`
    - 失敗した場合は中断。
-3. **データ更新とプッシュ**:
+4. **データ更新とプッシュ**:
    - package.jsonのバージョンを更新してください
    - `pnpm run deploy`
-4. **コミットとプッシュ**:
+5. **コミットとプッシュ**:
    - `git add .`
    - `git commit -m "bump(vX.X.X)"` (X.X.Xは更新後のバージョン)
    - `git push`
