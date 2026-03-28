@@ -81,8 +81,14 @@ export async function verifyDomainViaOAuth(did: string, isPublic: boolean) {
 export async function verifyDomainByFile(domain: string, did: string, isPublic: boolean): Promise<{ success: boolean; error?: string }> {
   try {
     const lowerDomain = domain.toLowerCase().trim();
-    if (!lowerDomain.includes('.')) {
-      return { success: false, error: "Invalid domain format" };
+    
+    // 厳格なドメインバリデーション (SSRF対策)
+    // - localhost不可
+    // - IPアドレス（IPv4/IPv6）不可
+    // - TLDを含むドメイン形式であること
+    const domainRegex = /^(?!localhost$)(?!.*[\d]+\.[\d]+\.[\d]+\.[\d]+$)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+    if (!domainRegex.test(lowerDomain)) {
+      return { success: false, error: "Invalid domain format. IP addresses and localhost are not allowed." };
     }
 
     const url = `https://${lowerDomain}/.well-known/atpassport`;

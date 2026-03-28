@@ -1,12 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUuid } from "@/lib/session";
 import { getAssociations } from "@/lib/models";
+import { isRateLimited } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
   try {
+    const ip = request.headers.get("x-forwarded-for") || "anonymous";
+    // IPベースのレート制限 (1分間に20リクエストまで)
+    if (isRateLimited(`api:handles:ip:${ip}`, 20, 60000)) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const uuid = await getSessionUuid();
     if (!uuid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // セッションUUIDベースのレート制限 (1分間に20リクエストまで)
+    if (isRateLimited(`api:handles:uuid:${uuid}`, 20, 60000)) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
 
     const associations = await getAssociations(uuid);
@@ -14,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     const response = NextResponse.json({ handles });
 
-    // Handle CORS
+    // CORSの処理
     const origin = request.headers.get("origin");
     if (origin) {
       const isExtension = origin.startsWith("chrome-extension://") || origin.startsWith("moz-extension://");

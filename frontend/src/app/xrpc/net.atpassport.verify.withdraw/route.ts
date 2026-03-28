@@ -14,8 +14,8 @@ export async function POST(request: Request) {
       return NextResponse.json(output, { status: 401 });
     }
 
-    // 2. Rate limiting based on DID
-    // Allow 10 withdrawals per minute per DID (more generous than submit)
+    // 2. DIDによるレート制限
+    // 1つのDIDにつき、1分間に10リクエストまで許可（submitより緩和）
     if (isRateLimited(did, 10, 60000)) {
       const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Too many requests. Please try again later.' };
       return NextResponse.json(output, { status: 429 });

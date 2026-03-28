@@ -1,18 +1,18 @@
 const rateLimitMap = new Map<string, { count: number; lastRequest: number }>();
 
 /**
- * Simple in-memory rate limiter based on IP address.
- * note: In a serverless environment like AWS Lambda, this cache is per-instance.
- * @param ip The IP address to check
- * @param limit Max requests allowed in the window
- * @param windowMs Time window in milliseconds (e.g., 60000 for 1 minute)
- * @returns true if allowed, false if limit exceeded
+ * IPアドレスに基づいた簡易的なメモリ内レートリミッター。
+ * 注意: AWS Lambdaのようなサーバーレス環境では、このキャッシュはインスタンスごとに保持されます。
+ * @param ip チェック対象のIPアドレスまたはID
+ * @param limit ウィンドウ内での最大リクエスト許容数
+ * @param windowMs ミリ秒単位の時間ウィンドウ（例: 1分なら 60000）
+ * @returns 制限を超えている場合は true、許可される場合は false
  */
 export function isRateLimited(ip: string, limit: number = 5, windowMs: number = 60000): boolean {
   const now = Date.now();
   const userData = rateLimitMap.get(ip);
 
-  // Cleanup old entries periodically (every 100 entries)
+  // 定期的に古いエントリーをクリーンアップ（1000エントリーを超えた場合）
   if (rateLimitMap.size > 1000) {
     for (const [key, value] of rateLimitMap.entries()) {
       if (now - value.lastRequest > windowMs * 2) {
@@ -22,7 +22,7 @@ export function isRateLimited(ip: string, limit: number = 5, windowMs: number = 
   }
 
   if (!userData || now - userData.lastRequest > windowMs) {
-    // Reset or new entry
+    // リセットまたは新規エントリー
     rateLimitMap.set(ip, { count: 1, lastRequest: now });
     return false;
   }
@@ -37,7 +37,7 @@ export function isRateLimited(ip: string, limit: number = 5, windowMs: number = 
 }
 
 /**
- * ONLY FOR TESTING: Clears the rate limit map.
+ * テスト用: レート制限マップをクリアします。
  */
 export function resetRateLimit(): void {
   rateLimitMap.clear();

@@ -1,7 +1,7 @@
 'use client';
 
 import { Stepper, Button, Group, TextInput, Text, Stack, Paper, Box, Alert, Code, CopyButton, ActionIcon, Tooltip, Checkbox, Badge } from '@mantine/core';
-import { IconCircleCheck, IconFileCheck, IconCopy, IconCheck, IconInfoCircle, IconLogin } from '@tabler/icons-react';
+import { IconCircleCheck, IconFileCheck, IconCopy, IconCheck, IconInfoCircle } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 

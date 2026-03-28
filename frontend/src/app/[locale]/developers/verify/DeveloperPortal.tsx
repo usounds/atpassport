@@ -256,7 +256,7 @@ export function DeveloperPortal({
       await updateDomainSettings(domain, session.info.sub, isPublic);
       await fetchData(session);
       notifications.update({ id, title: t('success_title'), message: t('update_success'), color: 'green', loading: false, autoClose: true, withCloseButton: true });
-    } catch (error: unknown) {
+    } catch {
       notifications.update({ id, title: 'Error', message: 'Failed to update settings', color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);

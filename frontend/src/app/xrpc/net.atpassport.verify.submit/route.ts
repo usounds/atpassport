@@ -15,8 +15,8 @@ export async function POST(request: Request) {
       return NextResponse.json(output, { status: 401 });
     }
 
-    // 2. Rate limiting based on DID
-    // Allow 5 submissions per minute per DID
+    // 2. DIDによるレート制限
+    // 1つのDIDにつき、1分間に5リクエストまで許可
     if (isRateLimited(did, 5, 60000)) {
       const output: NetAtpassportVerifySubmit.Output = { success: false, error: 'Too many requests. Please try again later.' };
       return NextResponse.json(output, { status: 429 });
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     const domain = body.domain;
     const isPublic = body.isPublic;
 
-    // Case A: No domain specified - verify the authenticated handle (OAuth-like)
+    // ケースA: ドメイン未指定 - 認証済みのハンドルを検証 (OAuth相当)
     if (!domain) {
       const identity = await resolveIdentity(did);
       if (!identity || !identity.handle) {
@@ -38,13 +38,13 @@ export async function POST(request: Request) {
       return NextResponse.json(output);
     }
 
-    // Case B: Domain specified - verify via /.well-known/atpassport (File method)
+    // ケースB: ドメイン指定あり - /.well-known/atpassport で検証 (File方式)
     const lowerDomain = domain.toLowerCase().trim();
     
-    // Strict Domain Validation (Prevent SSRF)
-    // - No localhost
-    // - No IP addresses (IPv4 or IPv6)
-    // - Must match domain format with TLD
+    // 厳格なドメインバリデーション (SSRF対策)
+    // - localhost不可
+    // - IPアドレス（IPv4/IPv6）不可
+    // - TLDを含むドメイン形式であること
     const domainRegex = /^(?!localhost$)(?!.*[\d]+\.[\d]+\.[\d]+\.[\d]+$)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
     if (!domainRegex.test(lowerDomain)) {
       return NextResponse.json({ success: false, error: 'Invalid domain format. IP addresses and localhost are not allowed.' }, { status: 400 });

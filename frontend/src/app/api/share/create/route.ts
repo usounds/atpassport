@@ -16,6 +16,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No session found" }, { status: 401 });
   }
 
+  // セッションUUIDベースのレート制限 (1分間に5回まで)
+  if (isRateLimited(`api:share:uuid:${uuid}`, 5, 60000)) {
+    return NextResponse.json({ error: "rate_limit_exceeded" }, { status: 429 });
+  }
+
   try {
     const token = await createShareToken(uuid);
     return NextResponse.json({ token, expiresAt: Math.floor(Date.now() / 1000) + 300 });
