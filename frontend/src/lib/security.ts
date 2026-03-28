@@ -69,8 +69,7 @@ export async function getVerifiedDomainsByDid(did: string): Promise<VerifiedDoma
   try {
     const response = (await db.send(new QueryCommand({
       TableName: VERIFIED_DOMAINS_TABLE_NAME,
-      // IndexName: "VerifiedByDidIndex", // Note: This index should be added to SST config
-      // Local stub uses KeyConditionExpression + ExpressionAttributeValues to filter in Memory
+      IndexName: "VerifiedByDidIndex",
       KeyConditionExpression: "verifiedByDid = :did",
       ExpressionAttributeValues: {
         ":did": did

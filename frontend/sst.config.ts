@@ -31,11 +31,17 @@ export default $config({
         domain: "string",
         isPublic: "string",
         verifiedAt: "string",
+        verifiedByDid: "string",
       },
       primaryIndex: { hashKey: "domain" },
       globalIndexes: {
         PublicVerifiedIndex: {
           hashKey: "isPublic",
+          rangeKey: "verifiedAt",
+          projection: "all",
+        },
+        VerifiedByDidIndex: {
+          hashKey: "verifiedByDid",
           rangeKey: "verifiedAt",
           projection: "all",
         },
