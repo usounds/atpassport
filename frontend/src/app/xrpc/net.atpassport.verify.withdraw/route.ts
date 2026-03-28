@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { verifyServiceAuth } from '@/lib/verify-service-auth';
 import { getVerifiedDomainFromDb, deleteVerifiedDomainFromDb } from '@/lib/security';
 import { NetAtpassportVerifyWithdraw } from '@/lexicons/index';
+import { isRateLimited } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +14,14 @@ export async function POST(request: Request) {
       return NextResponse.json(output, { status: 401 });
     }
 
-    // 2. リクエストボディから検証取り消し対象を取得
+    // 2. Rate limiting based on DID
+    // Allow 10 withdrawals per minute per DID (more generous than submit)
+    if (isRateLimited(did, 10, 60000)) {
+      const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Too many requests. Please try again later.' };
+      return NextResponse.json(output, { status: 429 });
+    }
+
+    // 3. リクエストボディから検証取り消し対象を取得
     const body: NetAtpassportVerifyWithdraw.Input = await request.json();
     const domain = body.domain;
 

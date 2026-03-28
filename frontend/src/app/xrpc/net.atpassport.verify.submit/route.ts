@@ -3,6 +3,7 @@ import { verifyServiceAuth } from '@/lib/verify-service-auth';
 import { NetAtpassportVerifySubmit } from '@/lexicons/index';
 import { verifyDomainInDb } from '@/lib/security';
 import { resolveIdentity } from '@/lib/atproto-server';
+import { isRateLimited } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
   try {
@@ -14,7 +15,14 @@ export async function POST(request: Request) {
       return NextResponse.json(output, { status: 401 });
     }
 
-    // 2. リクエストボディのパース
+    // 2. Rate limiting based on DID
+    // Allow 5 submissions per minute per DID
+    if (isRateLimited(did, 5, 60000)) {
+      const output: NetAtpassportVerifySubmit.Output = { success: false, error: 'Too many requests. Please try again later.' };
+      return NextResponse.json(output, { status: 429 });
+    }
+
+    // 3. リクエストボディのパース
     const body: NetAtpassportVerifySubmit.Input = await request.json();
     const domain = body.domain;
     const isPublic = body.isPublic;
@@ -32,8 +40,14 @@ export async function POST(request: Request) {
 
     // Case B: Domain specified - verify via /.well-known/atpassport (File method)
     const lowerDomain = domain.toLowerCase().trim();
-    if (!lowerDomain.includes('.')) {
-      return NextResponse.json({ success: false, error: 'Invalid domain format' }, { status: 400 });
+    
+    // Strict Domain Validation (Prevent SSRF)
+    // - No localhost
+    // - No IP addresses (IPv4 or IPv6)
+    // - Must match domain format with TLD
+    const domainRegex = /^(?!localhost$)(?!.*[\d]+\.[\d]+\.[\d]+\.[\d]+$)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+    if (!domainRegex.test(lowerDomain)) {
+      return NextResponse.json({ success: false, error: 'Invalid domain format. IP addresses and localhost are not allowed.' }, { status: 400 });
     }
 
     const url = `https://${lowerDomain}/.well-known/atpassport`;

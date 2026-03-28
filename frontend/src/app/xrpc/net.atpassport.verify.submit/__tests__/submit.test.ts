@@ -3,6 +3,7 @@ import { POST } from '../route';
 import { verifyServiceAuth } from '@/lib/verify-service-auth';
 import { verifyDomainInDb } from '@/lib/security';
 import { resolveIdentity } from '@/lib/atproto-server';
+import { resetRateLimit } from '@/lib/rate-limit';
 
 vi.mock('@/lib/verify-service-auth');
 vi.mock('@/lib/security');
@@ -14,6 +15,7 @@ describe('XRPC: net.atpassport.verify.submit', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', vi.fn());
+    resetRateLimit();
   });
 
   it('should verify domain via OAuth (no domain in body)', async () => {
@@ -121,6 +123,49 @@ describe('XRPC: net.atpassport.verify.submit', () => {
     const data = await response.json();
     expect(data.success).toBe(false);
     expect(data.error).toContain('Connection failed');
+  });
+
+  it('should fail if domain is localhost or IP address', async () => {
+    vi.mocked(verifyServiceAuth).mockResolvedValue(mockDid);
+    
+    const testCases = ['localhost', '127.0.0.1', '192.168.1.1', '8.8.8.8', '::1', '2001:db8::1'];
+    
+    for (const domain of testCases) {
+      resetRateLimit(); // Reset rate limit for each test case in the loop
+      const request = new Request('https://example.com/xrpc/net.atpassport.verify.submit', {
+        method: 'POST',
+        body: JSON.stringify({ domain }),
+      });
+      const response = await POST(request);
+      const data = await response.json();
+      expect(data.success).toBe(false, `Should fail for ${domain}`);
+      expect(data.error).toContain('Invalid domain format');
+      expect(response.status).toBe(400);
+    }
+  });
+
+  it('should trigger rate limiting after multiple requests', async () => {
+    vi.mocked(verifyServiceAuth).mockResolvedValue(mockDid);
+    
+    // Perform 5 requests (the limit)
+    for (let i = 0; i < 5; i++) {
+      const request = new Request('https://example.com/xrpc/net.atpassport.verify.submit', {
+        method: 'POST',
+        body: JSON.stringify({ isPublic: true }),
+      });
+      const response = await POST(request);
+      expect(response.status).not.toBe(429);
+    }
+
+    // The 6th request should be rate limited
+    const request = new Request('https://example.com/xrpc/net.atpassport.verify.submit', {
+      method: 'POST',
+      body: JSON.stringify({ isPublic: true }),
+    });
+    const response = await POST(request);
+    const data = await response.json();
+    expect(response.status).toBe(429);
+    expect(data.error).toContain('Too many requests');
   });
 
   it('should fail if identity not found for OAuth', async () => {

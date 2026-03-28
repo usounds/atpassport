@@ -35,3 +35,10 @@ export function isRateLimited(ip: string, limit: number = 5, windowMs: number = 
   userData.lastRequest = now;
   return false;
 }
+
+/**
+ * ONLY FOR TESTING: Clears the rate limit map.
+ */
+export function resetRateLimit(): void {
+  rateLimitMap.clear();
+}
