@@ -22,14 +22,14 @@
     "@atcute/lexicons": "^1.2.9",
     "@atcute/oauth-browser-client": "^3.0.0",
     "@atpassport/client": "^0.1.24",
-    "@aws-sdk/client-dynamodb": "^3.1017.0",
-    "@aws-sdk/lib-dynamodb": "^3.1017.0",
+    "@aws-sdk/client-dynamodb": "^3.1019.0",
+    "@aws-sdk/lib-dynamodb": "^3.1019.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mantine/core": "^8.3.18",
     "@mantine/hooks": "^8.3.18",
     "@mantine/notifications": "^8.3.18",
-    "@tabler/icons-react": "^3.40.0",
+    "@tabler/icons-react": "^3.41.0",
     "cookie": "^1.1.1",
     "gray-matter": "^4.0.3",
     "jose": "^6.2.2",
@@ -42,7 +42,7 @@
     "react-dom": "19.2.4",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
-    "sst": "^4.5.11",
+    "sst": "^4.5.12",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
@@ -59,6 +59,6 @@
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.1"
+    "vitest": "^4.1.2"
   }
 }
