@@ -68,7 +68,7 @@
     "title": "Compartir con\nOtros Dispositivos",
     "description": "Escanea el código QR o copia la URL para habilitar los mismos handles en otros dispositivos.",
     "generate": "Generar Enlace para Compartir",
-    "expiryNotice": "Este enlace es válido durante 5 minutos.",
+    "expiryNotice": "Este enlace es válido durante 5 minutes.",
     "rateLimitExceeded": "Se han creado demasiados enlaces en poco tiempo. Por favor, espera un minuto e inténtalo de nuevo.",
     "copyUrl": "Copiar URL",
     "copied": "¡Copiado!",
@@ -159,7 +159,9 @@
     "login_button": "Iniciar sesión",
     "go_back": "Volver",
     "logout": "Cerrar sesión",
-    "login_failed": "No se pudo iniciar la sesión"
+    "login_failed": "No se pudo iniciar la sesión",
+    "withdraw_success": "Verification withdrawn.",
+    "update_success": "Settings updated."
   },
   "Directory": {
     "title": "Verified Domains",

@@ -159,7 +159,9 @@
     "login_button": "Se connecter",
     "go_back": "Retour",
     "logout": "Se déconnecter",
-    "login_failed": "Impossible de démarrer la connexion"
+    "login_failed": "Impossible de démarrer la connexion",
+    "withdraw_success": "Verification withdrawn.",
+    "update_success": "Settings updated."
   },
   "Directory": {
     "title": "Verified Domains",
