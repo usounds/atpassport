@@ -47,6 +47,25 @@
    - `git commit -m "bump(vX.X.X)"` (X.X.Xは更新後のバージョン)
    - `git push`
 
+
+### 4s. ブラウザ拡張機能のデプロイフロー（自動実行）
+`packages/atpassport-extension/` に変更がある場合に実行します。
+
+1. **ディレクトリ移動**: `cd packages/atpassport-extension`
+2. **テスト実行**: 
+   - `pnpm run test`
+   - `pnpm run lint`
+   - 失敗した場合はトラブルシュートして再実行。
+3. **バージョン更新とビルド**:
+   - package.jsonとsrc/manifest.jsonsのバージョンが上がっていなかったら、パッチバージョン（３つ目）をインクリメントしてください
+4. **デプロイ**:
+   - `pnpm run deploy:chrome`
+   - `pnpm run deploy:firefox`　Waiting for approval...になったら、終了してください
+5. **コミットとプッシュ**:
+   - `git add .`
+   - `git commit -m "bump(vX.X.X)"` (X.X.Xは更新後のバージョン)
+   - `git push`
+
 ### 4. デプロイ完了通知
 すべての対象ディレクトリの処理が正常に完了した後、以下の情報をユーザーに報告します。
 - 更新されたコンポーネント（Frontend / Backend）のリスト。

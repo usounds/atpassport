@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ClipboardCopy, Key, Loader2, AlertCircle, Copy, User } from 'lucide-react';
+import { Key, Loader2, AlertCircle, Copy, User } from 'lucide-react';
+import { HandleManager } from '@/lib/HandleManager';
 
 const Popup = () => {
+  const manager = useMemo(() => new HandleManager(), []);
   const [handles, setHandles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,22 +16,16 @@ const Popup = () => {
       const startTime = Date.now();
       try {
         setLoading(true);
-        // We assume atpassport.net is the host for API. 
-        // Note: fetch will include AtPassport session cookies because it's running within browser scope
-        // with appropriate host permissions.
-        const response = await fetch('https://atpassport.net/api/user/handles', {
-          credentials: 'include',
-        }); 
-        if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error(chrome.i18n.getMessage('loginRequired'));
-          }
-          throw new Error(`${chrome.i18n.getMessage('fetchError')} (${response.status})`);
-        }
-        const data = await response.json();
-        setHandles(data.handles || []);
+        const result = await manager.fetchHandles();
+        setHandles(result);
       } catch (err: any) {
-        setError(err.message === 'Failed to fetch' ? chrome.i18n.getMessage('fetchError') : err.message);
+        if (err.message === 'loginRequired') {
+          setError(chrome.i18n.getMessage('loginRequired'));
+        } else if (err.message === 'fetchError') {
+          setError(chrome.i18n.getMessage('fetchError'));
+        } else {
+          setError(err.message);
+        }
       } finally {
         const elapsed = Date.now() - startTime;
         if (elapsed < 500) {
@@ -40,72 +36,13 @@ const Popup = () => {
     };
 
     fetchHandles();
-  }, []);
+  }, [manager]);
 
   const handleSelect = async (handle: string) => {
-    setCopyStatus(chrome.i18n.getMessage('processing'));
-    const startTime = Date.now();
-
     try {
-      // Query for the active tab
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab || !tab.id) {
-        throw new Error('No active tab');
-      }
-
-      // Execute auto-fill script directly in the page using scripting API
-      // This is allowed by the 'activeTab' permission granted upon popup opening
-      const results = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: (handleValue: string) => {
-          const activeElement = document.activeElement;
-          
-          const fill = (input: HTMLInputElement | HTMLTextAreaElement) => {
-            input.value = handleValue;
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-          };
-
-          // Try to fill active element if it's an input/textarea
-          if (activeElement && (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement)) {
-            fill(activeElement as HTMLInputElement);
-            return { success: true };
-          }
-
-          // Fallback: look for common handle inputs
-          const handleInputs = document.querySelectorAll('input[name="handle"], input[placeholder*="handle"], input[type="text"]');
-          if (handleInputs.length > 0) {
-            fill(handleInputs[0] as HTMLInputElement);
-            return { success: true };
-          }
-
-          return { success: false };
-        },
-        args: [handle],
-      });
-
-      const response = results && results[0] && (results[0].result as { success: boolean });
-
-      // Ensure minimum display time for "Processing"
-      const elapsed = Date.now() - startTime;
-      if (elapsed < 500) {
-        await new Promise(resolve => setTimeout(resolve, 500 - elapsed));
-      }
-
-      if (response && response.success) {
-        setCopyStatus(chrome.i18n.getMessage('filledSuccess'));
-      } else {
-        // Fallback: Copy to clipboard if no suitable input was found
-        await navigator.clipboard.writeText(handle);
-        setCopyStatus(chrome.i18n.getMessage('copiedFallback'));
-      }
+      const statusKey = await manager.applyHandle(handle);
+      setCopyStatus(chrome.i18n.getMessage(statusKey));
     } catch (err) {
-      // Fallback: Script might not be injectable (e.g., chrome:// or specialized pages)
-      const elapsed = Date.now() - startTime;
-      if (elapsed < 500) {
-        await new Promise(resolve => setTimeout(resolve, 500 - elapsed));
-      }
-      await navigator.clipboard.writeText(handle);
       setCopyStatus(chrome.i18n.getMessage('copiedIncompatible'));
     }
 
@@ -235,7 +172,7 @@ const Popup = () => {
         <div style={{ 
           position: 'fixed', bottom: '16px', left: '16px', right: '16px', 
           padding: '8px', 
-          background: copyStatus === chrome.i18n.getMessage('processing') ? '#333' : '#4caf50', 
+          background: '#4caf50', 
           color: 'white', 
           borderRadius: '4px', 
           textAlign: 'center', 
@@ -246,7 +183,6 @@ const Popup = () => {
           justifyContent: 'center',
           gap: '8px'
         }}>
-          {copyStatus === chrome.i18n.getMessage('processing') && <Loader2 size={12} className="animate-spin" />}
           {copyStatus}
         </div>
       )}
