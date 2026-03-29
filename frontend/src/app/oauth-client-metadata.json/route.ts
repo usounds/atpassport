@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import { routing } from '@/i18n/routing';
 
 export async function GET() {
   const headerList = await headers();
@@ -11,10 +12,7 @@ export async function GET() {
     "client_uri": origin,
     "tos_uri": `${origin}/terms`,
     "policy_uri": `${origin}/privacy`,
-    "redirect_uris": [
-      `${origin}/en/developers/verify`,
-      `${origin}/ja/developers/verify`
-    ],
+    "redirect_uris": routing.locales.map(locale => `${origin}/${locale}/developers/verify`),
     "response_types": [
       "code"
     ],
