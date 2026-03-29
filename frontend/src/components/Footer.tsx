@@ -22,8 +22,12 @@ export function Footer() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            GitHub v{version}
+            GitHub
           </Anchor>
+          <Text size="xs" c="dimmed">|</Text>
+          <Text size="xs" c="dimmed">
+            v{version}
+          </Text>
         </Group>
         <Group justify="center" gap="xs">
           <Text size="xs" c="dimmed">
