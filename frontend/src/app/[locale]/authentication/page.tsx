@@ -29,12 +29,15 @@ export default async function AuthPage({
 
   let domain = '';
   let urlError: string | null = null;
+  let isLoopback = false;
   try {
     const url = new URL(callback);
     domain = url.hostname;
+    const lowerHostname = domain.toLowerCase();
+    isLoopback = lowerHostname === 'localhost' || lowerHostname === '127.0.0.1' || lowerHostname.endsWith('.localhost');
 
-    // Enforce HTTPS for callback URL
-    if (url.protocol !== 'https:') {
+    // Enforce HTTPS for callback URL, except for loopback
+    if (url.protocol !== 'https:' && !isLoopback) {
       urlError = 'Invalid callback URL: HTTPS is required';
     }
   } catch {
@@ -128,6 +131,7 @@ export default async function AuthPage({
         atpstate={atpstate}
         domain={domain}
         isVerified={verified}
+        isLoopback={isLoopback}
       />
     </Container>
   );

@@ -45,7 +45,9 @@
     "confirm_delete_text": "Sind Sie sicher, dass Sie {handle} aus Ihren registrierten Handles entfernen möchten?",
     "cancel": "Abbrechen",
     "unverified_domain_title": "Nicht verifizierte Domain",
-    "unverified_domain_message": "Diese Domain ({domain}) wurde nicht von @passport verifiziert. Stellen Sie sicher, dass Sie dieser Seite vertrauen."
+    "unverified_domain_message": "Diese Domain ({domain}) wurde nicht von @passport verifiziert. Stellen Sie sicher, dass Sie dieser Seite vertrauen.",
+    "loopback_warning_title": "Entwicklungs-Client (localhost)",
+    "loopback_warning_message": "Diese Anfrage wurde von localhost gesendet. Sie fungiert als Loopback-Client für Entwicklungszwecke. Bitte stellen Sie sicher, dass dies eine vertrauenswürdige Entwicklungsumgebung ist."
   },
   "Add": {
     "title": "Handle hinzufügen",

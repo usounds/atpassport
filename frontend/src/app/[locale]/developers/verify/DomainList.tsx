@@ -41,10 +41,7 @@ export function DomainList({ domains, onWithdraw, onUpdatePublic, loading }: Dom
             <Table.Td>
               <Group gap="xs">
                 <IconWorld size={16} color="var(--mantine-color-blue-filled)" />
-                <Stack gap={0}>
-                  <Text size="sm" fw={600}>{d.domain}</Text>
-                  <Text size="xs" c="dimmed">@{d.handle}</Text>
-                </Stack>
+                <Text size="sm" fw={600}>{d.domain}</Text>
                 {d.isPublic ? (
                   <Badge variant="dot" size="sm" color="green">{t('public')}</Badge>
                 ) : (

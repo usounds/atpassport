@@ -45,7 +45,9 @@
     "confirm_delete_text": "登録済みハンドルから {handle} を削除してもよろしいですか？",
     "cancel": "キャンセル",
     "unverified_domain_title": "未確認のドメイン",
-    "unverified_domain_message": "このドメイン ({domain}) は、@passport による所有権の確認が完了していません。信頼できるサイトであることを確認してください。"
+    "unverified_domain_message": "このドメイン ({domain}) は、@passport による所有権の確認が完了していません。信頼できるサイトであることを確認してください。",
+    "loopback_warning_title": "開発用クライアント (localhost)",
+    "loopback_warning_message": "このリクエストは localhost から送信されています。開発目的のループバッククライアントとして動作します。信頼できる開発環境であることを確認してください。"
   },
   "Add": {
     "title": "ハンドルの追加",

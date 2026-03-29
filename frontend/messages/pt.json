@@ -45,7 +45,9 @@
     "confirm_delete_text": "Tem certeza de que deseja remover {handle} dos seus handles registrados?",
     "cancel": "Cancelar",
     "unverified_domain_title": "Domínio não verificado",
-    "unverified_domain_message": "Este domínio ({domain}) não é verificado pelo @passport. Certifique-se de que você confia neste site."
+    "unverified_domain_message": "Este domínio ({domain}) não é verificado pelo @passport. Certifique-se de que você confia neste site.",
+    "loopback_warning_title": "Cliente de Desenvolvimento (localhost)",
+    "loopback_warning_message": "Esta solicitação foi enviada do localhost. Está agindo como um cliente de loopback para fins de desenvolvimento. Certifique-se de que este seja um ambiente de desenvolvimento confiável."
   },
   "Add": {
     "title": "Adicionar Handle",

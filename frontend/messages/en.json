@@ -45,7 +45,9 @@
     "confirm_delete_text": "Are you sure you want to remove {handle} from your registered handles?",
     "cancel": "Cancel",
     "unverified_domain_title": "Unverified Domain",
-    "unverified_domain_message": "This domain ({domain}) is not verified by @passport. Make sure you trust this site."
+    "unverified_domain_message": "This domain ({domain}) is not verified by @passport. Make sure you trust this site.",
+    "loopback_warning_title": "Development Client (localhost)",
+    "loopback_warning_message": "This request was sent from localhost. It is acting as a loopback client for development purposes. Please ensure this is a trusted development environment."
   },
   "Add": {
     "title": "Add Handle",

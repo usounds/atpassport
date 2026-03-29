@@ -15,12 +15,14 @@ export function AuthAccountList({
   atpstate, 
   domain,
   isVerified = false,
+  isLoopback = false,
 }: { 
   initialItems: AssociationWithProfile[]; 
   callback: string; 
   atpstate?: string;
   domain: string;
   isVerified?: boolean;
+  isLoopback?: boolean;
 }) {
   const t = useTranslations('Auth');
   const [items, setItems] = useState(initialItems);
@@ -105,7 +107,13 @@ export function AuthAccountList({
         <Text c="dimmed" size="xs" fw={500}>{t('moving_to', { domain })}</Text>
       </header>
 
-      {!isVerified && (
+      {isLoopback ? (
+        <Alert variant="light" color="orange" title={t('loopback_warning_title')} icon={<IconAlertTriangle size={16} />}>
+          <Text size="xs">
+            {t('loopback_warning_message')}
+          </Text>
+        </Alert>
+      ) : !isVerified && (
         <Alert variant="light" color="orange" title={t('unverified_domain_title')} icon={<IconAlertTriangle size={16} />}>
           <Text size="xs">
             {t('unverified_domain_message', { domain })}

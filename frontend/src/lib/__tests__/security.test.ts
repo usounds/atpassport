@@ -24,8 +24,20 @@ describe('Security Library', () => {
     });
 
     it('should allow localhost and ip', () => {
-      expect(verifyDomain('localhost', []).verified).toBe(true);
-      expect(verifyDomain('127.0.0.1', []).verified).toBe(true);
+      const resp1 = verifyDomain('localhost', []);
+      expect(resp1.verified).toBe(true);
+      expect(resp1.reason).toBe('localhost');
+
+      const resp2 = verifyDomain('127.0.0.1', []);
+      expect(resp2.verified).toBe(true);
+      expect(resp2.reason).toBe('localhost');
+
+      const resp3 = verifyDomain('myapp.localhost', []);
+      expect(resp3.verified).toBe(true);
+      expect(resp3.reason).toBe('localhost');
+
+      const resp4 = verifyDomain('dev.local', []); // Should NOT be localhost
+      expect(resp4.reason).toBe('unverified');
     });
 
     it('should reject banned domains', () => {

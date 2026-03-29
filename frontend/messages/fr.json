@@ -45,7 +45,9 @@
     "confirm_delete_text": "Êtes-vous sûr de vouloir supprimer {handle} de vos handles enregistrés ?",
     "cancel": "Annuler",
     "unverified_domain_title": "Domaine non vérifié",
-    "unverified_domain_message": "Ce domaine ({domain}) n'est pas vérifié par @passport. Assurez-vous de faire confiance à ce site."
+    "unverified_domain_message": "Ce domaine ({domain}) n'est pas vérifié par @passport. Assurez-vous de faire confiance à ce site.",
+    "loopback_warning_title": "Client de Développement (localhost)",
+    "loopback_warning_message": "Cette requête a été envoyée depuis localhost. Elle agit en tant que client de bouclage (loopback) à des fins de développement. Veuillez vous assurer qu'il s'agit d'un environnement de développement de confiance."
   },
   "Add": {
     "title": "Ajouter un handle",
