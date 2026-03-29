@@ -6,26 +6,6 @@
 
 declare module "sst" {
   export interface Resource {
-    "AtPassportApp": {
-      "type": "sst.aws.Nextjs"
-      "url": string
-    }
-    "AtPassportSessions": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "AtPassportShareTokens": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "AtPassportVerifiedDomains": {
-      "name": string
-      "type": "sst.aws.Dynamo"
-    }
-    "SessionSecret": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
   }
 }
 /// <reference path="sst-env.d.ts" />
