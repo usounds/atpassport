@@ -29,11 +29,15 @@ export async function GET(request: NextRequest) {
     // CORSの処理
     const origin = request.headers.get("origin");
     if (origin) {
-      const isExtension = origin.startsWith("chrome-extension://") || origin.startsWith("moz-extension://");
-      const isLocalhost = origin === "http://localhost:3000" || origin === "http://localhost:3001";
-      const isMainDomain = origin === "https://atpassport.net";
+      const ALLOWED_ORIGINS = [
+        "https://atpassport.net",
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "chrome-extension://ollhnghmplgpoebaceomdaigpkihpfkn",
+        "moz-extension://extension@atpassport.net"
+      ];
 
-      if (isExtension || isLocalhost || isMainDomain) {
+      if (ALLOWED_ORIGINS.includes(origin)) {
         response.headers.set("Access-Control-Allow-Origin", origin);
         response.headers.set("Access-Control-Allow-Credentials", "true");
         response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
@@ -53,11 +57,15 @@ export async function OPTIONS(request: NextRequest) {
   const response = new NextResponse(null, { status: 204 });
 
   if (origin) {
-    const isExtension = origin.startsWith("chrome-extension://") || origin.startsWith("moz-extension://");
-    const isLocalhost = origin === "http://localhost:3000" || origin === "http://localhost:3001";
-    const isMainDomain = origin === "https://atpassport.net";
+    const ALLOWED_ORIGINS = [
+      "https://atpassport.net",
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "chrome-extension://ollhnghmplgpoebaceomdaigpkihpfkn",
+      "moz-extension://extension@atpassport.net"
+    ];
 
-    if (isExtension || isLocalhost || isMainDomain) {
+    if (ALLOWED_ORIGINS.includes(origin)) {
       response.headers.set("Access-Control-Allow-Origin", origin);
       response.headers.set("Access-Control-Allow-Credentials", "true");
       response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
