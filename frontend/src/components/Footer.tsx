@@ -1,3 +1,4 @@
+import { version } from '../../package.json';
 import { Text, Anchor, Group, Divider, Stack } from '@mantine/core';
 import { useTranslations, useLocale } from 'next-intl';
 
@@ -21,7 +22,7 @@ export function Footer() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            GitHub
+            GitHub v{version}
           </Anchor>
         </Group>
         <Group justify="center" gap="xs">

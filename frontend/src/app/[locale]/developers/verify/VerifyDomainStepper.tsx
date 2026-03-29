@@ -60,7 +60,7 @@ export function VerifyDomainStepper({ did, handle, isHandleVerified, onVerifyOAu
                     color="green" 
                     style={{ position: 'absolute', top: 10, right: 10 }}
                   >
-                    認証済み
+                    {t('already_verified_badge')}
                   </Badge>
                 )}
                 <Stack align="center" gap="sm">
@@ -117,7 +117,7 @@ export function VerifyDomainStepper({ did, handle, isHandleVerified, onVerifyOAu
                     </Code>
                     <CopyButton value={verificationString} timeout={2000}>
                       {({ copied, copy }) => (
-                        <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
+                        <Tooltip label={copied ? t('copied') : t('copy')} withArrow position="right">
                           <ActionIcon 
                             color={copied ? 'teal' : 'gray'} 
                             variant="light" 
@@ -136,11 +136,14 @@ export function VerifyDomainStepper({ did, handle, isHandleVerified, onVerifyOAu
             ) : (
               <Box>
                 <Text size="sm" mb="md">
-                  ハンドル <strong>@{handle}</strong> に基づいてドメイン <strong>{handle}</strong> を認証します。
+                  {t.rich('oauth_verify_intro', { 
+                    handle: handle || '', 
+                    strong: (chunks) => <strong>{chunks}</strong> 
+                  })}
                 </Text>
                 {isHandleVerified && (
                   <Text size="xs" c="green" fw={500} mb="md">
-                    このドメインは既に認証済みです。
+                    {t('already_verified_message')}
                   </Text>
                 )}
               </Box>

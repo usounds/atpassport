@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Paper, Stack, Title, Text, Button, Group, Box } from '@mantine/core';
+import { Paper, Stack, Title, Text, Button, Group, Box, Flex } from '@mantine/core';
 import { IconShare } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { useTranslations } from 'next-intl';
@@ -30,13 +30,18 @@ export function ShareSection() {
         className="premium-card"
         style={{ overflow: 'hidden', position: 'relative' }}
       >
-        <Group justify="space-between" align="center" wrap="wrap" gap="md">
-          <Stack gap={2} style={{ flex: 1 }}>
+        <Flex 
+          direction={{ base: 'column', sm: 'row' }} 
+          justify="space-between" 
+          align={{ base: 'stretch', sm: 'center' }} 
+          gap="md"
+        >
+          <Stack gap={2}>
             <Group gap="xs">
               <IconShare size={20} color="var(--mantine-color-blue-6)" />
               <Title order={5} fw={700}>{t('share_title')}</Title>
             </Group>
-            <Text size="xs" c="dimmed" lh={1.4} style={{ maxWidth: 300 }}>
+            <Text size="xs" c="dimmed" lh={1.4} maw={{ base: '100%', sm: 300 }}>
               {t('share_description')}
             </Text>
           </Stack>
@@ -57,7 +62,7 @@ export function ShareSection() {
           >
             {tShare('title')}
           </Button>
-        </Group>
+        </Flex>
       </Paper>
 
       <ShareModal opened={opened} onClose={close} />

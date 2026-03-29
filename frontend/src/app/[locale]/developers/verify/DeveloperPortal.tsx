@@ -88,7 +88,7 @@ export function DeveloperPortal({
     if (!handle) return;
 
     if (!isActorIdentifier(handle)) {
-      notifications.show({ title: 'Error', message: 'Invalid handle format', color: 'red' });
+      notifications.show({ title: t('error_title'), message: t('invalid_handle_format'), color: 'red' });
       return;
     }
 
@@ -112,7 +112,7 @@ export function DeveloperPortal({
     } catch (error: unknown) {
       console.error('OAuth start failed:', error);
       setActionLoading(false);
-      notifications.show({ title: 'Error', message: t('login_failed'), color: 'red' });
+      notifications.show({ title: t('error_title'), message: t('login_failed'), color: 'red' });
     }
   }, [handleInput, t]);
 
@@ -200,7 +200,7 @@ export function DeveloperPortal({
     } catch (error: unknown) {
       const err = error as Error;
       console.error('[Verify Proxy] Error:', err);
-      notifications.update({ id, title: 'Error', message: err.message || 'Failed', color: 'red', loading: false, autoClose: true, withCloseButton: true });
+      notifications.update({ id, title: t('error_title'), message: err.message || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }
@@ -217,11 +217,11 @@ export function DeveloperPortal({
         notifications.update({ id, title: t('success_title'), message: t('success_message', { domain }), color: 'green', loading: false, autoClose: true, withCloseButton: true });
         setActiveTab('dashboard');
       } else {
-        notifications.update({ id, title: 'Error', message: res.error || 'Failed', color: 'red', loading: false, autoClose: true, withCloseButton: true });
+        notifications.update({ id, title: t('error_title'), message: res.error || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
       }
     } catch (error: unknown) {
       console.error('[Verify File] Error:', error);
-      notifications.update({ id, title: 'Error', message: 'Unexpected failure', color: 'red', loading: false, autoClose: true, withCloseButton: true });
+      notifications.update({ id, title: t('error_title'), message: t('unexpected_failure'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }
@@ -242,7 +242,7 @@ export function DeveloperPortal({
     } catch (error: unknown) {
       const err = error as Error;
       console.error('[Withdraw Proxy] Error:', err);
-      notifications.update({ id, title: 'Error', message: err.message || 'Failed', color: 'red', loading: false, autoClose: true, withCloseButton: true });
+      notifications.update({ id, title: t('error_title'), message: err.message || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }
@@ -257,7 +257,7 @@ export function DeveloperPortal({
       await fetchData(session);
       notifications.update({ id, title: t('success_title'), message: t('update_success'), color: 'green', loading: false, autoClose: true, withCloseButton: true });
     } catch {
-      notifications.update({ id, title: 'Error', message: 'Failed to update settings', color: 'red', loading: false, autoClose: true, withCloseButton: true });
+      notifications.update({ id, title: t('error_title'), message: t('failed_to_update_settings'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }

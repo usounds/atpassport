@@ -76,13 +76,13 @@ export function DomainList({ domains, onWithdraw, onUpdatePublic, loading }: Dom
                   </Menu.Target>
 
                   <Menu.Dropdown>
-                    <Menu.Label>Settings</Menu.Label>
+                    <Menu.Label>{t('settings')}</Menu.Label>
                     <Menu.Item
                       leftSection={d.isPublic ? <IconEyeOff size={14} /> : <IconEye size={14} />}
                       onClick={() => onUpdatePublic(d.domain, !d.isPublic)}
                       disabled={loading}
                     >
-                      {d.isPublic ? '非公開にする' : '公開にする'}
+                      {d.isPublic ? t('make_private') : t('make_public')}
                     </Menu.Item>
                     
                     <Menu.Divider />

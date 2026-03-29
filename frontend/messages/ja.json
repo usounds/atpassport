@@ -144,7 +144,7 @@
     "step_method": "方法を選択",
     "step_verify": "検証実行",
     "step_done": "完了",
-    "domain_input_label": "検証するドメイン",
+    "domain_input_label": "登録済みドメイン",
     "domain_placeholder": "example.com",
     "file_verify_instruction": "以下の内容のファイルをテキスト形式で作成し、対象ドキュメントルートの `/.well-known/atpassport` に配置してください。",
     "file_content_label": "ファイルの内容 atpassport",
@@ -167,7 +167,17 @@
     "processing": "処理中...",
     "make_public": "公開にする",
     "make_private": "非公開にする",
-    "settings": "設定"
+    "settings": "設定",
+    "already_verified_badge": "認証済み",
+    "oauth_verify_intro": "ハンドル <strong>@{handle}</strong> に基づいてドメイン <strong>{handle}</strong> を認証します。",
+    "already_verified_message": "このドメインは既に認証済みです。",
+    "copy": "コピー",
+    "copied": "コピー済み",
+    "error_title": "エラー",
+    "invalid_handle_format": "ハンドルの形式が正しくありません",
+    "failed": "失敗しました",
+    "unexpected_failure": "予期しないエラーが発生しました",
+    "failed_to_update_settings": "設定の更新に失敗しました"
   },
   "Directory": {
     "title": "ドメイン一覧",

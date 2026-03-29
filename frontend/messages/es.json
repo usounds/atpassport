@@ -144,7 +144,7 @@
     "step_method": "Elegir método",
     "step_verify": "Verificar",
     "step_done": "Completar",
-    "domain_input_label": "Dominio a verificar",
+    "domain_input_label": "Dominio registrado",
     "domain_placeholder": "ejemplo.com",
     "file_verify_instruction": "Crea un archivo de texto con el siguiente contenido y colócalo en `/.well-known/atpassport` en tu dominio.",
     "file_content_label": "Contenido del archivo atpassport",
@@ -167,7 +167,17 @@
     "processing": "Procesando...",
     "make_public": "Hacer público",
     "make_private": "Hacer privado",
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "already_verified_badge": "Verificado",
+    "oauth_verify_intro": "Verificando el dominio <strong>{handle}</strong> basado en el handle <strong>@{handle}</strong>.",
+    "already_verified_message": "Este dominio ya está verificado.",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "error_title": "Error",
+    "invalid_handle_format": "Formato de handle inválido",
+    "failed": "Falló",
+    "unexpected_failure": "Error inesperado",
+    "failed_to_update_settings": "Error al actualizar los ajustes"
   },
   "Directory": {
     "title": "Dominios",
