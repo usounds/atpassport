@@ -49,7 +49,7 @@ describe('GET /api/user/handles', () => {
     vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
     vi.mocked(getAssociations).mockResolvedValue([{ handle: 'user.bsky.social' } as unknown as AssociationWithProfile]);
 
-    const extensionOrigin = 'chrome-extension://abcdef';
+    const extensionOrigin = 'chrome-extension://ollhnghmplgpoebaceomdaigpkihpfkn';
     const request = new NextRequest('http://localhost/api/user/handles', {
       headers: { origin: extensionOrigin }
     });

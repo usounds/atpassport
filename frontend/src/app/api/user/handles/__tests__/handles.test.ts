@@ -43,7 +43,7 @@ describe('API: /api/user/handles', () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([]);
 
-      const origin = 'chrome-extension://abcdef';
+      const origin = 'chrome-extension://ollhnghmplgpoebaceomdaigpkihpfkn';
       const request = new NextRequest('https://atpassport.net/api/user/handles', {
         headers: { origin }
       });
