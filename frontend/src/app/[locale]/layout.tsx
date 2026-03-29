@@ -71,7 +71,7 @@ export async function generateMetadata(props: {
     },
     icons: {
       icon: '/favicon.ico',
-      apple: '/icon128.svg',
+      apple: '/icon128.png',
     },
   };
 }

@@ -1,6 +1,6 @@
 ---
 title: "About @passport"
-last_updated: "March 23, 2026"
+last_updated: "March 29, 2026"
 ---
 
 @passport is a handle management and authentication assistant for the atproto ecosystem.
@@ -38,8 +38,6 @@ We have also prepared a sharing feature so that you can share your list of handl
 @passport provides two handle input methods.
 
 ### 1. @passport Integration
-When users go through the @passport authentication flow, if the domain is not registered with @passport, a warning will be displayed indicating that the domain is unverified. To provide a smooth authentication experience and build trust, we recommend registering your domain via the [Developer Portal](/developers/verify).
-
 @passport integration works with the following mechanism:
 
 1. Each app transitions to @passport with a `callback` parameter when the authentication button in @passport is tapped.
@@ -48,7 +46,7 @@ When users go through the @passport authentication flow, if the domain is not re
 
 It is also possible to implement cases where the scope differs depending on where the integration starts by defining the `scope` with custom parameters.
 
-If you perform the redirection directly in step 3, you will be able to provide a more seamless login experience.
+If you perform the redirection directly in step 2, you will be able to provide a more seamless login experience.
 
 ### 1-1. Using the Library
 We provide an official client library written in TypeScript to provide a more advanced and seamless experience (such as adding a "@passport Login" button).
@@ -89,6 +87,9 @@ It is also possible to link handle information directly via HTTP redirect withou
    ```
 
 Using these, you can provide a smooth login experience without requiring users to manually input their handles.
+
+> When users go through the @passport authentication flow, if the domain is not registered with @passport, a warning will be displayed indicating that the domain's ownership has not been verified. To provide a secure authentication experience, we recommend registering your domain via the [Developer Portal](/developers/verify).
+> In some cases, the operator may reject the registered information.
 
 We have a [sample application](/example) where you can check the actual behavior, including custom parameter passing and callback handling.
 

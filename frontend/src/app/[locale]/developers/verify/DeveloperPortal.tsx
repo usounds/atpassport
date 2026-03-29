@@ -395,9 +395,9 @@ export function DeveloperPortal({
       <Paper withBorder radius="lg" shadow="sm" style={{ overflow: 'hidden' }}>
         <Box py="sm" px="md" bg="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))" style={{ borderBottom: '1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4))' }}>
           <Group justify="space-between" align="center" wrap="nowrap" gap="md">
-            <Group wrap="nowrap" gap="md" align="center">
+            <Group wrap="nowrap" gap="md" align="center" style={{ flex: 1, minWidth: 0 }}>
               <Avatar src={profile?.avatar} radius="xl" size="md" />
-              <Stack gap={0}>
+              <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
                 <Text fw={600} size="sm" truncate>{profile?.displayName || profile?.handle || session.info.sub}</Text>
                 <Text size="xs" c="dimmed" truncate>
                   @{profile?.handle || session.info.sub}

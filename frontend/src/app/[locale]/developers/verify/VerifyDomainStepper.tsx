@@ -49,7 +49,7 @@ export function VerifyDomainStepper({ did, handle, isHandleVerified, onVerifyOAu
                   cursor: isHandleVerified ? 'not-allowed' : 'pointer', 
                   borderColor: method === 'oauth' ? 'var(--mantine-color-blue-filled)' : undefined,
                   opacity: isHandleVerified ? 0.6 : 1,
-                  backgroundColor: isHandleVerified ? 'var(--mantine-color-gray-0)' : undefined,
+                  backgroundColor: isHandleVerified ? 'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6))' : undefined,
                   position: 'relative'
                 }}
               >

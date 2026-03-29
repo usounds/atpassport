@@ -1,9 +1,10 @@
 import React from 'react';
-import { Container, Title, Text, Stack, Paper, Divider, Table } from '@mantine/core';
+import { Container, Title, Text, Stack, Paper, Divider, Table, Alert } from '@mantine/core';
 import { getMarkdownContent } from '@/lib/markdown';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Link } from '@/i18n/routing';
+import { IconInfoCircle } from '@tabler/icons-react';
 
 export async function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ja' }];
@@ -64,38 +65,50 @@ export default async function AboutPage({
                       {children}
                     </td>
                   ),
-                  code: ({ children }) => (
-                    <code style={{ 
-                      wordBreak: 'break-all', 
-                      overflowWrap: 'anywhere', 
-                      whiteSpace: 'pre-wrap',
-                      backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                      padding: '2px 4px',
-                      borderRadius: '4px',
-                      fontSize: '0.9em'
-                    }}>
-                      {children}
-                    </code>
-                  ),
-                  pre: ({ children }) => (
-                    <pre style={{ 
-                      wordBreak: 'break-all', 
-                      overflowWrap: 'anywhere', 
-                      whiteSpace: 'pre-wrap',
-                      backgroundColor: 'rgba(0, 0, 0, 0.03)',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      fontSize: 'var(--mantine-font-size-sm)',
-                      border: '1px solid var(--mantine-color-gray-3)',
-                      marginBottom: '16px'
-                    }}>
-                      {children}
-                    </pre>
-                  ),
+                  code: ({ className, children }) => {
+                    const isBlock = className?.includes('language-') || (typeof children === 'string' && children.includes('\n'));
+                    
+                    if (isBlock) {
+                      return (
+                        <pre style={{ 
+                          wordBreak: 'break-all', 
+                          overflowWrap: 'anywhere', 
+                          whiteSpace: 'pre-wrap',
+                          backgroundColor: 'light-dark(rgba(0, 0, 0, 0.03), rgba(255, 255, 255, 0.05))',
+                          padding: '12px',
+                          borderRadius: '8px',
+                          fontSize: 'var(--mantine-font-size-sm)',
+                          border: '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+                          marginBottom: '16px',
+                          marginTop: '8px'
+                        }}>{children}</pre>
+                      );
+                    }
+                    
+                    return (
+                      <code style={{ 
+                        wordBreak: 'break-all', 
+                        overflowWrap: 'anywhere', 
+                        whiteSpace: 'pre-wrap',
+                        backgroundColor: 'light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.1))',
+                        padding: '2px 4px',
+                        borderRadius: '4px',
+                        fontSize: '0.9em'
+                      }}>{children}</code>
+                    );
+                  },
+                  pre: ({ children }) => <>{children}</>,
                   h2: ({ children }) => <Title order={4} mb="xs" mt="lg">{children}</Title>,
                   h3: ({ children }) => <Title order={5} mb="xs" mt="md">{children}</Title>,
                   p: ({ children }) => (
-                    <Text size="sm" mb="sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', overflowWrap: 'anywhere' }}>
+                    <Text 
+                      size="sm" 
+                      style={{ 
+                        marginBottom: 'var(--markdown-p-margin, var(--mantine-spacing-sm))',
+                        wordBreak: 'break-all', 
+                        overflowWrap: 'anywhere' 
+                      }}
+                    >
                       {children}
                     </Text>
                   ),
@@ -121,6 +134,25 @@ export default async function AboutPage({
                     }
                     return <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>{children}</a>;
                   },
+                  blockquote: ({ children }) => (
+                    <div style={{ '--markdown-p-margin': '0px' } as any}>
+                      <Alert 
+                        icon={<IconInfoCircle size={18} />} 
+                        color="blue" 
+                        radius="md" 
+                        mb="md"
+                        py="xs"
+                        styles={{
+                          message: { 
+                            fontSize: 'var(--mantine-font-size-sm)', 
+                            lineHeight: 1.6,
+                          },
+                        }}
+                      >
+                        {children}
+                      </Alert>
+                    </div>
+                  ),
                 }}
               >
                 {content}
