@@ -4,7 +4,9 @@ import { routing } from '@/i18n/routing';
 
 export async function GET() {
   const headerList = await headers();
-  const origin = headerList.get('origin') || process.env.NEXT_PUBLIC_URL || 'https://atpassport.net';
+  const host = headerList.get('host') || 'atpassport.net';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  const origin = `${protocol}://${host}`;
 
   const metadata = {
     "client_id": `${origin}/oauth-client-metadata.json`,
@@ -12,7 +14,10 @@ export async function GET() {
     "client_uri": origin,
     "tos_uri": `${origin}/terms`,
     "policy_uri": `${origin}/privacy`,
-    "redirect_uris": routing.locales.map(locale => `${origin}/${locale}/developers/verify`),
+    "redirect_uris": [
+      ...routing.locales.map(locale => `${origin}/${locale}/developers/verify`),
+      `${origin}/developers/verify`
+    ],
     "response_types": [
       "code"
     ],
