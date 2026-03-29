@@ -119,7 +119,7 @@
     "description": "あなたのドメインの所有権を証明し、@passport 認証時の警告を解除します。",
     "verification_info": "ハンドルと一致するドメイン 例: skyblur.uk の所有権を証明できます。確認が完了すると、そのドメインおよびすべてのサブドメインに対する警告が表示されなくなります。",
     "auth_required": "認証が必要です",
-    "auth_required_description": "デベロッパーポータルを利用するには、ログインが必要です。",
+    "auth_required_description": "開発者ポータルを利用するには、ログインが必要です。",
     "authenticating_title": "認証しています...",
     "authenticating_message": "{domain} または {pds} に接続して認証しています...",
     "no_associations_found": "登録されたハンドルが見つかりません。以下からログインまたはハンドルを登録してください。",

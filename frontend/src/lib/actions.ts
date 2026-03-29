@@ -302,6 +302,13 @@ export async function moveAssociation(did: string, direction: 'up' | 'down') {
 }
 
 export async function syncWithToken(token: string): Promise<{ success: boolean; error?: string }> {
+  // IPベースのレート制限 (1分間に10回まで)
+  const headerList = await headers();
+  const ip = headerList.get("x-forwarded-for") || "anonymous";
+  if (isRateLimited(`action:sync:${ip}`, 10, 60000)) {
+    return { success: false, error: "Too many requests. Please try again later." };
+  }
+
   const targetUuid = await getUuidByShareToken(token);
 
   if (!targetUuid) {
@@ -323,6 +330,14 @@ export async function syncWithToken(token: string): Promise<{ success: boolean; 
 }
 
 export async function initializeSession() {
+  // IPベースのレート制限 (1分間に10回まで)
+  const headerList = await headers();
+  const ip = headerList.get("x-forwarded-for") || "anonymous";
+  if (isRateLimited(`action:init:${ip}`, 10, 60000)) {
+    console.warn(`[ServerAction:initializeSession] Rate limited for IP: ${ip}`);
+    return;
+  }
+
   const uuid = await getSessionUuid();
   if (uuid) return;
 
