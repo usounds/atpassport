@@ -11,7 +11,8 @@
     "package:source": "zip -r atpassport-extension-source.zip . -x \"node_modules/*\" \"dist/*\" \".git/*\" \"*.zip\" \".pnpm-store/*\" \".DS_Store\"",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "update": "npx ncu -u && pnpm install"
+    "update": "npx ncu -u && pnpm install",
+    "deploy:firefox": "pnpm run build:firefox && source .env && web-ext sign --api-key $FIREFOX_ISSUER --api-secret $FIREFOX_SECRET --source-dir ./dist --artifacts-dir ./web-ext-artifacts --channel listed"
   },
   "dependencies": {
     "lucide-react": "^0.344.0",
@@ -23,10 +24,11 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "^4.7.0",
-    "picomatch": "^4.0.4",
     "node-forge": ">=1.4.0",
+    "picomatch": "^4.0.4",
     "typescript": "^5.9.3",
     "vite": "^5.4.21",
-    "vite-plugin-web-extension": "^4.5.0"
+    "vite-plugin-web-extension": "^4.5.0",
+    "web-ext": "^10.0.0"
   }
 }
