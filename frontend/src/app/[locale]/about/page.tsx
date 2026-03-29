@@ -135,7 +135,7 @@ export default async function AboutPage({
                     return <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>{children}</a>;
                   },
                   blockquote: ({ children }) => (
-                    <div style={{ '--markdown-p-margin': '0px' } as any}>
+                    <div style={{ '--markdown-p-margin': '0px' } as React.CSSProperties}>
                       <Alert 
                         icon={<IconInfoCircle size={18} />} 
                         color="blue" 
