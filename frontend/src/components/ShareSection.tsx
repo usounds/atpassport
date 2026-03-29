@@ -31,17 +31,17 @@ export function ShareSection() {
         style={{ overflow: 'hidden', position: 'relative' }}
       >
         <Flex 
-          direction={{ base: 'column', sm: 'row' }} 
+          direction="column" 
           justify="space-between" 
-          align={{ base: 'stretch', sm: 'center' }} 
-          gap="md"
+          align="stretch" 
+          gap="sm"
         >
           <Stack gap={2}>
             <Group gap="xs">
               <IconShare size={20} color="var(--mantine-color-blue-6)" />
               <Title order={5} fw={700}>{t('share_title')}</Title>
             </Group>
-            <Text size="xs" c="dimmed" lh={1.4} maw={{ base: '100%', sm: 300 }}>
+            <Text size="xs" c="dimmed" lh={1.4}>
               {t('share_description')}
             </Text>
           </Stack>
