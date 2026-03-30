@@ -3,6 +3,7 @@
     "title": "@passport",
     "description": "Gestor de handles para el ecosistema atproto",
     "registered_handles": "Handles Registrados",
+    "no_session": "Sin sesión activa",
     "no_handles": "Sin handles registrados",
     "add_handle": "Añadir Handle",
     "placeholder_handle": "ejemplo.bsky.social",

@@ -12,7 +12,7 @@ export async function AssociationList() {
   if (!uuid) {
     return (
       <Text c="dimmed" ta="center" py="xl">
-        No active session
+        {t('no_session')}
       </Text>
     );
   }

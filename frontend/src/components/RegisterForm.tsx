@@ -156,6 +156,7 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
       >
         <Stack gap="md">
           <Autocomplete
+            id="handle"
             label={t('handle')}
             name="handle"
             placeholder={t('placeholder_handle')}

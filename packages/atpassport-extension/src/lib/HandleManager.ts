@@ -47,20 +47,44 @@ export class HandleManager {
           const activeElement = document.activeElement;
           
           const fill = (input: HTMLInputElement | HTMLTextAreaElement) => {
-            input.value = handleValue;
+            // Use native value setter to bypass React's tracking if possible
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+              window.HTMLInputElement.prototype,
+              "value"
+            )?.set;
+            
+            if (nativeInputValueSetter) {
+              nativeInputValueSetter.call(input, handleValue);
+            } else {
+              input.value = handleValue;
+            }
+
+            // Dispatch both input and change events for framework compatibility
             input.dispatchEvent(new Event('input', { bubbles: true }));
             input.dispatchEvent(new Event('change', { bubbles: true }));
           };
 
+          // 1. Try active element first (most reliable if user is already interacting)
           if (activeElement && (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement)) {
             fill(activeElement as HTMLInputElement);
             return { success: true };
           }
 
-          const handleInputs = document.querySelectorAll('input[name="handle"], input[placeholder*="handle"], input[type="text"]');
-          if (handleInputs.length > 0) {
-            fill(handleInputs[0] as HTMLInputElement);
-            return { success: true };
+          // 2. Prioritized search for handle fields
+          const selectors = [
+            'input[id="handle"]',
+            'input[name="handle"]',
+            'input[placeholder*="handle" i]',
+            'input[autocomplete="username"]',
+            'input[type="text"]'
+          ];
+
+          for (const selector of selectors) {
+            const input = document.querySelector(selector);
+            if (input && (input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement)) {
+              fill(input as HTMLInputElement);
+              return { success: true };
+            }
           }
 
           return { success: false };

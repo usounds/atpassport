@@ -94,5 +94,9 @@ Using these, you can provide a smooth login experience without requiring users t
 We have a [sample application](/example) where you can check the actual behavior, including custom parameter passing and callback handling.
 
 ### 2. Extension Input Assist
-In your web application's login forms, set the `name` attribute of the handle input field (`<input>`) to `handle`.
-This allows the @passport extension to automatically recognize the field and automatically reflect the value in the input field when a user selects a handle from the extension.
+In your web application's login forms, we recommend setting the following attributes for the handle input field (`<input>`):
+
+- **`id="handle"`** (Most recommended): Allows the extension to identify the field most reliably.
+- **`name="handle"`**: Recommended for backward compatibility.
+
+By setting these, the @passport extension will automatically recognize the field, and values will be accurately reflected even on sites using advanced frameworks like React.

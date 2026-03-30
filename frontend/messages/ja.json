@@ -3,6 +3,7 @@
     "title": "@passport",
     "description": "atproto エコシステムのためのハンドル管理アプリ",
     "registered_handles": "登録済みハンドル",
+    "no_session": "アクティブなセッションはありません",
     "no_handles": "登録されたハンドルはありません",
     "add_handle": "ハンドルを追加",
     "placeholder_handle": "example.bsky.social",
