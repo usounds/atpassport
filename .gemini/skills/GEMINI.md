@@ -1,17 +1,19 @@
-# Project AtPassport - 開発ガイドライン
+# Project @passport - 開発ガイドライン
 
 ## プロジェクト概要
-AtPassportは、atprotoアプリケーションにおけるハンドルの入力をアシストする汎用的な仕組みです。
+@passportは、atprotoアプリケーションにおけるハンドルの入力をアシストする汎用的な仕組みです。
 - サイトに訪れる、または、APIで呼び出すと、都度UUIDを発行します
 - UUIDに対して、DIDをNext.jsで複数保持できるようにします。
 - 外部サービスは、UUIDに対してDIDを解決し、DIDとそのハンドルを取得できるようにします
 
 ## 技術スタック
 - **共通**: TypeScript, pnpm (Workspace)
-- **Frontend**: Next.js (App Router), Martine, Vitest, Prisma
+- **Frontend**: Next.js (App Router), Martine, Vitest
 
 ## ディレクトリ構造と役割
 - `/frontend`: Next.js アプリケーション。XRPCの実装やUIコンポーネント。
+- `/packages/atpassport-client`: TypeScript向けライブラリ
+- `/packages/atpassport-extension`: ブラウザ拡張機能(Firefox/Chrome)
 
 ## 開発ルールと規約
 
