@@ -98,8 +98,10 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <head>
         <ColorSchemeScript defaultColorScheme={colorScheme} />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <NextIntlClientProvider messages={messages}>
           <MantineProvider theme={theme} defaultColorScheme={colorScheme}>
             <NextTopLoader color="#58A7F6" showSpinner={false} height={3} />
