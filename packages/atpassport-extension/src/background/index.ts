@@ -1,7 +1,7 @@
 // Background service worker for AtPassport extension
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('AtPassport Extension installed.');
+  // AtPassport Extension installed.
 });
 
 // Future: Handle messages from popup or content scripts, 

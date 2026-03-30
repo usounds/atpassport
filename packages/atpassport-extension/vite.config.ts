@@ -28,4 +28,7 @@ export default defineConfig({
       browser: process.env.BROWSER || 'chrome',
     }),
   ],
+  esbuild: {
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+  },
 });
