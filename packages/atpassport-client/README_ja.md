@@ -90,23 +90,8 @@ import { AtPassportIcon } from '@atpassport/client/ui';
 // <AtPassportIcon size={24} />
 ```
 
-### ハンドル入力のアシスト (Picker)
 
-ユーザーが既に @passport に登録しているハンドルを、ポップアップ画面から選択させることができます。
-
-```typescript
-// 1. ポップアップを開いてハンドルを選択させる
-const handle = await passport.pick();
-if (handle) {
-  console.log('選択されたハンドル:', handle);
-}
-
-// 2. 既存の input 要素にフォーカス時の自動補完を適用する
-const input = document.getElementById('handle-input');
-passport.decorate(input);
-```
-
----
+109: ---
 
 ## パラメータ・プレースホルダーの解説
 

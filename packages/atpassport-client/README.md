@@ -90,23 +90,8 @@ import { AtPassportIcon } from '@atpassport/client/ui';
 // <AtPassportIcon size={24} />
 ```
 
-### Handle Input Assist (Picker)
 
-You can allow users to select a handle they have already registered in @passport via a popup window.
-
-```typescript
-// 1. Open a popup to let the user select a handle
-const handle = await passport.pick();
-if (handle) {
-  console.log('Selected handle:', handle);
-}
-
-// 2. Attach auto-assist to an existing input element
-const input = document.getElementById('handle-input');
-passport.decorate(input);
-```
-
----
+109: ---
 
 ## Explained: Parameters and Placeholders
 
