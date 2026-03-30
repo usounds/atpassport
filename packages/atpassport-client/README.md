@@ -90,8 +90,7 @@ import { AtPassportIcon } from '@atpassport/client/ui';
 // <AtPassportIcon size={24} />
 ```
 
-
-109: ---
+---
 
 ## Explained: Parameters and Placeholders
 
