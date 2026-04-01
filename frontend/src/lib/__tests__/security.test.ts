@@ -58,7 +58,7 @@ describe('Security Library', () => {
 
     it('should verify and retrieve a domain', async () => {
       const domain = 'test.com';
-      await verifyDomainInDb(domain, 'did:1', 'h1', true, 'oauth');
+      await verifyDomainInDb(domain, 'did:1', true, 'oauth');
       const result = await getVerifiedDomainFromDb(domain);
       expect(result?.domain).toBe(domain);
     });
@@ -82,7 +82,7 @@ describe('Security Library', () => {
       expect(await getPublicVerifiedDomains()).toEqual([]);
       expect(await getVerifiedDomainsByDid('did')).toEqual([]);
       
-      await verifyDomainInDb('err.com', 'd', 'h');
+      await verifyDomainInDb('err.com', 'd');
       expect(consoleSpy).toHaveBeenCalled();
       
       await deleteVerifiedDomainFromDb('err.com');
@@ -92,8 +92,8 @@ describe('Security Library', () => {
     });
 
     it('should filter public domains correctly', async () => {
-      await verifyDomainInDb('pub.com', 'did:1', 'h1', true);
-      await verifyDomainInDb('priv.com', 'did:1', 'h1', false);
+      await verifyDomainInDb('pub.com', 'did:1', true);
+      await verifyDomainInDb('priv.com', 'did:1', false);
       
       const publicOnes = await getPublicVerifiedDomains();
       expect(publicOnes.some(d => d.domain === 'pub.com')).toBe(true);
@@ -102,13 +102,13 @@ describe('Security Library', () => {
 
     it('should find domains by DID', async () => {
       const did = 'did:specific';
-      await verifyDomainInDb('mine.com', did, 'h1');
+      await verifyDomainInDb('mine.com', did);
       const mine = await getVerifiedDomainsByDid(did);
       expect(mine[0].domain).toBe('mine.com');
     });
 
     it('should delete domains', async () => {
-      await verifyDomainInDb('del.com', 'did:1', 'h1');
+      await verifyDomainInDb('del.com', 'did:1');
       await deleteVerifiedDomainFromDb('del.com');
       expect(await getVerifiedDomainFromDb('del.com')).toBeNull();
     });

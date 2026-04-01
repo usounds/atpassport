@@ -7,7 +7,6 @@ const _domainSchema = /*#__PURE__*/ v.object({
     /*#__PURE__*/ v.literal("net.atpassport.verify.list#domain"),
   ),
   domain: /*#__PURE__*/ v.actorIdentifierString(),
-  handle: /*#__PURE__*/ v.actorIdentifierString(),
   isPublic: /*#__PURE__*/ v.boolean(),
   method: /*#__PURE__*/ v.string<"file" | "oauth" | (string & {})>(),
   status: /*#__PURE__*/ v.string<

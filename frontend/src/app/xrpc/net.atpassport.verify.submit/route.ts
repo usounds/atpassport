@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       if (!identity || !identity.handle) {
         return NextResponse.json({ success: false, error: 'Identity not found' }, { status: 400 });
       }
-      await verifyDomainInDb(identity.handle, did, identity.handle, isPublic, 'oauth');
+      await verifyDomainInDb(identity.handle, did, isPublic, 'oauth');
       const output: NetAtpassportVerifySubmit.Output = { success: true };
       return NextResponse.json(output);
     }
@@ -82,10 +82,7 @@ export async function POST(request: Request) {
       }
 
       // 3. Register verified domain
-      const identity = await resolveIdentity(did);
-      const handle = identity?.handle || did;
-
-      await verifyDomainInDb(lowerDomain, did, handle, isPublic, 'file');
+      await verifyDomainInDb(lowerDomain, did, isPublic, 'file');
 
       const output: NetAtpassportVerifySubmit.Output = { success: true };
       return NextResponse.json(output);

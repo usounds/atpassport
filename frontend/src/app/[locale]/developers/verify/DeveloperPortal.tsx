@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import { initOAuth } from '@/lib/oauth';
 import { createAuthorizationUrl, finalizeAuthorization, getSession, listStoredSessions, deleteStoredSession, OAuthUserAgent, Session } from '@atcute/oauth-browser-client';
-import { verifyDomainByFile, resolveHandle, updateDomainSettings } from '@/lib/actions';
+import { resolveHandle, updateDomainSettings } from '@/lib/actions';
 import { DomainList } from './DomainList';
 import { VerifyDomainStepper } from './VerifyDomainStepper';
 import Link from 'next/link';
@@ -211,17 +211,18 @@ export function DeveloperPortal({
     setActionLoading(true);
     const id = notifications.show({ title: t('processing'), message: '', loading: true, autoClose: false, withCloseButton: false });
     try {
-      const res = await verifyDomainByFile(domain, session.info.sub, isPublic);
-      if (res.success) {
-        await fetchData(session);
-        notifications.update({ id, title: t('success_title'), message: t('success_message', { domain }), color: 'green', loading: false, autoClose: true, withCloseButton: true });
-        setActiveTab('dashboard');
-      } else {
-        notifications.update({ id, title: t('error_title'), message: res.error || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
-      }
+      const proxyClient = getProxyClient();
+      if (!proxyClient) throw new Error('Client setup failed');
+
+      const input: NetAtpassportVerifySubmit.Input = { domain, isPublic };
+      await proxyClient.post('net.atpassport.verify.submit', { input });
+      await fetchData(session);
+      notifications.update({ id, title: t('success_title'), message: t('success_message', { domain }), color: 'green', loading: false, autoClose: true, withCloseButton: true });
+      setActiveTab('dashboard');
     } catch (error: unknown) {
-      console.error('[Verify File] Error:', error);
-      notifications.update({ id, title: t('error_title'), message: t('unexpected_failure'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
+      const err = error as Error;
+      console.error('[Verify File] Error:', err);
+      notifications.update({ id, title: t('error_title'), message: err.message || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }

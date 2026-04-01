@@ -69,7 +69,7 @@ export default async function DirectoryPage({
                   />
                   <Box style={{ flex: 1, minWidth: 0 }}>
                     <Anchor
-                      href={`https://bsky.app/profile/${domain.handle}`}
+                      href={`https://bsky.app/profile/${domain.profile?.handle || domain.verifiedByDid}`}
                       target="_blank"
                       size="xs"
                       fw={700}
@@ -77,7 +77,7 @@ export default async function DirectoryPage({
                       display="block"
                       c="blue.7"
                     >
-                      @{domain.handle}
+                      @{domain.profile?.handle || domain.verifiedByDid}
                     </Anchor>
                   </Box>
                 </Group>

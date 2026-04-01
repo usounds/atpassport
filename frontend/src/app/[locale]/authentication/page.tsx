@@ -106,7 +106,7 @@ export default async function AuthPage({
       if (matchingHandle) {
         const matchingItem = items.find(i => i.handle === matchingHandle);
         if (matchingItem) {
-          await verifyDomainInDb(matchingHandle, matchingItem.did, matchingHandle, true);
+          await verifyDomainInDb(matchingHandle, matchingItem.did, true);
         }
       }
     }

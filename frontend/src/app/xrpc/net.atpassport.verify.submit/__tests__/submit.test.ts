@@ -35,7 +35,7 @@ describe('XRPC: net.atpassport.verify.submit', () => {
     const data = await response.json();
 
     expect(data.success).toBe(true);
-    expect(verifyDomainInDb).toHaveBeenCalledWith('user.test', mockDid, 'user.test', true, 'oauth');
+    expect(verifyDomainInDb).toHaveBeenCalledWith('user.test', mockDid, true, 'oauth');
   });
 
   it('should verify domain via File (domain in body)', async () => {
@@ -62,7 +62,7 @@ describe('XRPC: net.atpassport.verify.submit', () => {
     const data = await response.json();
 
     expect(data.success).toBe(true);
-    expect(verifyDomainInDb).toHaveBeenCalledWith(domain, mockDid, 'user.test', true, 'file');
+    expect(verifyDomainInDb).toHaveBeenCalledWith(domain, mockDid, true, 'file');
     expect(fetch).toHaveBeenCalledWith(`https://${domain}/.well-known/atpassport`, expect.any(Object));
   });
 
@@ -138,7 +138,7 @@ describe('XRPC: net.atpassport.verify.submit', () => {
       });
       const response = await POST(request);
       const data = await response.json();
-      expect(data.success).toBe(false, `Should fail for ${domain}`);
+      expect(data.success).toBe(false);
       expect(data.error).toContain('Invalid domain format');
       expect(response.status).toBe(400);
     }

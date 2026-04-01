@@ -138,7 +138,7 @@
     "view_directory": "ドメイン一覧を見る",
     "dashboard_tab": "ドメイン",
     "new_domain_tab": "新規ドメイン確認",
-    "method_oauth": "ハンドルのドメインで確認",
+    "method_oauth": "ハンドルのドメインで検証",
     "method_file": "ファイル配置で検証",
     "oauth_description": "Bluesky のハンドルと一致するドメインを @passport で即座に確認します。",
     "file_description": "ドメインの所有権をファイル配置で証明します。ハンドルと一致しなくても構いません。",

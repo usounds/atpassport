@@ -19,7 +19,6 @@ export async function GET(request: Request) {
       success: true,
       domains: domains.map(d => ({
         domain: d.domain as NetAtpassportVerifyList.Domain['domain'],
-        handle: d.handle as NetAtpassportVerifyList.Domain['handle'],
         status: d.status as NetAtpassportVerifyList.Domain['status'],
         verifiedAt: d.verifiedAt,
         isPublic: d.isPublic === 'true',

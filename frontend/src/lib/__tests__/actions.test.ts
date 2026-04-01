@@ -6,8 +6,6 @@ import {
   refreshAssociation, 
   initializeSession,
   claimDomainOwnership,
-  verifyDomainViaOAuth,
-  verifyDomainByFile,
   withdrawDomain,
   updateDomainSettings,
   removeAssociation
@@ -61,7 +59,7 @@ describe('Actions Library', () => {
       const result = await claimDomainOwnership(mockDid);
 
       expect(result.success).toBe(true);
-      expect(verifyDomainInDb).toHaveBeenCalledWith('user.com', mockDid, 'user.com', true, 'oauth');
+      expect(verifyDomainInDb).toHaveBeenCalledWith('user.com', mockDid, true, 'oauth');
       expect(revalidatePath).toHaveBeenCalled();
     });
 
@@ -102,63 +100,13 @@ describe('Actions Library', () => {
     });
   });
 
-  describe('verifyDomainViaOAuth', () => {
-    it('should resolve identity and verify in DB', async () => {
-      vi.mocked(resolveIdentity).mockResolvedValue({ did: mockDid, handle: 'user.test', pdsUrl: 'http://pds' });
-      
-      const result = await verifyDomainViaOAuth(mockDid, true);
-      
-      expect(result.success).toBe(true);
-      expect(verifyDomainInDb).toHaveBeenCalledWith('user.test', mockDid, 'user.test', true, 'oauth');
-    });
-
-    it('should return error if identity not found', async () => {
-      vi.mocked(resolveIdentity).mockResolvedValue(null);
-      const result = await verifyDomainViaOAuth(mockDid, true);
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('verifyDomainByFile', () => {
-    const domain = 'verify.me';
-
-    it('should verify via well-known file', async () => {
-      vi.mocked(fetch).mockResolvedValue({
-        ok: true,
-        text: async () => `atpassport-verification: ${mockDid}`
-      } as Response);
-      vi.mocked(resolveIdentity).mockResolvedValue({ did: mockDid, handle: 'user.test', pdsUrl: 'http://pds' });
-
-      const result = await verifyDomainByFile(domain, mockDid, true);
-
-      expect(result.success).toBe(true);
-      expect(verifyDomainInDb).toHaveBeenCalledWith(domain, mockDid, 'user.test', true, 'file');
-    });
-
-    it('should fail if fetch fails', async () => {
-      vi.mocked(fetch).mockResolvedValue({ ok: false, status: 404 } as Response);
-      const result = await verifyDomainByFile(domain, mockDid, true);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Could not reach');
-    });
-
-    it('should fail if content mismatch', async () => {
-      vi.mocked(fetch).mockResolvedValue({
-        ok: true,
-        text: async () => 'wrong content'
-      } as Response);
-      const result = await verifyDomainByFile(domain, mockDid, true);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('content mismatch');
-    });
-  });
 
   describe('withdrawDomain', () => {
     const domain = 'remove.me';
 
     it('should delete if user is owner', async () => {
       vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
-        domain, verifiedByDid: mockDid, handle: 'h', status: 'approved', verifiedAt: 't'
+        domain, verifiedByDid: mockDid, status: 'approved', verifiedAt: 't'
       });
 
       const result = await withdrawDomain(domain, mockDid);
@@ -169,7 +117,7 @@ describe('Actions Library', () => {
 
     it('should fail if user is not owner', async () => {
       vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
-        domain, verifiedByDid: 'other', handle: 'h', status: 'approved', verifiedAt: 't'
+        domain, verifiedByDid: 'other', status: 'approved', verifiedAt: 't'
       });
 
       const result = await withdrawDomain(domain, mockDid);
@@ -182,13 +130,13 @@ describe('Actions Library', () => {
     it('should update isPublic setting', async () => {
       const domain = 'update.me';
       vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
-        domain, verifiedByDid: mockDid, handle: 'h', status: 'approved', verifiedAt: 't', method: 'file'
+        domain, verifiedByDid: mockDid, status: 'approved', verifiedAt: 't', method: 'file'
       });
 
       const result = await updateDomainSettings(domain, mockDid, false);
 
       expect(result.success).toBe(true);
-      expect(verifyDomainInDb).toHaveBeenCalledWith(domain, mockDid, 'h', false, 'file');
+      expect(verifyDomainInDb).toHaveBeenCalledWith(domain, mockDid, false, 'file');
     });
   });
 

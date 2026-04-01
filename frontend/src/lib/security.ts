@@ -4,7 +4,6 @@ import { GetCommand, PutCommand, QueryCommand, DeleteCommand } from "@aws-sdk/li
 export interface VerifiedDomain {
   domain: string;
   verifiedByDid: string;
-  handle: string;
   status: 'approved';
   verifiedAt: string;
   isPublic?: string; // "true" or "false"
@@ -89,7 +88,6 @@ export async function getVerifiedDomainsByDid(did: string): Promise<VerifiedDoma
 export async function verifyDomainInDb(
   domain: string, 
   did: string, 
-  handle: string, 
   isPublic: boolean = true,
   method: 'oauth' | 'file' = 'oauth'
 ): Promise<void> {
@@ -99,7 +97,6 @@ export async function verifyDomainInDb(
       Item: { 
         domain: domain.toLowerCase(),
         verifiedByDid: did,
-        handle: handle,
         status: 'approved',
         isPublic: isPublic ? "true" : "false",
         verifiedAt: new Date().toISOString(),

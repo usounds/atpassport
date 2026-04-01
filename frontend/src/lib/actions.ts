@@ -36,7 +36,7 @@ export async function claimDomainOwnership(did: string, isPublic: boolean = true
 
   try {
     // DBに登録（これが「申請・承認」のステップとなる）
-    await verifyDomainInDb(handle, did, handle, isPublic, 'oauth');
+    await verifyDomainInDb(handle, did, isPublic, 'oauth');
     revalidatePath('/[locale]', 'page');
     revalidatePath('/[locale]/directory', 'page');
     return { success: true };
@@ -46,90 +46,12 @@ export async function claimDomainOwnership(did: string, isPublic: boolean = true
   }
 }
 
+
 /**
  * DID からハンドル名を解決します。
  */
 export async function resolveHandle(did: string) {
   return await resolveIdentity(did);
-}
-
-/**
- * OAuth で認証された DID に基づいてドメイン検証を DB に登録します。
- */
-export async function verifyDomainViaOAuth(did: string, isPublic: boolean) {
-  try {
-    const identity = await resolveIdentity(did);
-    if (!identity || !identity.handle) {
-      return { success: false, error: "Identity not found" };
-    }
-
-    await verifyDomainInDb(identity.handle, did, identity.handle, isPublic, 'oauth');
-    
-    revalidatePath('/[locale]/directory');
-    revalidatePath('/[locale]/developers/verify');
-    
-    return { success: true };
-  } catch (error) {
-    console.error('[ServerAction:verifyDomainViaOAuth] ERROR:', error);
-    return { success: false, error: "Internal server error" };
-  }
-}
-
-/**
- * ファイルベース (.well-known) でドメイン検証を行います。
- */
-export async function verifyDomainByFile(domain: string, did: string, isPublic: boolean): Promise<{ success: boolean; error?: string }> {
-  try {
-    const lowerDomain = domain.toLowerCase().trim();
-    
-    // 厳格なドメインバリデーション (SSRF対策)
-    // - localhost不可
-    // - IPアドレス（IPv4/IPv6）不可
-    // - TLDを含むドメイン形式であること
-    const domainRegex = /^(?!localhost$)(?!.*[\d]+\.[\d]+\.[\d]+\.[\d]+$)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
-    if (!domainRegex.test(lowerDomain)) {
-      return { success: false, error: "Invalid domain format. IP addresses and localhost are not allowed." };
-    }
-
-    const url = `https://${lowerDomain}/.well-known/atpassport`;
-    
-    // タイムアウト付きの fetch
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-    const response = await fetch(url, { 
-      cache: 'no-store',
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      return { success: false, error: `Could not reach ${url} (Status: ${response.status})` };
-    }
-
-    const content = await response.text();
-    const expectedPrefix = 'atpassport-verification:';
-    if (!content.includes(expectedPrefix) || !content.includes(did)) {
-      return { success: false, error: `Verification content mismatch. Expected: ${expectedPrefix} ${did}` };
-    }
-
-    const identity = await resolveIdentity(did);
-    const handle = identity?.handle || did;
-
-    await verifyDomainInDb(lowerDomain, did, handle, isPublic, 'file');
-    
-    revalidatePath('/[locale]/directory');
-    revalidatePath('/[locale]/developers/verify');
-
-    return { success: true };
-  } catch (error: unknown) {
-    console.error('[ServerAction:verifyDomainByFile] ERROR:', error);
-    if ((error as Error).name === 'AbortError') {
-      return { success: false, error: "Connection timed out. Check if server is accessible." };
-    }
-    return { success: false, error: "Connection failed. Ensure HTTPS is working and the domain is correct." };
-  }
 }
 
 /**
@@ -166,7 +88,7 @@ export async function updateDomainSettings(domain: string, did: string, isPublic
       return { success: false, error: "Unauthorized or domain not found" };
     }
 
-    await verifyDomainInDb(domain, did, existing.handle, isPublic, existing.method || 'oauth');
+    await verifyDomainInDb(domain, did, isPublic, existing.method || 'oauth');
     
     revalidatePath('/[locale]/directory');
     revalidatePath('/[locale]/developers/verify');
