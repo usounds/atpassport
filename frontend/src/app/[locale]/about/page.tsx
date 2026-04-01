@@ -71,9 +71,8 @@ export default async function AboutPage({
                     if (isBlock) {
                       return (
                         <pre style={{ 
-                          wordBreak: 'break-all', 
-                          overflowWrap: 'anywhere', 
                           whiteSpace: 'pre-wrap',
+                          overflowWrap: 'break-word', 
                           backgroundColor: 'light-dark(rgba(0, 0, 0, 0.03), rgba(255, 255, 255, 0.05))',
                           padding: '12px',
                           borderRadius: '8px',
@@ -87,9 +86,8 @@ export default async function AboutPage({
                     
                     return (
                       <code style={{ 
-                        wordBreak: 'break-all', 
-                        overflowWrap: 'anywhere', 
                         whiteSpace: 'pre-wrap',
+                        overflowWrap: 'break-word', 
                         backgroundColor: 'light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.1))',
                         padding: '2px 4px',
                         borderRadius: '4px',
@@ -105,8 +103,7 @@ export default async function AboutPage({
                       size="sm" 
                       style={{ 
                         marginBottom: 'var(--markdown-p-margin, var(--mantine-spacing-sm))',
-                        wordBreak: 'break-all', 
-                        overflowWrap: 'anywhere' 
+                        overflowWrap: 'break-word' 
                       }}
                     >
                       {children}
@@ -117,8 +114,7 @@ export default async function AboutPage({
                   li: ({ children }) => (
                     <li style={{ 
                       fontSize: 'var(--mantine-font-size-sm)', 
-                      wordBreak: 'break-all', 
-                      overflowWrap: 'anywhere',
+                      overflowWrap: 'break-word',
                       marginBottom: '4px'
                     }}>
                       {children}
