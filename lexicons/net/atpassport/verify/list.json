@@ -31,10 +31,9 @@
     },
     "domain": {
       "type": "object",
-      "required": ["domain", "handle", "status", "verifiedAt", "isPublic", "method"],
+      "required": ["domain", "status", "verifiedAt", "isPublic", "method"],
       "properties": {
         "domain": { "type": "string", "format": "at-identifier" },
-        "handle": { "type": "string", "format": "at-identifier" },
         "status": { "type": "string", "knownValues": ["approved", "pending", "rejected"] },
         "verifiedAt": { "type": "string", "format": "datetime" },
         "isPublic": { "type": "boolean" },
