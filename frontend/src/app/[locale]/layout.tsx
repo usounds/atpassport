@@ -1,12 +1,13 @@
 import type { Viewport } from 'next';
 import { cookies } from 'next/headers';
 import { Geist, Geist_Mono } from "next/font/google";
-import { ColorSchemeScript, MantineProvider, createTheme, Stack } from '@mantine/core';
+import { MantineProvider, createTheme, Stack } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import NextTopLoader from 'nextjs-toploader';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
 import { Header } from '@/components/Header';
+import { MantineScript } from '@/components/MantineScript';
 import { Footer } from '@/components/Footer';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
@@ -99,7 +100,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        <ColorSchemeScript defaultColorScheme={colorScheme} />
+        <MantineScript defaultColorScheme={colorScheme} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <NextIntlClientProvider messages={messages}>
