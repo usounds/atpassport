@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Table, Badge, ActionIcon, Group, Text, Menu, Stack, Center } from '@mantine/core';
 import { IconDotsVertical, IconTrash, IconWorld, IconShieldCheck, IconFileCheck, IconEye, IconEyeOff } from '@tabler/icons-react';
 import { useTranslations } from 'next-intl';
@@ -15,11 +14,6 @@ interface DomainListProps {
 
 export function DomainList({ domains, onWithdraw, onUpdatePublic, loading }: DomainListProps) {
   const t = useTranslations('Developers');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   if (domains.length === 0) {
     return (
@@ -69,7 +63,7 @@ export function DomainList({ domains, onWithdraw, onUpdatePublic, loading }: Dom
             </Table.Td>
             <Table.Td>
               <Text size="xs" c="dimmed" suppressHydrationWarning>
-                {mounted ? new Date(d.verifiedAt).toLocaleDateString() : '...'}
+                {new Date(d.verifiedAt).toLocaleDateString()}
               </Text>
             </Table.Td>
             <Table.Td>
