@@ -22,8 +22,8 @@ export class HandleManager {
 
       const data = await response.json();
       return data.handles || [];
-    } catch (error: any) {
-      if (error.message === 'Failed to fetch') {
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Failed to fetch') {
         throw new Error('fetchError');
       }
       throw error;
@@ -100,7 +100,7 @@ export class HandleManager {
         await navigator.clipboard.writeText(handle);
         return 'copiedFallback';
       }
-    } catch (err) {
+    } catch {
       await navigator.clipboard.writeText(handle);
       return 'copiedIncompatible';
     }

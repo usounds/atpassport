@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Key, Loader2, AlertCircle, Copy, User } from 'lucide-react';
+import { Loader2, AlertCircle, Copy, User } from 'lucide-react';
 import { HandleManager } from '@/lib/HandleManager';
 
 const Popup = () => {
@@ -18,13 +18,13 @@ const Popup = () => {
         setLoading(true);
         const result = await manager.fetchHandles();
         setHandles(result);
-      } catch (err: any) {
-        if (err.message === 'loginRequired') {
+      } catch (err) {
+        if (err instanceof Error && err.message === 'loginRequired') {
           setError(chrome.i18n.getMessage('loginRequired'));
-        } else if (err.message === 'fetchError') {
+        } else if (err instanceof Error && err.message === 'fetchError') {
           setError(chrome.i18n.getMessage('fetchError'));
         } else {
-          setError(err.message);
+          setError(err instanceof Error ? err.message : String(err));
         }
       } finally {
         const elapsed = Date.now() - startTime;
@@ -42,7 +42,7 @@ const Popup = () => {
     try {
       const statusKey = await manager.applyHandle(handle);
       setCopyStatus(chrome.i18n.getMessage(statusKey));
-    } catch (err) {
+    } catch {
       setCopyStatus(chrome.i18n.getMessage('copiedIncompatible'));
     }
 

@@ -41,16 +41,16 @@ describe('HandleManager', () => {
 
   describe('applyHandle', () => {
     it('should return filledSuccess when scripting succeeds', async () => {
-      vi.mocked(chrome.tabs.query).mockResolvedValue([{ id: 1 }] as any);
-      vi.mocked(chrome.scripting.executeScript).mockResolvedValue([{ result: { success: true } }] as any);
+      vi.mocked(chrome.tabs.query).mockResolvedValue([{ id: 1 }] as unknown as chrome.tabs.Tab[]);
+      vi.mocked(chrome.scripting.executeScript).mockResolvedValue([{ result: { success: true } }] as unknown as chrome.scripting.InjectionResult<unknown>[]);
 
       const result = await manager.applyHandle('test.handle');
       expect(result).toBe('filledSuccess');
     });
 
     it('should return copiedFallback and use clipboard when scripting finds no input', async () => {
-      vi.mocked(chrome.tabs.query).mockResolvedValue([{ id: 1 }] as any);
-      vi.mocked(chrome.scripting.executeScript).mockResolvedValue([{ result: { success: false } }] as any);
+      vi.mocked(chrome.tabs.query).mockResolvedValue([{ id: 1 }] as unknown as chrome.tabs.Tab[]);
+      vi.mocked(chrome.scripting.executeScript).mockResolvedValue([{ result: { success: false } }] as unknown as chrome.scripting.InjectionResult<unknown>[]);
 
       const result = await manager.applyHandle('test.handle');
       expect(result).toBe('copiedFallback');
