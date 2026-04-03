@@ -65,7 +65,7 @@ describe('RegisterForm', () => {
     fireEvent.click(screen.getByText(/add handle/i));
     
     // Find input by role and name
-    const input = await screen.findByRole('textbox', { name: /handle/i });
+    const input = await screen.findByRole('combobox', { name: /handle/i });
     fireEvent.change(input, { target: { value: 'test.bsky.social' } });
     
     expect(input).toHaveValue('test.bsky.social');
@@ -98,7 +98,7 @@ describe('RegisterForm', () => {
     
     fireEvent.click(screen.getByText(/add handle/i));
     
-    const input = await screen.findByRole('textbox', { name: /handle/i });
+    const input = await screen.findByRole('combobox', { name: /handle/i });
     fireEvent.change(input, { target: { value: 'test.bsky.social' } });
     
     const checkbox = await screen.findByRole('checkbox');
@@ -122,7 +122,7 @@ describe('RegisterForm', () => {
     
     fireEvent.click(screen.getByText(/add handle/i));
     
-    const input = await screen.findByRole('textbox', { name: /handle/i });
+    const input = await screen.findByRole('combobox', { name: /handle/i });
     fireEvent.change(input, { target: { value: 'invalid' } });
     
     const registerBtn = screen.getByText(/^add$/i);
@@ -149,7 +149,7 @@ describe('RegisterForm', () => {
     render(<RegisterForm handleCount={1} />);
     fireEvent.click(screen.getByText(/add handle/i));
     
-    const input = await screen.findByRole('textbox', { name: /handle/i });
+    const input = await screen.findByRole('combobox', { name: /handle/i });
     fireEvent.change(input, { target: { value: 'sug' } });
 
     await waitFor(() => {
