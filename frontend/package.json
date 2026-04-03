@@ -9,7 +9,7 @@
     "start": "next start",
     "test": "vitest run",
     "deploy": "pnpm test && npx sst deploy --stage production",
-    "update": "npx ncu -u && pnpm install",
+    "update": "npx ncu -u -x eslint && pnpm install",
     "lint": "eslint"
   },
   "dependencies": {
@@ -21,7 +21,7 @@
     "@atcute/lex-cli": "^2.5.3",
     "@atcute/lexicons": "^1.2.9",
     "@atcute/oauth-browser-client": "^3.0.0",
-    "@atpassport/client": "^0.1.25",
+    "@atpassport/client": "^0.1.26",
     "@aws-sdk/client-dynamodb": "^3.1023.0",
     "@aws-sdk/lib-dynamodb": "^3.1023.0",
     "@emotion/react": "^11.14.0",

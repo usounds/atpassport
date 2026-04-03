@@ -5,22 +5,22 @@ last_updated: "March 29, 2026"
 
 @passport is a handle management and authentication assistant for the atproto ecosystem.
 
-Because atproto is decentralized, one-button authentication like "Login with Bluesky" is not available, and you have to enter your handle each time you authenticate with each service. Bluesky handle strings are long and can easily lead to input errors.
+Because atproto is decentralized, one-button authentication like "Login with Bluesky" is not available, and you have to enter your handle each time you authenticate with a new service. Bluesky handle strings are often long and, unfortunately, prone to input errors. Furthermore, general password managers store credentials per URL. In atproto, where users often use multiple applications, adding each service's URL to a password manager one by one becomes a hassle.
 
-To solve this problem, we launched @passport as a mechanism that allows handles, once registered with @passport, to be reused across multiple atproto services.
+To solve this problem, we launched @passport as a mechanism that allows you to register your handle once and eliminate the need for manual handle entry across multiple atproto services.
 
-Only the "handle (e.g., @alice.bsky.social)" is stored on this server. Authentication information, including passwords, is never stored on this server, so you can use it with peace of mind.
+Only your "handle (e.g., @alice.bsky.social)" is stored on this server. Authentication information, including passwords and JWT tokens, is never stored on this server, so you can use it with peace of mind.
 
-## Two Ways to Use @passport
+# Two Ways to Use @passport
 
 This service can be used in two ways: "@passport Integration" by developers and "Browser Extension" by users.
 
-We have also prepared a sharing feature so that you can share your list of handles across multiple devices and browsers. The browser extension also automatically syncs with the browser you are using.
+We have also prepared a sharing feature to help you share your list of handles across multiple devices and browsers. The browser extension also automatically syncs with the browser you are using.
 
 | | @passport Integration | Browser Extension |
 | :--- | :--- | :--- |
-| Overview | Integrating features into the site | Installing into the browser |
-| Availability | Only on supported sites | All sites (works on non-ready sites) |
+| Overview | Developers integrate features into their site | Users install into their browser |
+| Availability | Only on supported sites | Works even without @passport integration |
 | Benefits | Seamless login experience | 1-tap handle input anywhere |
 | Main Method | Site-side development | [Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) / [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/atpassport/) |
 
@@ -32,9 +32,47 @@ We have also prepared a sharing feature so that you can share your list of handl
 
    Chrome and Firefox versions of the extension are available on the [Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) and [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/atpassport/) so that it can be used even on sites that do not yet support @passport. This extension assists only with handle input, much like a password manager app.
 
+# How to Use
+
+In either pattern, you must first register your handle on this site.
+
+## Registering a Handle
+1. Go to the [top page](https://atpassport.net).
+1. Tap the "+ Register handle" button.
+1. Enter your handle.
+1. Check the Terms of Service and Privacy Policy, then turn on the checkbox.
+1. Tap the "Add" button.
+
+If you have multiple handles, please repeat the above steps. Once registration is complete, you will no longer need to manually enter your handle in browser extensions or integrated apps.
+Please note that the maximum number of registered handles is 15.
+
+## Multi-device Support
+@passport provides a feature to share your handle list across multiple devices and browsers. This is called "Device Sharing." Once you perform this synchronization, any handle added in one browser will be reflected in others.
+
+Please note that this operation will overwrite the content stored in the destination browser.
+
+1. Go to the [top page](https://atpassport.net) on the source browser.
+1. Tap the "Device Sharing" button.
+1. Copy the URL and access it on the destination browser.
+1. Tap the "Sync with original device content" button on the destination browser.
+
+## Installing the Browser Extension
+
+The browser extension is currently available for Chrome and Firefox.
+
+1. Access the [Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) or [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/atpassport/).
+1. Click the "Add to Chrome" or "Add to Firefox" button.
+1. Follow the browser's instructions to complete the installation.
+
+In each application, use it as follows:
+
+1. On the screen where you enter your handle, tap the @passport extension.
+2. Tap the handle you wish to enter.
+3. Depending on the web app, the handle may be entered directly. If the @passport extension cannot recognize the handle input field, it will be copied to your clipboard, so please paste it yourself.
+
 ---
 
-## For Developers
+# For Developers
 @passport provides two handle input methods.
 
 ### 1. @passport Integration
@@ -49,7 +87,7 @@ It is also possible to implement cases where the scope differs depending on wher
 If you perform the redirection directly in step 2, you will be able to provide a more seamless login experience.
 
 ### 1-1. Using the Library
-We provide an official client library written in TypeScript to provide a more advanced and seamless experience (such as adding a "@passport Login" button).
+We provide an official client library written in TypeScript to provide a more advanced and seamless experience.
 
 ```bash
 npm install @atpassport/client
@@ -69,9 +107,7 @@ It is also possible to link handle information directly via HTTP redirect withou
 
    **Redirect Example:**
    ```url
-   https://atpassport.net/authentication
-     ?callback=https%3A%2F%2Fyour-app.com%2Fcallback
-     &atpstate=xyz123
+   https://atpassport.net/authentication?callback=https%3A%2F%2Fyour-app.com%2Fcallback&atpstate=xyz123
    ```
 
 2. **Handle Callback**
@@ -82,8 +118,8 @@ It is also possible to link handle information directly via HTTP redirect withou
    - `atpstate`: If provided during the request, the same string will be returned.
 
    **Callback Example:**
-   ```
-   https://your-app.com/callback?handle=user.bsky.social&did=did:plc:xxx&pdsurl=https://pds.example.com&atpstate=xyz123
+   ```url
+   https://your-app.com/callback?handle=alice.bsky.social&did=did%3Aplc%3Axxx&pdsurl=https%3A%2F%2Fpds.example.com&atpstate=xyz123
    ```
 
 Using these, you can provide a smooth login experience without requiring users to manually input their handles.

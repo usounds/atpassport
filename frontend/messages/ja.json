@@ -60,7 +60,7 @@
     "success": "@{handle} を登録しました"
   },
   "Nav": {
-    "about": "About",
+    "about": "@passportについて",
     "terms": "利用規約",
     "privacy": "プライバシー",
     "directory": "ドメイン",

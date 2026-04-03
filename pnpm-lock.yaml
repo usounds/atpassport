@@ -57,8 +57,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0(@atcute/identity@1.1.4)
       '@atpassport/client':
-        specifier: ^0.1.25
-        version: 0.1.25(react@19.2.4)
+        specifier: ^0.1.26
+        version: 0.1.26(react@19.2.4)
       '@aws-sdk/client-dynamodb':
         specifier: ^3.1023.0
         version: 3.1023.0
@@ -387,8 +387,8 @@ packages:
   '@atcute/varint@2.0.0':
     resolution: {integrity: sha512-CEY/oVK/nVpL4e5y3sdenLETDL6/Xu5xsE/0TupK+f0Yv8jcD60t2gD8SHROWSvUwYLdkjczLCSA7YrtnjCzWw==}
 
-  '@atpassport/client@0.1.25':
-    resolution: {integrity: sha512-BRAYeoxj4NNzyDlp5NUcNInh8lJG9GU+prD895VNoHSQFvGf/7CP1w+xiMQMSwUXcFrfJocgrd+uhrwlj/SPZQ==}
+  '@atpassport/client@0.1.26':
+    resolution: {integrity: sha512-PMKj2XOFFb31jyChiU0HD/GnKKCv/jvRXy9Yp+UIs5bMtfFfiG/rk6/EVj4GRmqEwQPM9HEQ2lpWZpUd+HeV2g==}
     peerDependencies:
       react: '>=18.0.0'
     peerDependenciesMeta:
@@ -5871,7 +5871,7 @@ snapshots:
 
   '@atcute/varint@2.0.0': {}
 
-  '@atpassport/client@0.1.25(react@19.2.4)':
+  '@atpassport/client@0.1.26(react@19.2.4)':
     optionalDependencies:
       react: 19.2.4
 
