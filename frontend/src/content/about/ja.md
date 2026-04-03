@@ -20,7 +20,7 @@ atprotoは分散型であるがゆえに、「Blueskyでログイン」のよう
 | | @passport連携 | ブラウザ拡張機能 |
 | :--- | :--- | :--- |
 | 概要 | 開発者がサイトに機能を組み込む | 利用者がブラウザにインストールする |
-| 対象サイト | 対応済みのサイトのみ | @passport連携の未対応でも動作 |
+| 対象サイト | 対応済みのサイトのみ | @passport連携の未対応サイトでも動作 |
 | メリット | シームレスなログイン体験 | ハンドルを1タップ入力 |
 | 主な方法 | サイト側の開発 | [Chrome ウェブストア](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) / [Firefox アドオン](https://addons.mozilla.org/ja/firefox/addon/atpassport/) |
 

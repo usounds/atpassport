@@ -21,7 +21,7 @@
     "@atcute/lex-cli": "^2.5.3",
     "@atcute/lexicons": "^1.2.9",
     "@atcute/oauth-browser-client": "^3.0.0",
-    "@atpassport/client": "^0.1.26",
+    "@atpassport/client": "workspace:*",
     "@aws-sdk/client-dynamodb": "^3.1023.0",
     "@aws-sdk/lib-dynamodb": "^3.1023.0",
     "@emotion/react": "^11.14.0",
