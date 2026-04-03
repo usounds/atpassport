@@ -28,7 +28,7 @@ export interface AtPassportOptions {
  * 
  * @template T The shape of required custom parameters, inferred from the constructor.
  */
-export class AtPassport<T extends Record<string, string> = Record<string, string>> {
+export class AtPassport {
   private readonly baseUrl: string;
   private readonly callbackUrl: string;
   private readonly lang?: 'en' | 'ja' | 'pt' | 'de' | 'fr' | 'es';
@@ -38,10 +38,9 @@ export class AtPassport<T extends Record<string, string> = Record<string, string
    * Creates a new instance of the AtPassport client.
    * @param options Configuration options for the client.
    * @param options.requiredParams An object defining required custom parameters. 
-   *                               The keys of this object will be enforced at compile time 
-   *                               and runtime.
+   *                               The keys of this object will be enforced at runtime.
    */
-  constructor(options: AtPassportOptions & { requiredParams?: T }) {
+  constructor(options: AtPassportOptions & { requiredParams?: Record<string, string> }) {
     this.baseUrl = (options.baseUrl || "https://atpassport.net").replace(/\/$/, "");
     this.callbackUrl = options.callbackUrl;
     this.lang = options.lang;
@@ -69,8 +68,6 @@ export class AtPassport<T extends Record<string, string> = Record<string, string
    * Generates a URL to redirect the user to the AtPassport handle selection screen.
    * 
    * @param customParams Key-value pairs to be passed through the callback.
-   *                     If `requiredParams` were defined in the constructor, 
-   *                     TypeScript will enforce those keys here.
    * @param options Additional options for generating the URL.
    * 
    * @returns An object containing:
@@ -78,12 +75,10 @@ export class AtPassport<T extends Record<string, string> = Record<string, string
    *          - `atpstate`: A unique CSRF state token prefixed with `atpstate-`.
    */
   generateAuthUrl(
-    ...args: [keyof T] extends [never] 
-      ? [customParams?: Record<string, string>, options?: { handle?: string }] 
-      : [customParams: Record<keyof T, string> & Record<string, string>, options?: { handle?: string }]
+    customParams?: Record<string, string>,
+    options?: { handle?: string }
   ): { url: string; atpstate: string } {
-    const [customParams, options] = args;
-    this._validateCustomParams(customParams as Record<string, string> | undefined);
+    this._validateCustomParams(customParams);
 
     const atpstate = `atpstate-${crypto.randomUUID()}`; // Prefixed as per user request
     const authPath = this.lang ? `${this.lang}/authentication` : 'authentication';
@@ -92,7 +87,7 @@ export class AtPassport<T extends Record<string, string> = Record<string, string
     const callback = new URL(this.callbackUrl);
     if (customParams) {
       for (const [key, value] of Object.entries(customParams)) {
-        callback.searchParams.set(key, value as string);
+        callback.searchParams.set(key, value);
       }
     }
 
@@ -114,12 +109,9 @@ export class AtPassport<T extends Record<string, string> = Record<string, string
    */
   generateAddUrl(
     handle: string, 
-    ...args: [keyof T] extends [never] 
-      ? [customParams?: Record<string, string>] 
-      : [customParams: Record<keyof T, string> & Record<string, string>]
+    customParams?: Record<string, string>
   ): { url: string; atpstate: string } {
-    const [customParams] = args;
-    this._validateCustomParams(customParams as Record<string, string> | undefined);
+    this._validateCustomParams(customParams);
 
     const atpstate = `atpstate-${crypto.randomUUID()}`; // Prefixed as per user request
     const addPath = this.lang ? `${this.lang}/add` : 'add';
@@ -128,7 +120,7 @@ export class AtPassport<T extends Record<string, string> = Record<string, string
     const callback = new URL(this.callbackUrl);
     if (customParams) {
       for (const [key, value] of Object.entries(customParams)) {
-        callback.searchParams.set(key, value as string);
+        callback.searchParams.set(key, value);
       }
     }
 

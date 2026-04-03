@@ -71,12 +71,12 @@ describe('AtPassport', () => {
       requiredParams: { apiKey: 'string', userId: 'string' } 
     });
 
-    // @ts-expect-error - testing runtime validation
+    // Testing runtime validation
     expect(() => passport.generateAuthUrl({ apiKey: '123' }))
       .toThrow('Missing required custom parameters: userId');
     
     // Testing runtime validation for empty strings
-    expect(() => passport.generateAuthUrl({ apiKey: '123', userId: ' ' } as unknown as Record<string, string>))
+    expect(() => passport.generateAuthUrl({ apiKey: '123', userId: ' ' }))
       .toThrow('Missing required custom parameters: userId');
   });
 
