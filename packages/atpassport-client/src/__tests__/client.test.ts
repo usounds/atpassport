@@ -7,9 +7,9 @@ describe('AtPassport', () => {
 
   beforeEach(() => {
     // Polyfill crypto.randomUUID for vitest environment
-    if (typeof crypto === 'undefined' || typeof (crypto as any).randomUUID !== 'function') {
-      const g = globalThis as any;
-      if (!g.crypto) g.crypto = {};
+    if (typeof crypto === 'undefined' || typeof (crypto as (typeof crypto & { randomUUID: unknown })).randomUUID !== 'function') {
+      const g = globalThis as unknown as { crypto: { randomUUID: () => string } };
+      if (!g.crypto) g.crypto = { randomUUID: () => '' };
       g.crypto.randomUUID = () => 'test-uuid-1234';
     }
 
@@ -76,7 +76,7 @@ describe('AtPassport', () => {
       .toThrow('Missing required custom parameters: userId');
     
     // Testing runtime validation for empty strings
-    expect(() => passport.generateAuthUrl({ apiKey: '123', userId: ' ' } as any))
+    expect(() => passport.generateAuthUrl({ apiKey: '123', userId: ' ' } as unknown as Record<string, string>))
       .toThrow('Missing required custom parameters: userId');
   });
 

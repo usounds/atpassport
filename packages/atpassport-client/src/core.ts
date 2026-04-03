@@ -28,7 +28,7 @@ export interface AtPassportOptions {
  * 
  * @template T The shape of required custom parameters, inferred from the constructor.
  */
-export class AtPassport<T extends Record<string, any> = {}> {
+export class AtPassport<T extends Record<string, string> = Record<string, string>> {
   private readonly baseUrl: string;
   private readonly callbackUrl: string;
   private readonly lang?: 'en' | 'ja' | 'pt' | 'de' | 'fr' | 'es';
