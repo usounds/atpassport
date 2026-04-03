@@ -1,7 +1,7 @@
 # @atpassport/client
 
-[@passport](https://atpassport.net) は、atproto エコシステム向けの認証プロバイダーです。
-このクライアントライブラリを使うことで、あなたのアプリケーション（ブラウザ拡張機能やWebアプリ）に、@passport を利用した「ハンドル入力のアシスト機能」を簡単に組み込むことができます。
+[@passport](https://atpassport.net) は、atproto エコシステム向けの各アプリケーションでハンドル入力を不要とするためのサービスです。
+このクライアントライブラリを使うことで、あなたのWebアプリに、@passport を利用した「ハンドル入力のアシスト機能」を組み込むことができます。
 
 *For the English documentation, please see [README.md](./README.md).*
 
