@@ -1,7 +1,7 @@
 # @atpassport/client
 
-[@passport](https://atpassport.net) is an authentication provider tailored for the atproto ecosystem.
-Using this client library, you can easily integrate a @passport-powered "handle input assist feature" into your applications (such as browser extensions or web apps) with an OAuth-like flow.
+[@passport](https://atpassport.net) is a service designed to eliminate the need for handle entry across applications in the atproto ecosystem.
+Using this client library, you can integrate a @passport-powered "handle input assist feature" into your web applications.
 
 *For the Japanese documentation, please see [README_ja.md](./README_ja.md).*
 
@@ -67,14 +67,14 @@ export async function GET(req: Request) {
 
 ## Standard UI Texts and Icons for Integration
 
-To make it easy for developers to build consistent "Login with @passport" buttons and dialogs, the client library exports standard texts and an SVG icon via the `AtPassportUI` constant.
+To make it easy for developers to build consistent "Login with @passport" buttons, the client library exports multi-language standard texts and an SVG icon constant `AtPassportUI`.
 
 ```typescript
 import { AtPassportUI } from '@atpassport/client/ui';
 
 // English translations
 console.log(AtPassportUI.en.title); // "Login with @passport"
-console.log(AtPassportUI.en.description); // "@passport is a handle manager that eliminates the need for handle entry..."
+console.log(AtPassportUI.en.description); // "@passport is a handle manager that eliminates the need for handle entry across atproto apps."
 
 // Japanese translations
 console.log(AtPassportUI.ja.title); // "@passportでログイン"
@@ -102,4 +102,4 @@ When @passport redirects back to your `callbackUrl`, the following information w
 - **`pdsurl`**: The endpoint URL of the user's Personal Data Server (PDS).
 - **`atpstate`**: The state string automatically generated for CSRF protection via `generateAuthUrl()`.
 
-*Note: With the standard flow using `@atpassport/client` (`generateAuthUrl` → `parseCallback`), @passport securely appends parameters like `&handle=...` as standardized URL queries. This allows you to simply and securely receive all information using `parseCallback()` without manually formatting placeholders.*
+*Note: In the standard `generateAuthUrl` → `parseCallback` flow using `@atpassport/client`, @passport securely appends information as standard query parameters (e.g., `&handle=...`). By using `parseCallback()`, you can easily receive all these parameters.*
