@@ -170,7 +170,7 @@ export function DeveloperPortal({
       baseUrl: window.location.origin,
       lang: locale as 'en' | 'ja' | 'pt' | 'de' | 'fr' | 'es'
     });
-    const { url } = atp.generateAuthUrl();
+    const { url } = atp.generateAuthUrl({});
     window.location.href = url;
   };
 
