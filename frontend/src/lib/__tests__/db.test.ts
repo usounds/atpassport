@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { db, SESSION_TABLE_NAME } from '../db';
+import { db, SESSION_TABLE_NAME, VERIFIED_DOMAINS_TABLE_NAME } from '../db';
 import { PutCommand, GetCommand, DeleteCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 describe('Database Library (Stub)', () => {
@@ -59,5 +59,103 @@ describe('Database Library (Stub)', () => {
       Key: { uuid: 'u1', did: 'd1' }
     }));
     expect(deleted.Item).toBeUndefined();
+  });
+
+  it('should handle Query with isPublic filter and sorting', async () => {
+    const table = VERIFIED_DOMAINS_TABLE_NAME;
+    await db.send(new PutCommand({ TableName: table, Item: { domain: 'a.com', isPublic: true, verifiedAt: '2023-01-01' } }));
+    await db.send(new PutCommand({ TableName: table, Item: { domain: 'b.com', isPublic: false, verifiedAt: '2023-01-02' } }));
+    await db.send(new PutCommand({ TableName: table, Item: { domain: 'c.com', isPublic: true, verifiedAt: '2023-01-03' } }));
+
+    // Query isPublic: true
+    const publicResult = await db.send(new QueryCommand({
+      TableName: table,
+      ExpressionAttributeValues: { ':true': true }
+    }));
+    expect(publicResult.Items).toHaveLength(2);
+
+    // Query with sorting (ScanIndexForward: false)
+    const sortedResult = await db.send(new QueryCommand({
+      TableName: table,
+      ExpressionAttributeValues: { ':true': true },
+      ScanIndexForward: false
+    }));
+    expect(sortedResult.Items![0].domain).toBe('c.com');
+    expect(sortedResult.Items![1].domain).toBe('a.com');
+
+    // Sorting with missing verifiedAt
+    await db.send(new PutCommand({ TableName: table, Item: { domain: 'no-date.com', isPublic: true } }));
+    await db.send(new QueryCommand({
+      TableName: table,
+      ExpressionAttributeValues: { ':true': true },
+      ScanIndexForward: false
+    }));
+
+    // Query with did
+    const didResult = await db.send(new QueryCommand({
+      TableName: table,
+      ExpressionAttributeValues: { ':did': 'did:1' }
+    }));
+    // Item did:1 should match either did or verifiedByDid in the stub
+    expect(didResult.Items).toBeDefined();
+
+    // Query with verifiedByDid
+    const verifiedResult = await db.send(new QueryCommand({
+      TableName: table,
+      ExpressionAttributeValues: { ':verifiedByDid': 'did:1' }
+    }));
+    expect(verifiedResult.Items).toBeDefined();
+  });
+
+  it('should handle Update with unusual expressions', async () => {
+    const table = SESSION_TABLE_NAME;
+    await db.send(new PutCommand({ TableName: table, Item: { uuid: 'u2', did: 'd2', val: 1 } }));
+
+    // Update with hash prefix in attribute name
+    await db.send(new UpdateCommand({
+      TableName: table,
+      Key: { uuid: 'u2', did: 'd2' },
+      UpdateExpression: 'SET #v = :v',
+      ExpressionAttributeNames: { '#v': 'val' },
+      ExpressionAttributeValues: { ':v': 10 }
+    }));
+    
+    const res = await db.send(new GetCommand({ TableName: table, Key: { uuid: 'u2', did: 'd2' } }));
+    expect(res.Item.val).toBe(10);
+
+    // Invalid expression format (no SET)
+    await db.send(new UpdateCommand({
+      TableName: table,
+      Key: { uuid: 'u2', did: 'd2' },
+      UpdateExpression: 'INVALID'
+    }));
+
+    // Invalid assignment format (no =)
+    await db.send(new UpdateCommand({
+      TableName: table,
+      Key: { uuid: 'u2', did: 'd2' },
+      UpdateExpression: 'SET invalid_assignment',
+      ExpressionAttributeNames: { '#v': 'val' },
+      ExpressionAttributeValues: { ':v': 10 }
+    }));
+
+    // Item not found in Update
+    await db.send(new UpdateCommand({
+      TableName: table,
+      Key: { uuid: 'nonexistent', did: 'none' },
+      UpdateExpression: 'SET foo = bar'
+    }));
+  });
+
+  it('should throw error if not in local dev or real error occurs', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    await expect(db.send(new GetCommand({ TableName: 'any', Key: {} }))).rejects.toThrow();
+
+    // Reset env
+    vi.stubEnv('NODE_ENV', 'development');
+    // Use mockRejectedValueOnce for async error
+    const sendSpy = vi.spyOn(db, 'send').mockRejectedValueOnce(new Error('Unknown Error'));
+    await expect(db.send(new GetCommand({ TableName: 'any', Key: {} }))).rejects.toThrow('Unknown Error');
+    sendSpy.mockRestore();
   });
 });

@@ -43,6 +43,16 @@ describe('Security Library', () => {
     it('should reject banned domains', () => {
       expect(verifyDomain('evil.example.com', ['evil.example.com']).verified).toBe(false);
     });
+
+    it('should skip infrastructure domains during handle verification', () => {
+      // If a user has handle "user.bsky.social", it should NOT verify "bsky.social" or "*.bsky.social"
+      const result = verifyDomain('bsky.social', ['user.bsky.social']);
+      expect(result.verified).toBe(false);
+      expect(result.reason).toBe('unverified');
+
+      const result2 = verifyDomain('my.bsky.social', ['user.bsky.social']);
+      expect(result2.verified).toBe(false);
+    });
   });
 
   describe('Database Operations', () => {

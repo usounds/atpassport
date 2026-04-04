@@ -8,7 +8,8 @@ import {
   claimDomainOwnership,
   withdrawDomain,
   updateDomainSettings,
-  removeAssociation
+  removeAssociation,
+  setPrimaryAssociation
 } from '../actions';
 import { getSessionUuid, createSessionToken, SESSION_COOKIE_NAME } from '../session';
 import { getAssociations, addAssociation, updateAssociation, deleteAssociation, type AssociationWithProfile } from '../models';
@@ -55,6 +56,7 @@ describe('Actions Library', () => {
       vi.mocked(getAssociations).mockResolvedValue([
         { did: mockDid, handle: 'user.com' } as AssociationWithProfile
       ]);
+      vi.mocked(verifyDomainInDb).mockResolvedValue({} as any);
 
       const result = await claimDomainOwnership(mockDid);
 
@@ -98,6 +100,20 @@ describe('Actions Library', () => {
       const result = await claimDomainOwnership(mockDid);
       expect(result.success).toBe(false);
     });
+
+    it('should fail if verifyDomainInDb throws error', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: mockDid, handle: 'user.com' } as AssociationWithProfile
+      ]);
+      vi.mocked(verifyDomainInDb).mockRejectedValue(new Error('DB Error'));
+
+      const result = await claimDomainOwnership(mockDid);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Internal server error');
+      expect(console.error).toHaveBeenCalled();
+    });
   });
 
 
@@ -108,6 +124,7 @@ describe('Actions Library', () => {
       vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
         domain, verifiedByDid: mockDid, status: 'approved', verifiedAt: 't'
       });
+      vi.mocked(deleteVerifiedDomainFromDb).mockResolvedValue({} as any);
 
       const result = await withdrawDomain(domain, mockDid);
 
@@ -124,6 +141,22 @@ describe('Actions Library', () => {
       expect(result.success).toBe(false);
       expect(result.error).toBe('Unauthorized or domain not found');
     });
+
+    it('should fail if domain not found', async () => {
+      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue(null);
+      const result = await withdrawDomain(domain, mockDid);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Unauthorized or domain not found');
+    });
+
+    it('should handle errors during withdrawal', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(getVerifiedDomainFromDb).mockRejectedValue(new Error('DB Error'));
+      const result = await withdrawDomain(domain, mockDid);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Internal server error');
+      expect(console.error).toHaveBeenCalled();
+    });
   });
 
   describe('updateDomainSettings', () => {
@@ -132,11 +165,29 @@ describe('Actions Library', () => {
       vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
         domain, verifiedByDid: mockDid, status: 'approved', verifiedAt: 't', method: 'file'
       });
+      vi.mocked(verifyDomainInDb).mockResolvedValue({} as any);
 
       const result = await updateDomainSettings(domain, mockDid, false);
 
       expect(result.success).toBe(true);
       expect(verifyDomainInDb).toHaveBeenCalledWith(domain, mockDid, false, 'file');
+    });
+
+    it('should fail if unauthorized in updateDomainSettings', async () => {
+      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
+        domain: 'd', verifiedByDid: 'other', status: 'approved', verifiedAt: 't'
+      });
+      const result = await updateDomainSettings('d', mockDid, true);
+      expect(result.success).toBe(false);
+    });
+
+    it('should handle errors in updateDomainSettings', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(getVerifiedDomainFromDb).mockRejectedValue(new Error('DB Error'));
+      const result = await updateDomainSettings('d', mockDid, true);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Internal server error');
+      expect(console.error).toHaveBeenCalled();
     });
   });
 
@@ -174,6 +225,18 @@ describe('Actions Library', () => {
       });
     });
 
+    it('should fail if pdsUrl is missing in identity', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      // pdsUrl is empty, which should trigger the early return
+      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:plc:existing', handle: 'new.handle', pdsUrl: '' });
+      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:plc:existing', handle: 'old.handle' } as AssociationWithProfile]);
+
+      const result = await registerHandle(mockHandle);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Handle not found or missing PDS');
+    });
+
     it('should return error if handle resolution fails', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(resolveIdentity).mockResolvedValue(null);
@@ -190,6 +253,29 @@ describe('Actions Library', () => {
     });
   });
 
+  describe('setPrimaryAssociation', () => {
+    it('should set primary association correctly', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: 'did:1', isPrimary: true } as AssociationWithProfile,
+        { did: 'did:2', isPrimary: false } as AssociationWithProfile,
+      ]);
+
+      await setPrimaryAssociation('did:2');
+
+      // did:2 should become primary
+      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:2', { isPrimary: true });
+      // did:1 should stop being primary
+      expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:1', { isPrimary: false });
+    });
+
+    it('should skip if not authorized or no session', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(null);
+      await setPrimaryAssociation(mockDid);
+      expect(getAssociations).not.toHaveBeenCalled();
+    });
+  });
+
   describe('refreshAssociation', () => {
     it('should update on success', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
@@ -202,41 +288,6 @@ describe('Actions Library', () => {
       vi.mocked(isRateLimited).mockReturnValue(true);
       await refreshAssociation(mockDid);
       expect(updateAssociation).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('syncWithToken', () => {
-    it('should return error if token invalid', async () => {
-      vi.mocked(getUuidByShareToken).mockResolvedValue(null);
-      const result = await syncWithToken('invalid');
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('invalid_token');
-    });
-  });
-
-  describe('initializeSession', () => {
-    it('should return early if uuid exists', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue('existing');
-      const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
-      await initializeSession();
-      expect(mockCookieSet).not.toHaveBeenCalled();
-    });
-
-    it('should retry if UUID collision occurs', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(null);
-      // First call returns existing, second returns empty (no collision)
-      vi.mocked(getAssociations)
-        .mockResolvedValueOnce([{ did: 'did:1' } as AssociationWithProfile])
-        .mockResolvedValueOnce([]);
-      
-      const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
-
-      await initializeSession();
-
-      expect(getAssociations).toHaveBeenCalledTimes(2);
-      expect(mockCookieSet).toHaveBeenCalled();
     });
   });
 
@@ -266,10 +317,43 @@ describe('Actions Library', () => {
       expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:plc:1', { sortOrder: 1 });
       expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:plc:2', { sortOrder: 0 });
     });
+
+    it('should do nothing if DID not found', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([]);
+      await moveAssociation('nonexistent', 'up');
+      expect(updateAssociation).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing if moving up from index 0', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: 'did:plc:1', sortOrder: 0 } as AssociationWithProfile,
+      ]);
+      await moveAssociation('did:plc:1', 'up');
+      expect(updateAssociation).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing if moving down from last index', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: 'did:plc:1', sortOrder: 0 } as AssociationWithProfile,
+      ]);
+      await moveAssociation('did:plc:1', 'down');
+      expect(updateAssociation).not.toHaveBeenCalled();
+    });
   });
 
   describe('syncWithToken', () => {
+    it('should return error if rate limited', async () => {
+      vi.mocked(isRateLimited).mockReturnValue(true);
+      const result = await syncWithToken('token');
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Too many requests');
+    });
+
     it('should return error if token invalid', async () => {
+      vi.mocked(isRateLimited).mockReturnValue(false);
       vi.mocked(getUuidByShareToken).mockResolvedValue(null);
       const result = await syncWithToken('invalid');
       expect(result.success).toBe(false);
@@ -277,6 +361,7 @@ describe('Actions Library', () => {
     });
 
     it('should set session cookie if token is valid', async () => {
+      vi.mocked(isRateLimited).mockReturnValue(false);
       vi.mocked(getUuidByShareToken).mockResolvedValue('target-uuid');
       vi.mocked(createSessionToken).mockResolvedValue('session-token');
       const mockCookieSet = vi.fn();
@@ -290,7 +375,42 @@ describe('Actions Library', () => {
   });
 
   describe('initializeSession', () => {
+    it('should skip if rate limited', async () => {
+      vi.mocked(isRateLimited).mockReturnValue(true);
+      await initializeSession();
+      expect(getSessionUuid).not.toHaveBeenCalled();
+    });
+
+    it('should return early if uuid exists', async () => {
+      vi.mocked(isRateLimited).mockReturnValue(false);
+      vi.mocked(getSessionUuid).mockResolvedValue('existing');
+      const mockCookieSet = vi.fn();
+      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
+      await initializeSession();
+      expect(mockCookieSet).not.toHaveBeenCalled();
+    });
+
+    it('should retry if UUID collision occurs and eventually succeed', async () => {
+      vi.mocked(isRateLimited).mockReturnValue(false);
+      vi.mocked(getSessionUuid).mockResolvedValue(null);
+      // Collide 3 times, then succeed
+      vi.mocked(getAssociations)
+        .mockResolvedValueOnce([{ did: 'did:1' } as AssociationWithProfile])
+        .mockResolvedValueOnce([{ did: 'did:2' } as AssociationWithProfile])
+        .mockResolvedValueOnce([{ did: 'did:3' } as AssociationWithProfile])
+        .mockResolvedValueOnce([]);
+      
+      const mockCookieSet = vi.fn();
+      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
+
+      await initializeSession();
+
+      expect(getAssociations).toHaveBeenCalledTimes(4);
+      expect(mockCookieSet).toHaveBeenCalled();
+    });
+
     it('should set a new session cookie if none exists', async () => {
+      vi.mocked(isRateLimited).mockReturnValue(false);
       vi.mocked(getSessionUuid).mockResolvedValue(null);
       vi.mocked(getAssociations).mockResolvedValue([]);
       vi.mocked(createSessionToken).mockResolvedValue('new-token');
@@ -300,6 +420,22 @@ describe('Actions Library', () => {
       await initializeSession();
 
       expect(mockCookieSet).toHaveBeenCalledWith(SESSION_COOKIE_NAME, 'new-token', expect.any(Object));
+    });
+
+    it('should eventually stop retrying in initializeSession if collision continues', async () => {
+      vi.mocked(isRateLimited).mockReturnValue(false);
+      vi.mocked(getSessionUuid).mockResolvedValue(null);
+      // Always return associations (collision)
+      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:1' } as AssociationWithProfile]);
+      
+      const mockCookieSet = vi.fn();
+      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
+
+      await initializeSession();
+
+      // Should have attempted 5 times in the while loop (attempts 0 to 4)
+      expect(getAssociations).toHaveBeenCalledTimes(5);
+      expect(mockCookieSet).toHaveBeenCalled();
     });
   });
 
