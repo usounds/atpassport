@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Modal, Button, Stack, Text, Group, ActionIcon, Tooltip, Center, Box, Loader, Badge, Paper } from '@mantine/core';
+import { Modal, Button, Stack, Text, Group, ActionIcon, Tooltip, Center, Box, Loader, Paper } from '@mantine/core';
 import { QRCodeSVG } from 'qrcode.react';
 import { IconCopy, IconCheck, IconDeviceMobile } from '@tabler/icons-react';
 import { useTranslations, useLocale } from 'next-intl';
@@ -101,7 +101,17 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
                 border: '4px solid var(--mantine-color-blue-0)'
               }}
             >
-              <QRCodeSVG value={shareUrl} size={180} includeMargin={false} />
+                <QRCodeSVG 
+                  value={shareUrl} 
+                  size={180} 
+                  includeMargin={false} 
+                  imageSettings={{
+                    src: '/icon128.svg',
+                    height: 40,
+                    width: 40,
+                    excavate: true,
+                  }}
+                />
             </Paper>
             
             <Stack gap={4} align="center">
@@ -139,15 +149,13 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
                 </Tooltip>
               </Group>
 
-              <Center>
-                <Badge 
-                  variant="light" 
-                  color="orange" 
-                  size="sm"
-                  leftSection={<IconDeviceMobile size={12} />}
-                >
-                  {t('expiryNotice')} ({formatTime(timeLeft)})
-                </Badge>
+              <Center mt="xs">
+                <Group gap={6} align="center">
+                  <IconDeviceMobile size={14} style={{ color: 'var(--mantine-color-orange-6)' }} />
+                  <Text size="xs" fw={500} c="orange.8" title={t('expiryNotice')}>
+                    {t('expiryNotice')} ({formatTime(timeLeft)})
+                  </Text>
+                </Group>
               </Center>
             </Stack>
           </Stack>
