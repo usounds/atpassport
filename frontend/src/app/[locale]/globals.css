@@ -115,3 +115,15 @@ body {
   background-color: light-dark(var(--mantine-color-blue-0), rgba(0, 133, 255, 0.05)) !important;
   box-shadow: var(--mantine-shadow-sm);
 }
+
+.responsive-content-paper {
+  border: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+@media (max-width: 48em) {
+  .responsive-content-paper {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}
