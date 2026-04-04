@@ -28,7 +28,7 @@ We have also prepared a sharing feature to help you share your list of handles a
 
    Allows for a "@passport Login" button. While this site only provides the functionality to return the handle back to each site, depending on the site's implementation, a seamless OAuth authentication flow can be achieved.
 
-1. Browser Extension
+2. Browser Extension
 
    Chrome and Firefox versions of the extension are available on the [Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) and [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/atpassport/) so that it can be used even on sites that do not yet support @passport. This extension assists only with handle input, much like a password manager app.
 
@@ -38,13 +38,14 @@ In either pattern, you must first register your handle on this site.
 
 ## Registering a Handle
 1. Go to the [top page](https://atpassport.net).
-1. Tap the "+ Register handle" button.
-1. Enter your handle.
-1. Check the Terms of Service and Privacy Policy, then turn on the checkbox.
-1. Tap the "Add" button.
+2. Tap the "+ Register handle" button.
+3. Enter your handle.
+4. Check the Terms of Service and Privacy Policy, then turn on the checkbox.
+5. Tap the "Add" button.
 
 If you have multiple handles, please repeat the above steps. Once registration is complete, you will no longer need to manually enter your handle in browser extensions or integrated apps.
-Please note that the maximum number of registered handles is 15.
+
+Please note that the maximum number of registered handles is 15; you cannot register more than that.
 
 ## Multi-device Support
 @passport provides a feature to share your handle list across multiple devices and browsers. This is called "Device Sharing." Once you perform this synchronization, any handle added in one browser will be reflected in others.
@@ -52,23 +53,31 @@ Please note that the maximum number of registered handles is 15.
 Please note that this operation will overwrite the content stored in the destination browser.
 
 1. Go to the [top page](https://atpassport.net) on the source browser.
-1. Tap the "Device Sharing" button.
-1. Copy the URL and access it on the destination browser.
-1. Tap the "Sync with original device content" button on the destination browser.
+2. Tap the "Device Sharing" button.
+3. Copy the URL and access it on the destination browser.
+4. Tap the "Sync with original device content" button on the destination browser.
 
 ## Installing the Browser Extension
 
 The browser extension is currently available for Chrome and Firefox.
 
 1. Access the [Chrome Web Store](https://chrome.google.com/webstore/detail/ollhnghmplgpoebaceomdaigpkihpfkn) or [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/atpassport/).
-1. Click the "Add to Chrome" or "Add to Firefox" button.
-1. Follow the browser's instructions to complete the installation.
+2. Click the "Add to Chrome" or "Add to Firefox" button.
+3. Follow the browser's instructions to complete the installation.
 
 In each application, use it as follows:
 
 1. On the screen where you enter your handle, tap the @passport extension.
 2. Tap the handle you wish to enter.
 3. Depending on the web app, the handle may be entered directly. If the @passport extension cannot recognize the handle input field, it will be copied to your clipboard, so please paste it yourself.
+
+## Updating Metadata
+
+If you change your handle or move your PDS, you will need to "Update Metadata."
+
+1. Go to the [top page](https://atpassport.net).
+2. Tap the three-dot menu icon next to the handle you want to update.
+3. Tap "Update Metadata."
 
 ---
 
