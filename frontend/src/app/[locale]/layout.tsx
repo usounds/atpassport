@@ -81,9 +81,7 @@ export const viewport: Viewport = {
   themeColor: '#000000',
 };
 
-const theme = createTheme({
-  // Use default Mantine theme
-});
+import { MantineThemeProvider } from '@/providers/MantineThemeProvider';
 
 export default async function RootLayout({
   children,
@@ -104,7 +102,7 @@ export default async function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <NextIntlClientProvider messages={messages}>
-          <MantineProvider theme={theme} defaultColorScheme={colorScheme}>
+          <MantineThemeProvider defaultColorScheme={colorScheme}>
             <NextTopLoader color="#58A7F6" showSpinner={false} height={3} />
             <Notifications position="top-right" zIndex={1000} />
             <Stack gap={0} style={{ minHeight: '100vh' }}>
@@ -114,7 +112,7 @@ export default async function RootLayout({
               </main>
               <Footer />
             </Stack>
-          </MantineProvider>
+          </MantineThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

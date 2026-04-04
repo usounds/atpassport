@@ -1,9 +1,10 @@
 'use client';
 
-import { Stepper, Button, Group, TextInput, Text, Stack, Paper, Box, Alert, Code, CopyButton, ActionIcon, Tooltip, Checkbox, Badge } from '@mantine/core';
+import { Stepper, Button, Group, TextInput, Text, Stack, Paper, Box, Alert, Code, CopyButton, ActionIcon, Tooltip, Checkbox } from '@mantine/core';
 import { IconCircleCheck, IconFileCheck, IconCopy, IconCheck, IconInfoCircle } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { CustomBadge } from '@/components/CustomBadge';
 
 interface VerifyDomainStepperProps {
   did: string;
@@ -54,14 +55,13 @@ export function VerifyDomainStepper({ did, handle, isHandleVerified, onVerifyOAu
                 }}
               >
                 {isHandleVerified && (
-                  <Badge 
-                    size="sm" 
+                  <CustomBadge 
                     variant="filled" 
                     color="green" 
                     style={{ position: 'absolute', top: 10, right: 10 }}
                   >
                     {t('already_verified_badge')}
-                  </Badge>
+                  </CustomBadge>
                 )}
                 <Stack align="center" gap="sm">
                   <IconCircleCheck size={32} color={isHandleVerified ? 'var(--mantine-color-gray-5)' : 'var(--mantine-color-blue-filled)'} />
