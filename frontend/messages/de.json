@@ -69,7 +69,7 @@
   },
   "Share": {
     "title": "Mit anderen\nGeräten teilen",
-    "description": "Scannen Sie den QR-Code oder kopieren Sie die URL, um die gleichen Handles auf anderen Geräten zu aktivieren.",
+    "description": "Scannen Sie den QR-Code auf dem Zielgerät oder teilen Sie die folgende URL.",
     "generate": "Freigabelink erstellen",
     "expiryNotice": "Dieser Link ist 5 Minuten lang gültig.",
     "rateLimitExceeded": "Zu viele Freigabelinks in kurzer Zeit erstellt. Bitte warten Sie eine Minute und versuchen Sie es erneut.",

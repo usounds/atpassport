@@ -18,9 +18,14 @@ export default async function PrivacyPage({
   const { data, content } = await getMarkdownContent('privacy', locale);
 
   return (
-    <Container size="sm" py="xl">
+    <Container size="sm" py={{ base: 'md', sm: 'xl' }}>
       <Stack gap="xl">
-        <Paper withBorder p="xl" radius="md" shadow="sm">
+        <Paper 
+          p={{ base: 'md', sm: 'xl' }} 
+          radius="md" 
+          shadow="sm"
+          className="responsive-content-paper"
+        >
           <Stack gap="lg">
             <div>
               <Title order={2}>{data.title}</Title>

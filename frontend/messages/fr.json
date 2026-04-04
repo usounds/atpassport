@@ -69,7 +69,7 @@
   },
   "Share": {
     "title": "Partager avec\nd'autres appareils",
-    "description": "Scannez le code QR ou copiez l'URL pour activer les mêmes handles sur d'autres appareils.",
+    "description": "Scannez le code QR sur l'appareil cible ou partagez l'URL ci-dessous.",
     "generate": "Générer un lien de partage",
     "expiryNotice": "Ce lien est valide pendant 5 minutes.",
     "rateLimitExceeded": "Trop de liens de partage créés en peu de temps. Veuillez patienter une minute et réessayer.",
