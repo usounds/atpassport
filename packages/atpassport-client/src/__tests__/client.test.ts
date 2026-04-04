@@ -108,4 +108,11 @@ describe('AtPassport', () => {
     
     expect(() => passport.parseCallback(testUrl, 'wrong-state')).toThrow('Invalid atpstate: CSRF validation failed.');
   });
+
+  it('throws on missing atpstate', () => {
+    const passport = new AtPassport({ callbackUrl });
+    const testUrl = 'https://app.com/callback?handle=alice.bsky.social';
+    
+    expect(() => passport.parseCallback(testUrl)).toThrow('Missing atpstate: CSRF token is required.');
+  });
 });

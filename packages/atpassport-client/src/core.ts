@@ -146,7 +146,7 @@ export class AtPassport {
     handle: string | null;
     did: string | null;
     pdsUrl: string | null;
-    atpstate: string | null;
+    atpstate: string;
     customParams: Record<string, string>;
   } {
     const url = new URL(currentUrl);
@@ -161,6 +161,9 @@ export class AtPassport {
     const did = url.searchParams.get("did");
     const pdsUrl = url.searchParams.get("pdsurl");
     const atpstate = url.searchParams.get("atpstate");
+    if (!atpstate) {
+      throw new Error("Missing atpstate: CSRF token is required.");
+    }
 
     if (expectedState && atpstate !== expectedState) {
       throw new Error("Invalid atpstate: CSRF validation failed.");
