@@ -150,8 +150,7 @@ describe('AuthAccountList', () => {
     render(<AuthAccountList initialItems={mockItems} domain="example.com" callback="https://callback.com" />);
     
     // Open menu for the first item
-    const menuButtons = screen.getAllByRole('button');
-    // The first menu button is at index 0 (assuming no other buttons before it)
+    const menuButtons = screen.getAllByRole('button').filter(btn => btn.querySelector('svg.tabler-icon-dots-vertical'));
     fireEvent.click(menuButtons[0]);
 
     // Click delete in menu (it might be in a portal, so use findByText)
@@ -173,7 +172,7 @@ describe('AuthAccountList', () => {
   it('cancels deletion when cancel button is clicked', async () => {
     render(<AuthAccountList initialItems={mockItems} domain="example.com" callback="https://callback.com" />);
     
-    const menuButtons = screen.getAllByRole('button');
+    const menuButtons = screen.getAllByRole('button').filter(btn => btn.querySelector('svg.tabler-icon-dots-vertical'));
     fireEvent.click(menuButtons[0]);
 
     const deleteButton = await screen.findByText('Delete');
@@ -186,5 +185,51 @@ describe('AuthAccountList', () => {
       expect(screen.queryByText('Confirm Delete')).not.toBeInTheDocument();
     });
     expect(actions.removeAssociation).not.toHaveBeenCalled();
+  });
+
+  it('calls moveAssociation up when move up is clicked', async () => {
+    render(<AuthAccountList initialItems={mockItems} domain="example.com" callback="https://callback.com" />);
+    
+    const menuButtons = screen.getAllByRole('button').filter(btn => btn.querySelector('svg.tabler-icon-dots-vertical'));
+    
+    fireEvent.click(menuButtons[1]); // Second item
+    const moveUpButton = await screen.findByText(/Move Up/i);
+    fireEvent.click(moveUpButton);
+    expect(actions.moveAssociation).toHaveBeenCalledWith('did:plc:2', 'up');
+  });
+
+  it('calls moveAssociation down when move down is clicked', async () => {
+    render(<AuthAccountList initialItems={mockItems} domain="example.com" callback="https://callback.com" />);
+    
+    const menuButtons = screen.getAllByRole('button').filter(btn => btn.querySelector('svg.tabler-icon-dots-vertical'));
+    
+    fireEvent.click(menuButtons[0]); // First item
+    const moveDownButton = await screen.findByText(/Move Down/i);
+    fireEvent.click(moveDownButton);
+    expect(actions.moveAssociation).toHaveBeenCalledWith('did:plc:1', 'down');
+  });
+
+  it('calls refreshAssociation when refresh metadata is clicked', async () => {
+    render(<AuthAccountList initialItems={mockItems} domain="example.com" callback="https://callback.com" />);
+    
+    const menuButtons = screen.getAllByRole('button').filter(btn => btn.querySelector('svg.tabler-icon-dots-vertical'));
+    fireEvent.click(menuButtons[0]);
+
+    const refreshButton = await screen.findByText('Refresh Metadata');
+    fireEvent.click(refreshButton);
+    expect(actions.refreshAssociation).toHaveBeenCalledWith('did:plc:1');
+  });
+
+  it('uses fallback for missing profile information', () => {
+    const itemWithNoProfile: AssociationWithProfile[] = [{
+      did: 'did:plc:3',
+      handle: 'noprofile.test',
+      pdsUrl: 'https://pds.com',
+      verifiedAt: '2023-01-01',
+    }];
+    render(<AuthAccountList initialItems={itemWithNoProfile} domain="example.com" callback="https://callback.com" />);
+    
+    expect(screen.getByText('@noprofile.test')).toBeInTheDocument();
+    // displayName falls back to handle in AssociationItem
   });
 });

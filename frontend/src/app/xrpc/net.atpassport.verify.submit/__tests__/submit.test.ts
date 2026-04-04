@@ -180,4 +180,32 @@ describe('XRPC: net.atpassport.verify.submit', () => {
     expect(data.success).toBe(false);
     expect(data.error).toBe('Identity not found');
   });
+
+  it('should fail if fetch response is not ok', async () => {
+    vi.mocked(verifyServiceAuth).mockResolvedValue(mockDid);
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 404,
+    } as Response);
+
+    const request = new Request('https://example.com/xrpc/net.atpassport.verify.submit', {
+      method: 'POST',
+      body: JSON.stringify({ domain: 'notfound.com' }),
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+    expect(data.success).toBe(false);
+    expect(data.error).toContain('Status: 404');
+  });
+
+  it('should return 500 if an unexpected error occurs', async () => {
+    vi.mocked(verifyServiceAuth).mockRejectedValue(new Error('Fatal Server Error'));
+    const request = new Request('https://example.com/xrpc/net.atpassport.verify.submit', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+    const response = await POST(request);
+    expect(response.status).toBe(500);
+  });
 });

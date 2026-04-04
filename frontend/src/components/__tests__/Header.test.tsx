@@ -1,17 +1,23 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@/test/utils';
 import { Header } from '../Header';
 import { useMantineColorScheme } from '@mantine/core';
 import { useRouter } from '@/i18n/routing';
+import { useSearchParams } from 'next/navigation';
 
 // Mock routing
+const mockUsePathname = vi.fn(() => '/');
 vi.mock('@/i18n/routing', () => ({
   Link: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a>,
-  usePathname: () => '/',
+  usePathname: () => mockUsePathname(),
   useRouter: vi.fn(() => ({
     replace: vi.fn(),
     push: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
   })),
 }));
 
@@ -33,6 +39,7 @@ vi.mock('@mantine/core', async (importOriginal) => {
 });
 
 // Mock next-intl
+const mockUseLocale = vi.fn(() => 'en');
 vi.mock('next-intl', async () => {
   const actual = await vi.importActual('next-intl');
   return {
@@ -42,11 +49,18 @@ vi.mock('next-intl', async () => {
       if (key === 'title') return '@passport';
       return key;
     },
-    useLocale: () => 'en',
+    useLocale: () => mockUseLocale(),
   };
 });
 
 describe('Header', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUsePathname.mockReturnValue('/');
+    mockUseLocale.mockReturnValue('en');
+    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams());
+  });
+
   it('renders logo and navigation links', () => {
     render(<Header />);
     expect(screen.getByText('@passport')).toBeInTheDocument();
@@ -67,28 +81,69 @@ describe('Header', () => {
     expect(setColorScheme).toHaveBeenCalledWith('dark');
   });
 
-  it('handles locale change', async () => {
-    const mockReplace = vi.fn();
-    vi.mocked(useRouter).mockReturnValue({
-      replace: mockReplace,
-      push: vi.fn(),
-      prefetch: vi.fn(),
-      back: vi.fn(),
-      forward: vi.fn(),
-      refresh: vi.fn(),
-    } as ReturnType<typeof useRouter>);
+  it('toggles color scheme to light if dark', async () => {
+    const setColorScheme = vi.fn();
+    vi.mocked(useMantineColorScheme).mockReturnValue({
+      colorScheme: 'dark',
+      setColorScheme,
+      clearColorScheme: vi.fn(),
+      toggleColorScheme: vi.fn(),
+    });
 
     render(<Header />);
-    
-    // Open language menu
+    const toggleBtns = screen.getAllByLabelText(/toggle_color_scheme/i);
+    fireEvent.click(toggleBtns[0]);
+    expect(setColorScheme).toHaveBeenCalledWith('light');
+  });
+
+  it('handles locale change', async () => {
+    const mockReplace = vi.fn();
+    vi.mocked(useRouter).mockReturnValue({ replace: mockReplace } as any);
+
+    render(<Header />);
     const langBtns = screen.getAllByLabelText('change_language');
     fireEvent.click(langBtns[0]);
 
-    // Select Japanese
     const jaOption = await screen.findByText('日本語');
     fireEvent.click(jaOption);
 
     expect(mockReplace).toHaveBeenCalledWith('/', { locale: 'ja' });
+  });
+
+  it('handles locale change with searchParams', async () => {
+    const mockReplace = vi.fn();
+    vi.mocked(useRouter).mockReturnValue({ replace: mockReplace } as any);
+    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams('foo=bar'));
+
+    render(<Header />);
+    const langBtns = screen.getAllByLabelText('change_language');
+    fireEvent.click(langBtns[0]);
+
+    const jaOption = await screen.findByText('日本語');
+    fireEvent.click(jaOption);
+
+    expect(mockReplace).toHaveBeenCalledWith('/?foo=bar', { locale: 'ja' });
+  });
+
+  it('covers various language labels in menu', async () => {
+    const languages = [
+      { locale: 'pt', label: 'Selecionar Idioma' },
+      { locale: 'de', label: 'Sprache wählen' },
+      { locale: 'fr', label: 'Choisir la langue' },
+      { locale: 'es', label: 'Seleccionar idioma' },
+    ];
+
+    for (const lang of languages) {
+      mockUseLocale.mockReturnValue(lang.locale);
+      const { unmount } = render(<Header />);
+      const langBtn = screen.getAllByLabelText('change_language')[0];
+      fireEvent.click(langBtn);
+      
+      // Use findByText to wait for portal
+      const label = await screen.findByText(lang.label);
+      expect(label).toBeInTheDocument();
+      unmount();
+    }
   });
 
   it('toggles mobile menu when burger is clicked', async () => {
@@ -98,5 +153,8 @@ describe('Header', () => {
     await waitFor(() => {
       expect(screen.getAllByText('about').length).toBeGreaterThan(1);
     });
+
+    const mobileLinks = screen.getAllByText('directory');
+    fireEvent.click(mobileLinks[mobileLinks.length - 1]);
   });
 });

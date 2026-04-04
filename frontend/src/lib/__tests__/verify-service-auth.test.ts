@@ -102,4 +102,33 @@ describe('verifyServiceAuth', () => {
     const result = await verifyServiceAuth(request);
     expect(result).toBe(null);
   });
+
+  it('should return null if audience is invalid', async () => {
+    const request = new Request('https://example.com', {
+      headers: {
+        'authorization': 'Bearer token',
+        'host': mockHost,
+      },
+    });
+
+    vi.mocked(decodeJwt).mockReturnValue({
+      iss: mockDid,
+      aud: 'did:web:wrong-host.com',
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    });
+
+    const result = await verifyServiceAuth(request);
+    expect(result).toBe(null);
+  });
+
+  it('should return null if decodeJwt throws', async () => {
+    const request = new Request('https://example.com', {
+      headers: { 'authorization': 'Bearer invalid' },
+    });
+    vi.mocked(decodeJwt).mockImplementation(() => {
+      throw new Error('JWT Error');
+    });
+    const result = await verifyServiceAuth(request);
+    expect(result).toBe(null);
+  });
 });

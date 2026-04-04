@@ -37,6 +37,22 @@ describe('Models Library (IdentityAssociation)', () => {
       expect(db.send).toHaveBeenCalledWith(expect.any(QueryCommand));
     });
 
+    it('should sort items by createdAt if sortOrder is identical or missing', async () => {
+      const mockItems = [
+        { uuid: mockUuid, did: 'did:1', handle: 'h1', createdAt: '2024-01-02T00:00:00Z' },
+        { uuid: mockUuid, did: 'did:2', handle: 'h2', sortOrder: 0, createdAt: '2024-01-01T00:00:00Z' },
+        { uuid: mockUuid, did: 'did:3', handle: 'h3', createdAt: '2024-01-03T00:00:00Z' },
+      ];
+      vi.mocked(db.send).mockResolvedValue({ Items: mockItems });
+
+      const result = await getAssociations(mockUuid);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].handle).toBe('h2'); // sortOrder 0
+      expect(result[1].handle).toBe('h1'); // sortOrder missing (Infinity), then createdAt
+      expect(result[2].handle).toBe('h3'); // sortOrder missing (Infinity), then createdAt
+    });
+
     it('should return empty array if no items found', async () => {
       vi.mocked(db.send).mockResolvedValue({ Items: [] });
       const result = await getAssociations(mockUuid);
@@ -55,6 +71,20 @@ describe('Models Library (IdentityAssociation)', () => {
       expect(result.isPrimary).toBe(true);
       expect(result.sortOrder).toBe(0);
       expect(db.send).toHaveBeenCalledWith(expect.any(PutCommand));
+    });
+
+    it('should not make primary if not the first one and calculate sortOrder correctly', async () => {
+      const existingItems = [
+        { uuid: mockUuid, did: 'did:1', handle: 'h1', sortOrder: 5 },
+        { uuid: mockUuid, did: 'did:2', handle: 'h2' }, // sortOrder missing, should use 0
+      ];
+      vi.mocked(db.send).mockResolvedValueOnce({ Items: existingItems });
+      vi.mocked(db.send).mockResolvedValueOnce({});
+
+      const result = await addAssociation(mockUuid, 'did:new', 'new.h', 'pds');
+
+      expect(result.isPrimary).toBe(false);
+      expect(result.sortOrder).toBe(6); // max(5, 0) + 1
     });
   });
 
@@ -86,6 +116,13 @@ describe('Models Library (IdentityAssociation)', () => {
       // Two updates should be called
       const updateCalls = vi.mocked(db.send).mock.calls.filter(call => call[0] instanceof UpdateCommand);
       expect(updateCalls).toHaveLength(2);
+    });
+
+    it('should handle touchSession with no associations', async () => {
+      vi.mocked(db.send).mockResolvedValueOnce({ Items: [] });
+      await touchSession(mockUuid);
+      const updateCalls = vi.mocked(db.send).mock.calls.filter(call => call[0] instanceof UpdateCommand);
+      expect(updateCalls).toHaveLength(0);
     });
   });
 

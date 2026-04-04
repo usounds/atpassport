@@ -1,62 +1,66 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
-import { NextRequest } from 'next/server';
 import { getSessionUuid } from '@/lib/session';
 import { createShareToken } from '@/lib/share';
 import { isRateLimited } from '@/lib/rate-limit';
+import { NextRequest, NextResponse } from 'next/server';
 
-vi.mock('@/lib/session', () => ({
-  getSessionUuid: vi.fn(),
+vi.mock('@/lib/session');
+vi.mock('@/lib/share');
+vi.mock('@/lib/rate-limit');
+vi.mock('next/server', () => ({
+  NextResponse: {
+    json: vi.fn((data, init) => ({ data, init })),
+  },
 }));
 
-vi.mock('@/lib/share', () => ({
-  createShareToken: vi.fn(),
-}));
-
-vi.mock('@/lib/rate-limit', () => ({
-  isRateLimited: vi.fn(),
-}));
-
-describe('POST /api/share/create', () => {
+describe('API: share/create', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should return 401 if no session is found', async () => {
+  it('should return 429 if IP rate limited', async () => {
+    vi.mocked(isRateLimited).mockReturnValue(true);
+    const request = { headers: { get: vi.fn().mockReturnValue('1.2.3.4') } } as any;
+    await POST(request);
+    expect(NextResponse.json).toHaveBeenCalledWith({ error: 'rate_limit_exceeded' }, { status: 429 });
+  });
+
+  it('should return 401 if no session', async () => {
     vi.mocked(isRateLimited).mockReturnValue(false);
     vi.mocked(getSessionUuid).mockResolvedValue(null);
-
-    const request = new NextRequest('http://localhost/api/share/create', {
-      method: 'POST'
-    });
-    const response = await POST(request);
-
-    expect(response.status).toBe(401);
+    const request = { headers: { get: vi.fn() } } as any;
+    await POST(request);
+    expect(NextResponse.json).toHaveBeenCalledWith({ error: 'No session found' }, { status: 401 });
   });
 
-  it('should return 429 if rate limited', async () => {
-    vi.mocked(isRateLimited).mockReturnValue(true);
-
-    const request = new NextRequest('http://localhost/api/share/create', {
-      method: 'POST'
-    });
-    const response = await POST(request);
-
-    expect(response.status).toBe(429);
+  it('should return 429 if UUID rate limited', async () => {
+    vi.mocked(isRateLimited)
+      .mockReturnValueOnce(false) // IP
+      .mockReturnValueOnce(true); // UUID
+    vi.mocked(getSessionUuid).mockResolvedValue('uuid');
+    const request = { headers: { get: vi.fn() } } as any;
+    await POST(request);
+    expect(NextResponse.json).toHaveBeenCalledWith({ error: 'rate_limit_exceeded' }, { status: 429 });
   });
 
-  it('should return token on success', async () => {
+  it('should create token successfully', async () => {
     vi.mocked(isRateLimited).mockReturnValue(false);
-    vi.mocked(getSessionUuid).mockResolvedValue('test-uuid');
-    vi.mocked(createShareToken).mockResolvedValue('test-token');
+    vi.mocked(getSessionUuid).mockResolvedValue('uuid');
+    vi.mocked(createShareToken).mockResolvedValue('token123');
+    const request = { headers: { get: vi.fn() } } as any;
+    await POST(request);
+    expect(NextResponse.json).toHaveBeenCalledWith(
+      expect.objectContaining({ token: 'token123' })
+    );
+  });
 
-    const request = new NextRequest('http://localhost/api/share/create', {
-      method: 'POST'
-    });
-    const response = await POST(request);
-
-    expect(response.status).toBe(200);
-    const body = await response.json();
-    expect(body.token).toBe('test-token');
+  it('should return 500 if error occurs', async () => {
+    vi.mocked(isRateLimited).mockReturnValue(false);
+    vi.mocked(getSessionUuid).mockResolvedValue('uuid');
+    vi.mocked(createShareToken).mockRejectedValue(new Error('DB Error'));
+    const request = { headers: { get: vi.fn() } } as any;
+    await POST(request);
+    expect(NextResponse.json).toHaveBeenCalledWith({ error: 'Failed to create share token' }, { status: 500 });
   });
 });

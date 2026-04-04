@@ -1,32 +1,45 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getProfile, publicAgent } from '../atproto';
-import { type XRPCResponse } from '@atcute/client';
-import { type ActorIdentifier } from '@atcute/lexicons/syntax';
 
-// Mock ok from @atcute/client
 vi.mock('@atcute/client', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@atcute/client')>();
   return {
     ...actual,
-    ok: vi.fn().mockImplementation(async <T>(responsePromise: Promise<XRPCResponse<T>>) => {
-      const res = await responsePromise;
-      return res.data;
+    ok: vi.fn().mockImplementation(async (promise) => {
+      const res = await promise;
+      return res;
     }),
   };
 });
 
-describe('AtProto Library', () => {
-  it('should get profile for a DID', async () => {
-    const mockDID = 'did:plc:rgdcflm4ylsl6udghmtblydc' as ActorIdentifier;
-    const mockProfile = { did: mockDID, handle: 'user.test' };
-    vi.spyOn(publicAgent, 'get').mockResolvedValue({
-      success: true,
-      data: mockProfile,
-      headers: {},
-      status: 200,
-    } as XRPCResponse<typeof mockProfile>);
+// Mock publicAgent.get
+vi.spyOn(publicAgent, 'get');
 
-    const result = await getProfile(mockDID);
-    expect(result).toEqual(mockProfile);
+describe('atproto Library', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('getProfile', () => {
+    it('should return profile for a valid DID', async () => {
+      const mockProfile = { did: 'did:plc:123', handle: 'user.test' };
+      vi.mocked(publicAgent.get).mockResolvedValue(mockProfile as any);
+
+      const result = await getProfile('did:plc:123');
+      expect(result).toEqual(mockProfile);
+      expect(publicAgent.get).toHaveBeenCalledWith('app.bsky.actor.getProfile', expect.any(Object));
+    });
+
+    it('should return null for an invalid DID', async () => {
+      const result = await getProfile('invalid-did');
+      expect(result).toBeNull();
+      expect(publicAgent.get).not.toHaveBeenCalled();
+    });
+
+    it('should return null if agent.get throws', async () => {
+      vi.mocked(publicAgent.get).mockRejectedValue(new Error('API Error'));
+      const result = await getProfile('did:plc:123');
+      expect(result).toBeNull();
+    });
   });
 });
