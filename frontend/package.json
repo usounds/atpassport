@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.1.32",
+  "version": "0.1.33",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001 -H 0.0.0.0",
@@ -22,8 +22,8 @@
     "@atcute/lexicons": "^1.2.9",
     "@atcute/oauth-browser-client": "^3.0.0",
     "@atpassport/client": "workspace:*",
-    "@aws-sdk/client-dynamodb": "^3.1023.0",
-    "@aws-sdk/lib-dynamodb": "^3.1023.0",
+    "@aws-sdk/client-dynamodb": "^3.1024.0",
+    "@aws-sdk/lib-dynamodb": "^3.1024.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mantine/core": "^9.0.0",

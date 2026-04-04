@@ -141,7 +141,7 @@ export function Header() {
           <Title order={3} fw={700} m={0} style={{ lineHeight: 1 }}>{t('title')}</Title>
         </Link>
 
-        <Group gap="md" visibleFrom="xs">
+        <Group gap="md" visibleFrom="sm">
           <Group gap={5}>
             {items}
           </Group>
@@ -151,7 +151,7 @@ export function Header() {
           </Group>
         </Group>
 
-        <Group gap="xs" hiddenFrom="xs">
+        <Group gap="xs" hiddenFrom="sm">
           {colorSchemeToggle}
           {languagePicker}
           <Burger
@@ -169,7 +169,7 @@ export function Header() {
           padding="md"
           title={t('title')}
           position="right"
-          hiddenFrom="xs"
+          hiddenFrom="sm"
           zIndex={1000}
           styles={{
             content: { backgroundColor: 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-7))' }
