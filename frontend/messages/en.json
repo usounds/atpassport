@@ -69,7 +69,7 @@
   },
   "Share": {
     "title": "Share with Other Devices",
-    "description": "Scan the QR code or copy the URL to enable the same handles on other devices.",
+    "description": "Scan the QR code on your target device or share the URL below.",
     "generate": "Generate Share Link",
     "expiryNotice": "This link is valid for 5 minutes.",
     "rateLimitExceeded": "Too many share links created in a short time. Please wait a minute and try again.",

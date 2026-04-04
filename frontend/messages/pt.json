@@ -69,7 +69,7 @@
   },
   "Share": {
     "title": "Compartilhar com\nOutros Dispositivos",
-    "description": "Escaneie o código QR ou copie a URL para habilitar os mesmos handles em outros dispositivos.",
+    "description": "Escaneie o código QR no dispositivo de destino ou compartilhe a URL abaixo.",
     "generate": "Gerar Link de Compartilhamento",
     "expiryNotice": "Este link é válido por 5 minutos.",
     "rateLimitExceeded": "Muitos links de compartilhamento criados em pouco tempo. Aguarde um minuto e tente novamente.",
