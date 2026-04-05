@@ -129,7 +129,7 @@
     "public": "Public",
     "private": "Private",
     "infra_domain_warning": "Infrastructure domains cannot be verified.",
-    "invalid_domain_format": "This handle is not in a valid domain format.",
+    "invalid_domain_format": "Invalid domain name format.",
     "list_in_directory": "List in public directory",
     "verify_domain": "Verify Domain",
     "verify_with_oauth": "Verify via @passport",

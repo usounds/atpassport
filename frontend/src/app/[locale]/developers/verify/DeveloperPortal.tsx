@@ -184,49 +184,72 @@ export function DeveloperPortal({
   };
 
 
-  const handleVerifyOAuth = async (isPublic: boolean) => {
+  const handleVerifyOAuth = useCallback(async (isPublic: boolean) => {
     if (!session) return;
     setActionLoading(true);
     const id = notifications.show({ title: t('processing'), message: '', loading: true, autoClose: false, withCloseButton: false });
     try {
       const proxyClient = getProxyClient();
-      if (!proxyClient) throw new Error('Client setup failed');
+      if (!proxyClient) {
+        notifications.update({ id, title: t('error_title'), message: 'Client setup failed', color: 'red', loading: false, autoClose: true, withCloseButton: true });
+        return;
+      }
 
-      const input: NetAtpassportVerifySubmit.Input = { isPublic };
-      await proxyClient.post('net.atpassport.verify.submit', { input });
+      const input: NetAtpassportVerifySubmit.Input = { 
+        domain: profile?.handle || '',
+        isPublic 
+      };
+      const { data } = await proxyClient.post('net.atpassport.verify.submit', { input }) as { data: NetAtpassportVerifySubmit.Output };
+      if (!data.success) {
+        notifications.update({ id, title: t('error_title'), message: data.error || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
+        return;
+      }
       await fetchData(session);
       notifications.update({ id, title: t('success_title'), message: t('success_message', { domain: profile?.handle || '' }), color: 'green', loading: false, autoClose: true, withCloseButton: true });
       setActiveTab('dashboard');
     } catch (error: unknown) {
       const err = error as Error;
-      console.error('[Verify Proxy] Error:', err);
+      console.error('[Verify Proxy] Unexpected Error:', err);
       notifications.update({ id, title: t('error_title'), message: err.message || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }
-  };
+  }, [session, profile?.handle, getProxyClient, fetchData, t]);
 
-  const handleVerifyFile = async (domain: string, isPublic: boolean) => {
+  const handleVerifyFile = useCallback(async (domain: string, isPublic: boolean) => {
     if (!session) return;
     setActionLoading(true);
     const id = notifications.show({ title: t('processing'), message: '', loading: true, autoClose: false, withCloseButton: false });
     try {
       const proxyClient = getProxyClient();
-      if (!proxyClient) throw new Error('Client setup failed');
+      if (!proxyClient) {
+        notifications.update({ id, title: t('error_title'), message: 'Client setup failed', color: 'red', loading: false, autoClose: true, withCloseButton: true });
+        return;
+      }
+
+      const domainRegex = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+      if (!domainRegex.test(domain.trim().toLowerCase())) {
+        notifications.update({ id, title: t('error_title'), message: t('invalid_domain_format'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
+        return;
+      }
 
       const input: NetAtpassportVerifySubmit.Input = { domain, isPublic };
-      await proxyClient.post('net.atpassport.verify.submit', { input });
+      const { data } = await proxyClient.post('net.atpassport.verify.submit', { input }) as { data: NetAtpassportVerifySubmit.Output };
+      if (!data.success) {
+        notifications.update({ id, title: t('error_title'), message: data.error || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
+        return;
+      }
       await fetchData(session);
       notifications.update({ id, title: t('success_title'), message: t('success_message', { domain }), color: 'green', loading: false, autoClose: true, withCloseButton: true });
       setActiveTab('dashboard');
     } catch (error: unknown) {
       const err = error as Error;
-      console.error('[Verify File] Error:', err);
+      console.error('[Verify File] Unexpected Error:', err);
       notifications.update({ id, title: t('error_title'), message: err.message || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }
-  };
+  }, [session, getProxyClient, fetchData, t]);
 
   const handleWithdraw = async (domain: string) => {
     if (!session) return;

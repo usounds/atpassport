@@ -6,7 +6,7 @@ const _inputSchema = /*#__PURE__*/ v.object({
   $type: /*#__PURE__*/ v.optional(
     /*#__PURE__*/ v.literal("net.atpassport.verify.submit#input"),
   ),
-  domain: /*#__PURE__*/ v.optional(/*#__PURE__*/ v.string()),
+  domain: /*#__PURE__*/ v.string(),
   isPublic: /*#__PURE__*/ v.boolean(),
 });
 const _mainSchema = /*#__PURE__*/ v.procedure("net.atpassport.verify.submit", {
