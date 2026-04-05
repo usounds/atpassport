@@ -27,7 +27,7 @@ export function CustomBadge({ children, color = 'blue', variant = 'light', style
     }
     // light variant (default)
     return {
-      backgroundColor: `light-dark(var(--mantine-color-${color}-light), var(--mantine-color-${color}-light-color))`,
+      backgroundColor: `var(--mantine-color-${color}-light)`,
       color: `var(--mantine-color-${color}-light-color)`,
     };
   };

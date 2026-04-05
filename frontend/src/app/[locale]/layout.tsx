@@ -1,7 +1,7 @@
 import type { Viewport } from 'next';
 import { cookies } from 'next/headers';
 import { Geist, Geist_Mono } from "next/font/google";
-import { MantineProvider, createTheme, Stack } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import NextTopLoader from 'nextjs-toploader';
 import { NextIntlClientProvider } from 'next-intl';

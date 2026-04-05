@@ -16,6 +16,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "src/lexicons/**",
     "coverage/**",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
   ]),
 ]);
 

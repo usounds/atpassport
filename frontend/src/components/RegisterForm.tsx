@@ -121,12 +121,12 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
             p="sm" 
             style={{ 
               borderRadius: 'var(--mantine-radius-md)', 
-              background: 'var(--mantine-color-orange-light)',
-              border: '1px solid var(--mantine-color-orange-light-hover)'
+              background: 'light-dark(var(--mantine-color-orange-light), rgba(255, 145, 0, 0.05))',
+              border: '1px solid light-dark(var(--mantine-color-orange-light-hover), rgba(255, 145, 0, 0.2))'
             }}
           >
             <IconAlertCircle size={18} color="var(--mantine-color-orange-filled)" />
-            <Text size="sm" fw={500} c="orange.9">
+            <Text size="xs" fw={700} c="light-dark(orange.9, orange.4)">
               {t('handle_limit_reached')}
             </Text>
           </Group>

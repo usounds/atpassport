@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     
     // Resolve identity to check if it's the user's own handle for OAuth verification
     const identity = await resolveIdentity(did);
-    if (identity && identity.handle === lowerDomain) {
+    if (identity && (identity.handle === lowerDomain || lowerDomain.endsWith('.' + identity.handle))) {
       await verifyDomainInDb(lowerDomain, did, isPublic, 'oauth');
       const output: NetAtpassportVerifySubmit.Output = { success: true };
       return NextResponse.json(output);

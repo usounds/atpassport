@@ -195,6 +195,11 @@ export function DeveloperPortal({
         return;
       }
 
+      if (!profile?.handle) {
+        notifications.update({ id, title: t('error_title'), message: t('invalid_domain_format'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
+        return;
+      }
+
       const input: NetAtpassportVerifySubmit.Input = { 
         domain: profile?.handle || '',
         isPublic 
@@ -208,9 +213,11 @@ export function DeveloperPortal({
       notifications.update({ id, title: t('success_title'), message: t('success_message', { domain: profile?.handle || '' }), color: 'green', loading: false, autoClose: true, withCloseButton: true });
       setActiveTab('dashboard');
     } catch (error: unknown) {
-      const err = error as Error;
-      console.error('[Verify Proxy] Unexpected Error:', err);
-      notifications.update({ id, title: t('error_title'), message: err.message || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
+      const err = error as { message?: string; kind?: string; error?: string };
+      console.error('[Verify Proxy] Error:', err);
+      // @atcute/client XRPCError puts our custom error string in err.kind or err.error
+      const errorMessage = err?.message !== 'Invalid Request' && err?.message ? err.message : (err?.kind || err?.error || t('failed'));
+      notifications.update({ id, title: t('error_title'), message: errorMessage, color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }
@@ -243,9 +250,10 @@ export function DeveloperPortal({
       notifications.update({ id, title: t('success_title'), message: t('success_message', { domain }), color: 'green', loading: false, autoClose: true, withCloseButton: true });
       setActiveTab('dashboard');
     } catch (error: unknown) {
-      const err = error as Error;
-      console.error('[Verify File] Unexpected Error:', err);
-      notifications.update({ id, title: t('error_title'), message: err.message || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
+      const err = error as { message?: string; kind?: string; error?: string };
+      console.error('[Verify File] Error:', err);
+      const errorMessage = err?.message !== 'Invalid Request' && err?.message ? err.message : (err?.kind || err?.error || t('failed'));
+      notifications.update({ id, title: t('error_title'), message: errorMessage, color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }
@@ -264,9 +272,10 @@ export function DeveloperPortal({
       await fetchData(session);
       notifications.update({ id, title: t('success_title'), message: t('withdraw_success'), color: 'blue', loading: false, autoClose: true, withCloseButton: true });
     } catch (error: unknown) {
-      const err = error as Error;
+      const err = error as { message?: string; kind?: string; error?: string };
       console.error('[Withdraw Proxy] Error:', err);
-      notifications.update({ id, title: t('error_title'), message: err.message || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
+      const errorMessage = err?.message !== 'Invalid Request' && err?.message ? err.message : (err?.kind || err?.error || t('failed'));
+      notifications.update({ id, title: t('error_title'), message: errorMessage, color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }

@@ -161,7 +161,7 @@ export function VerifyDomainStepper({ did, handle, isHandleVerified, onVerifyOAu
                 onClick={() => method === 'oauth' ? onVerifyOAuth(isPublic) : onVerifyFile(domain, isPublic)}
                 loading={loading}
                 disabled={
-                  (method === 'oauth' && isHandleVerified) || 
+                  (method === 'oauth' && (!handle || isHandleVerified)) || 
                   (method === 'file' && !domain.trim())
                 }
                 leftSection={<IconCircleCheck size={16} />}
