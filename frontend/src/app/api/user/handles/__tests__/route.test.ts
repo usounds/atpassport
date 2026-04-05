@@ -3,17 +3,11 @@ import { GET, OPTIONS } from '../route';
 import { getSessionUuid } from '@/lib/session';
 import { getAssociations } from '@/lib/models';
 import { isRateLimited } from '@/lib/rate-limit';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/session');
 vi.mock('@/lib/models');
 vi.mock('@/lib/rate-limit');
-
-// Helper to mock NextResponse since we can't easily mock the constructor perfectly
-const mockResponse = {
-  headers: { set: vi.fn() },
-  json: vi.fn(),
-};
 
 describe('API: user/handles', () => {
   beforeEach(() => {
@@ -50,7 +44,7 @@ describe('API: user/handles', () => {
       vi.mocked(isRateLimited).mockReturnValue(false);
       vi.mocked(getSessionUuid).mockResolvedValue('uuid');
       vi.mocked(getAssociations).mockResolvedValue([
-        { handle: 'user1.bsky.social' } as any
+        { handle: 'user1.bsky.social' } as unknown as any
       ]);
 
       const request = new NextRequest('http://localhost', { headers: { origin: 'https://atpassport.net' } });

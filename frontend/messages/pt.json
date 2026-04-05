@@ -129,7 +129,7 @@
     "public": "Público",
     "private": "Privado",
     "infra_domain_warning": "Domínios de infraestrutura não podem ser verificados.",
-    "invalid_domain_format": "Este handle não está em um formato de domínio válido.",
+    "invalid_domain_format": "Formato de nome de domínio inválido.",
     "list_in_directory": "Listar no diretório público",
     "verify_domain": "Verificar Domínio",
     "verify_with_oauth": "Verificar via @passport",

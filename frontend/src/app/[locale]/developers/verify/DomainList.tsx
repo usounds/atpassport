@@ -1,8 +1,9 @@
 'use client';
 
-import { Table, Badge, ActionIcon, Group, Text, Menu, Stack, Center } from '@mantine/core';
+import { Table, ActionIcon, Group, Text, Menu, Stack, Center } from '@mantine/core';
 import { IconDotsVertical, IconTrash, IconWorld, IconShieldCheck, IconFileCheck, IconEye, IconEyeOff } from '@tabler/icons-react';
 import { useTranslations } from 'next-intl';
+import { CustomBadge } from '@/components/CustomBadge';
 import { NetAtpassportVerifyList } from '@/lexicons/index';
 
 interface DomainListProps {
@@ -43,9 +44,9 @@ export function DomainList({ domains, onWithdraw, onUpdatePublic, loading }: Dom
                 <IconWorld size={16} color="var(--mantine-color-blue-filled)" />
                 <Text size="sm" fw={600}>{d.domain}</Text>
                 {d.isPublic ? (
-                  <Badge variant="dot" size="sm" color="green">{t('public')}</Badge>
+                  <CustomBadge variant="dot" color="green">{t('public')}</CustomBadge>
                 ) : (
-                   <Badge variant="dot" size="sm" color="gray">{t('private')}</Badge>
+                   <CustomBadge variant="dot" color="gray">{t('private')}</CustomBadge>
                 )}
               </Group>
             </Table.Td>

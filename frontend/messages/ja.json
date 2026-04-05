@@ -129,7 +129,7 @@
     "public": "公開",
     "private": "非公開",
     "infra_domain_warning": "インフラドメインは確認できません。",
-    "invalid_domain_format": "ドメイン形式のハンドルではありません。",
+    "invalid_domain_format": "ドメインの形式が正しくありません。",
     "list_in_directory": "ディレクトリに公開する",
     "verify_domain": "ドメインの所有権を確認する",
     "verify_with_oauth": "@passportで確認",

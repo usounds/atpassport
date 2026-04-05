@@ -127,8 +127,8 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
               <Group gap={0} wrap="nowrap" style={{ 
                 borderRadius: '12px', 
                 overflow: 'hidden',
-                border: '1px solid var(--mantine-color-gray-3)',
-                backgroundColor: 'var(--mantine-color-gray-0)' 
+                border: '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+                backgroundColor: 'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6))' 
               }}>
                 <Box px="md" py="xs" style={{ flex: 1, overflow: 'hidden' }}>
                   <Text size="xs" truncate color="dimmed" ff="monospace">

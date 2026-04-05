@@ -22,7 +22,7 @@
     },
     "input": {
       "type": "object",
-      "required": ["isPublic"],
+      "required": ["isPublic", "domain"],
       "properties": {
         "isPublic": { "type": "boolean" },
         "domain": { "type": "string" }

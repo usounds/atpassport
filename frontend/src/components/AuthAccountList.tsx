@@ -108,14 +108,46 @@ export function AuthAccountList({
       </header>
 
       {isLoopback ? (
-        <Alert variant="light" color="orange" title={t('loopback_warning_title')} icon={<IconAlertTriangle size={16} />}>
-          <Text size="xs">
+        <Alert 
+          variant="light" 
+          color="orange" 
+          title={t('loopback_warning_title')} 
+          icon={<IconAlertTriangle size={18} />}
+          radius="md"
+          styles={{
+            root: {
+              backgroundColor: 'light-dark(var(--mantine-color-orange-light), rgba(255, 145, 0, 0.05))',
+              border: '1px solid light-dark(transparent, rgba(255, 145, 0, 0.2))'
+            },
+            title: {
+              fontSize: '0.85rem',
+              fontWeight: 700
+            }
+          }}
+        >
+          <Text size="xs" style={{ lineHeight: 1.5 }}>
             {t('loopback_warning_message')}
           </Text>
         </Alert>
       ) : !isVerified && (
-        <Alert variant="light" color="orange" title={t('unverified_domain_title')} icon={<IconAlertTriangle size={16} />}>
-          <Text size="xs">
+        <Alert 
+          variant="light" 
+          color="orange" 
+          title={t('unverified_domain_title')} 
+          icon={<IconAlertTriangle size={18} />}
+          radius="md"
+          styles={{
+            root: {
+              backgroundColor: 'light-dark(var(--mantine-color-orange-light), rgba(255, 145, 0, 0.05))',
+              border: '1px solid light-dark(transparent, rgba(255, 145, 0, 0.2))'
+            },
+            title: {
+              fontSize: '0.85rem',
+              fontWeight: 700
+            }
+          }}
+        >
+          <Text size="xs" style={{ lineHeight: 1.5 }}>
             {t('unverified_domain_message', { domain })}
           </Text>
         </Alert>

@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Container, Title, Text, Stack, TextInput, ActionIcon, Group, Button, Paper, Divider, Table, Box, Tabs, Badge } from '@mantine/core';
+import { Container, Title, Text, Stack, TextInput, ActionIcon, Group, Button, Paper, Divider, Table, Box, Tabs } from '@mantine/core';
 import { IconPlus, IconTrash, IconUserCircle, IconUserPlus, IconSettings, IconRefresh } from '@tabler/icons-react';
 import { useTranslations } from 'next-intl';
 import { useRouter, usePathname } from 'next/navigation';
 import { AtPassport } from '@atpassport/client/core';
 import { AtPassportIcon, AtPassportUI } from '@atpassport/client/ui';
+import { CustomBadge } from '@/components/CustomBadge';
 
 interface AuthResult {
   handle: string | null;
@@ -230,7 +231,7 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
             <Stack gap="lg">
               <Group justify="space-between">
                 <Title order={4}>{t('result')}</Title>
-                <Badge color="blue" variant="light">{t('callback_received')}</Badge>
+                <CustomBadge color="blue" variant="light">{t('callback_received')}</CustomBadge>
               </Group>
               
               <Divider />

@@ -27,19 +27,20 @@ export async function POST(request: Request) {
     const domain = body.domain;
     const isPublic = body.isPublic;
 
-    // ケースA: ドメイン未指定 - 認証済みのハンドルを検証 (OAuth相当)
     if (!domain) {
-      const identity = await resolveIdentity(did);
-      if (!identity || !identity.handle) {
-        return NextResponse.json({ success: false, error: 'Identity not found' }, { status: 400 });
-      }
-      await verifyDomainInDb(identity.handle, did, isPublic, 'oauth');
+      const output: NetAtpassportVerifySubmit.Output = { success: false, error: 'Domain is required' };
+      return NextResponse.json(output, { status: 400 });
+    }
+
+    const lowerDomain = domain.toLowerCase().trim();
+    
+    // Resolve identity to check if it's the user's own handle for OAuth verification
+    const identity = await resolveIdentity(did);
+    if (identity && (identity.handle === lowerDomain || lowerDomain.endsWith('.' + identity.handle))) {
+      await verifyDomainInDb(lowerDomain, did, isPublic, 'oauth');
       const output: NetAtpassportVerifySubmit.Output = { success: true };
       return NextResponse.json(output);
     }
-
-    // ケースB: ドメイン指定あり - /.well-known/atpassport で検証 (File方式)
-    const lowerDomain = domain.toLowerCase().trim();
     
     // 厳格なドメインバリデーション (SSRF対策)
     // - localhost不可
