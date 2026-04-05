@@ -12,7 +12,7 @@
     "package:source": "zip -r atpassport-extension-source.zip . -x \"node_modules/*\" \"dist/*\" \".git/*\" \"*.zip\" \".pnpm-store/*\" \".DS_Store\"",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "update": "npx ncu -u && pnpm install",
+    "update": "pnpm dlx npm-check-updates -u -x eslint && pnpm install",
     "deploy:firefox": "pnpm run build:firefox && source .env && web-ext sign --api-key $FIREFOX_ISSUER --api-secret $FIREFOX_SECRET --source-dir ./dist --artifacts-dir ./web-ext-artifacts --channel listed",
     "deploy:chrome": "pnpm run build:chrome && source .env && chrome-webstore-upload upload --source atpassport-extension-chrome.zip --extension-id $CHROME_EXTENSION_ID --client-id $CHROME_CLIENT_ID --client-secret $CHROME_CLIENT_SECRET --refresh-token $CHROME_REFRESH_TOKEN --auto-publish",
     "dev:firefox": "BROWSER=firefox vite build --watch & web-ext run --source-dir ./dist",
