@@ -1,7 +1,16 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@/test/utils';
+import { render, screen, fireEvent, waitFor, act } from '@/test/utils';
 import { AssociationItem } from '../AssociationItem';
+
+// Mock mantine core components to avoid transition issues
+vi.mock('@mantine/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@mantine/core')>();
+  return {
+    ...actual,
+    Transition: ({ children, mounted }: any) => mounted ? children({ transition: {} }) : null,
+  };
+});
 
 describe('AssociationItem', () => {
   const mockItem = {
@@ -35,17 +44,23 @@ describe('AssociationItem', () => {
     
     // Open menu
     const menuBtn = screen.getByRole('button');
-    fireEvent.click(menuBtn);
+    await act(async () => {
+      fireEvent.click(menuBtn);
+    });
     
     // Click Delete in menu
     const deleteMenuBtn = await screen.findByText('Delete');
-    fireEvent.click(deleteMenuBtn);
+    await act(async () => {
+      fireEvent.click(deleteMenuBtn);
+    });
     
     // In modal
     await screen.findByRole('dialog');
     const confirmBtn = screen.getAllByRole('button').find(b => b.textContent === 'Delete');
     if (confirmBtn) {
-      fireEvent.click(confirmBtn);
+      await act(async () => {
+        fireEvent.click(confirmBtn);
+      });
     }
     
     await waitFor(() => {
@@ -62,19 +77,27 @@ describe('AssociationItem', () => {
       />
     );
     
-    fireEvent.click(screen.getByRole('button'));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button'));
+    });
     
     const moveUpBtn = await screen.findByText('Move Up');
-    fireEvent.click(moveUpBtn);
+    await act(async () => {
+      fireEvent.click(moveUpBtn);
+    });
     
     await waitFor(() => {
       expect(mockHandlers.onMoveUp).toHaveBeenCalled();
     });
 
     // Re-open menu for move down
-    fireEvent.click(screen.getByRole('button'));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button'));
+    });
     const moveDownBtn = await screen.findByText('Move Down');
-    fireEvent.click(moveDownBtn);
+    await act(async () => {
+      fireEvent.click(moveDownBtn);
+    });
     
     await waitFor(() => {
       expect(mockHandlers.onMoveDown).toHaveBeenCalled();
@@ -84,9 +107,13 @@ describe('AssociationItem', () => {
   it('handles refresh', async () => {
     render(<AssociationItem item={mockItem} onRefresh={mockHandlers.onRefresh} />);
     
-    fireEvent.click(screen.getByRole('button'));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button'));
+    });
     const refreshBtn = await screen.findByText('Refresh Metadata');
-    fireEvent.click(refreshBtn);
+    await act(async () => {
+      fireEvent.click(refreshBtn);
+    });
     
     await waitFor(() => {
       expect(mockHandlers.onRefresh).toHaveBeenCalled();

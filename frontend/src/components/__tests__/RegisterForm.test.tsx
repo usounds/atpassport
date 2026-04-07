@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@/test/utils';
+import { render, screen, fireEvent, waitFor, act } from '@/test/utils';
 import { RegisterForm } from '../RegisterForm';
 import * as actions from '@/lib/actions';
 import { publicAgent } from '@/lib/atproto';
@@ -25,13 +25,31 @@ vi.mock('@/i18n/routing', () => ({
   Link: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a>,
 }));
 
+// Mock mantine core components to avoid transition issues
+vi.mock('@mantine/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@mantine/core')>();
+  return {
+    ...actual,
+    Transition: ({ children, mounted }: any) => mounted ? children({ transition: {} }) : null,
+  };
+});
+
+// Mock useDebouncedCallback to be instantaneous in tests
+vi.mock('@mantine/hooks', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@mantine/hooks')>();
+  return {
+    ...actual,
+    useDebouncedCallback: (fn: any) => fn,
+  };
+});
+
 describe('RegisterForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(publicAgent.get).mockResolvedValue({
       success: true,
       actors: [
-        { handle: 'suggestion1.bsky.social' },
+        { handle: 'suggestion1.bsky.social', avatar: 'http://avatar1' },
         { handle: 'suggestion2.bsky.social' },
       ],
     } as any);
@@ -42,14 +60,62 @@ describe('RegisterForm', () => {
     expect(screen.getByText(/add handle/i)).toBeInTheDocument();
   });
 
-  it('opens modal and handles handle input', async () => {
+  it('opens modal and triggers search when typing', async () => {
     render(<RegisterForm handleCount={0} />);
     fireEvent.click(screen.getByText(/add handle/i));
     
     const input = await screen.findByRole('combobox', { name: /handle/i });
-    fireEvent.change(input, { target: { value: 'test.bsky.social' } });
     
-    expect(input).toHaveValue('test.bsky.social');
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'test' } });
+    });
+    
+    await waitFor(() => {
+      expect(publicAgent.get).toHaveBeenCalledWith(
+        "app.bsky.actor.searchActorsTypeahead",
+        expect.objectContaining({ params: expect.objectContaining({ q: 'test' }) })
+      );
+    });
+  });
+
+  it('handles Enter key to register', async () => {
+    vi.mocked(actions.registerHandle).mockResolvedValue({ success: true });
+    render(<RegisterForm handleCount={1} />);
+    
+    fireEvent.click(screen.getByText(/add handle/i));
+    const input = await screen.findByRole('combobox', { name: /handle/i });
+    
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'user.test' } });
+      fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+    });
+    
+    await waitFor(() => {
+      expect(actions.registerHandle).toHaveBeenCalledWith('user.test');
+    });
+  });
+
+  it('closes modal and resets state', async () => {
+    render(<RegisterForm handleCount={1} />);
+    fireEvent.click(screen.getByText(/add handle/i));
+    
+    const input = await screen.findByRole('combobox', { name: /handle/i });
+    fireEvent.change(input, { target: { value: 'something' } });
+    
+    // Use container selector or class name to find the close button if aria-label is missing
+    const closeBtn = document.querySelector('.mantine-Modal-close');
+    if (closeBtn) {
+      fireEvent.click(closeBtn);
+    }
+    
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    // Re-open to check if state was reset
+    fireEvent.click(screen.getByText(/add handle/i));
+    const newInput = await screen.findByRole('combobox', { name: /handle/i });
+    expect(newInput).toHaveValue('');
   });
 
   it('normalizes handles correctly (appends .bsky.social if no dot)', async () => {
@@ -104,6 +170,21 @@ describe('RegisterForm', () => {
     await waitFor(() => {
       expect(actions.registerHandle).toHaveBeenCalledWith('test.bsky.social');
     });
+  });
+
+  it('does not call registerHandle if consent is required but not given', async () => {
+    render(<RegisterForm handleCount={0} />);
+    fireEvent.click(screen.getByText(/add handle/i));
+    
+    const input = await screen.findByRole('combobox', { name: /handle/i });
+    fireEvent.change(input, { target: { value: 'user.test' } });
+    
+    // Do NOT click checkbox
+    
+    const registerBtn = screen.getByText(/^add$/i);
+    fireEvent.click(registerBtn);
+    
+    expect(actions.registerHandle).not.toHaveBeenCalled();
   });
 
   it('shows limit reached message', async () => {
