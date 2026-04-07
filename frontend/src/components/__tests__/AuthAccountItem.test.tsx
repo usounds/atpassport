@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '../../test/utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, act } from '../../test/utils';
 import { AuthAccountItem } from '../AuthAccountItem';
 
 vi.mock('nextjs-toploader', () => ({
@@ -15,6 +15,17 @@ vi.mock('next-intl', async (importOriginal) => {
   return {
     ...actual,
     useTranslations: () => (key: string) => key,
+  };
+});
+
+// Mock Mantine components that use transitions/timers to be instantaneous
+vi.mock('@mantine/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@mantine/core')>();
+  return {
+    ...actual,
+    Transition: ({ children, mounted }: any) => mounted ? children({ transition: {} }) : null,
+    // We don't mock everything, just what's problematic.
+    // If Menu still causes issues, we can mock more.
   };
 });
 
@@ -38,10 +49,12 @@ describe('AuthAccountItem', () => {
     expect(screen.getByText('@user.test')).toBeInTheDocument();
   });
 
-  it('calls onSelect and redirects when clicked', () => {
+  it('calls onSelect and redirects when clicked', async () => {
     const onSelect = vi.fn();
     render(<AuthAccountItem item={mockItem} index={0} isFirst={true} isLast={false} onSelect={onSelect} callback="http://cb" />);
-    fireEvent.click(screen.getByText('User Name'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('User Name'));
+    });
     expect(onSelect).toHaveBeenCalledWith(mockItem);
     expect(window.location.replace).toHaveBeenCalled();
   });
@@ -51,10 +64,14 @@ describe('AuthAccountItem', () => {
     render(<AuthAccountItem item={mockItem} index={0} isFirst={true} isLast={false} onSelect={vi.fn()} onRefresh={onRefresh} callback="http://cb" />);
     
     const menuBtn = screen.getByRole('button');
-    fireEvent.click(menuBtn);
+    await act(async () => {
+      fireEvent.click(menuBtn);
+    });
 
     const refreshBtn = await screen.findByText('refresh_metadata');
-    fireEvent.click(refreshBtn);
+    await act(async () => {
+      fireEvent.click(refreshBtn);
+    });
 
     expect(onRefresh).toHaveBeenCalled();
   });
@@ -65,15 +82,23 @@ describe('AuthAccountItem', () => {
     render(<AuthAccountItem item={mockItem} index={1} isFirst={false} isLast={false} onSelect={vi.fn()} onMoveUp={onMoveUp} onMoveDown={onMoveDown} callback="http://cb" />);
     
     const menuBtn = screen.getByRole('button');
-    fireEvent.click(menuBtn);
+    await act(async () => {
+      fireEvent.click(menuBtn);
+    });
 
     const upBtn = await screen.findByText('move_up');
-    fireEvent.click(upBtn);
+    await act(async () => {
+      fireEvent.click(upBtn);
+    });
     expect(onMoveUp).toHaveBeenCalled();
 
-    fireEvent.click(menuBtn);
+    await act(async () => {
+      fireEvent.click(menuBtn);
+    });
     const downBtn = await screen.findByText('move_down');
-    fireEvent.click(downBtn);
+    await act(async () => {
+      fireEvent.click(downBtn);
+    });
     expect(onMoveDown).toHaveBeenCalled();
   });
 
@@ -82,16 +107,24 @@ describe('AuthAccountItem', () => {
     render(<AuthAccountItem item={mockItem} index={0} isFirst={true} isLast={false} onSelect={vi.fn()} onDelete={onDelete} callback="http://cb" />);
     
     const menuBtn = screen.getByRole('button');
-    fireEvent.click(menuBtn);
+    await act(async () => {
+      fireEvent.click(menuBtn);
+    });
 
     const deleteBtn = await screen.findByText('delete');
-    fireEvent.click(deleteBtn);
+    await act(async () => {
+      fireEvent.click(deleteBtn);
+    });
 
     expect(await screen.findByText('confirm_delete_title')).toBeInTheDocument();
     
     const confirmBtns = screen.getAllByRole('button');
     const confirmBtn = confirmBtns.find(b => b.textContent === 'delete');
-    if (confirmBtn) fireEvent.click(confirmBtn);
+    if (confirmBtn) {
+      await act(async () => {
+        fireEvent.click(confirmBtn);
+      });
+    }
 
     await waitFor(() => {
       expect(onDelete).toHaveBeenCalled();

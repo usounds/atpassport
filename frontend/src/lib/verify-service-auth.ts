@@ -1,6 +1,7 @@
 import { decodeJwt, decodeProtectedHeader, base64url } from 'jose';
 import { getAtprotoVerificationMaterial } from '@atcute/identity';
 import { getPublicKeyFromDidController, verifySig } from '@atcute/crypto';
+import { encodeUtf8 } from '@atcute/uint8array';
 import { resolveDidDocument } from './atproto-server';
 
 /**
@@ -28,8 +29,8 @@ export async function verifyServiceAuth(request: Request): Promise<string | null
     }
 
     const [headerB64, payloadB64, signatureB64] = parts;
-    const message = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
-    const signature = base64url.decode(signatureB64);
+    const message = encodeUtf8(`${headerB64}.${payloadB64}`);
+    const signature = base64url.decode(signatureB64) as Uint8Array<ArrayBuffer>;
 
     const header = decodeProtectedHeader(token);
     const payload = decodeJwt(token);
@@ -75,7 +76,7 @@ export async function verifyServiceAuth(request: Request): Promise<string | null
       return null;
     }
 
-    const isValid = await verifySig(publicKey, signature as any, message as any, { allowMalleableSig: true });
+    const isValid = await verifySig(publicKey, signature, message, { allowMalleableSig: true });
     if (!isValid) {
        console.warn('[verifyServiceAuth] Invalid JWT signature');
        return null;
