@@ -10,7 +10,7 @@
     "update": "pnpm -r update"
   },
   "devDependencies": {
-    "@atcute/lex-cli": "^2.5.3",
+    "@atcute/lex-cli": "^2.6.1",
     "npm-check-updates": "^17.1.18",
     "sst": "^4.6.11",
     "typescript": "^5.9.3"
