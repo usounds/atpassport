@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@/test/utils';
+import { render, screen, fireEvent, waitFor, act } from '@/test/utils';
 import { AssociationListClient } from '../AssociationListClient';
 import * as actions from '@/lib/actions';
 
@@ -9,6 +9,15 @@ vi.mock('@/lib/actions', () => ({
   removeAssociation: vi.fn(),
   refreshAssociation: vi.fn(),
 }));
+
+// Mock mantine core components to avoid transition issues
+vi.mock('@mantine/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@mantine/core')>();
+  return {
+    ...actual,
+    Transition: ({ children, mounted }: any) => mounted ? children({ transition: {} }) : null,
+  };
+});
 
 describe('AssociationListClient', () => {
   const mockItems = [
@@ -30,15 +39,21 @@ describe('AssociationListClient', () => {
     
     // Open menu for first item
     const menuBtns = screen.getAllByRole('button');
-    fireEvent.click(menuBtns[0]);
+    await act(async () => {
+      fireEvent.click(menuBtns[0]);
+    });
     
     const deleteBtn = await screen.findByText('Delete');
-    fireEvent.click(deleteBtn);
+    await act(async () => {
+      fireEvent.click(deleteBtn);
+    });
     
     // Find confirm button in modal
     // It's a red button with "Delete" text
     const confirmBtn = await screen.findByRole('button', { name: /^Delete$/ });
-    fireEvent.click(confirmBtn);
+    await act(async () => {
+      fireEvent.click(confirmBtn);
+    });
     
     await waitFor(() => {
       expect(actions.removeAssociation).toHaveBeenCalledWith('did:1');
@@ -48,9 +63,13 @@ describe('AssociationListClient', () => {
   it('handles item move up', async () => {
     render(<AssociationListClient initialItems={mockItems} />);
     const menuBtns = screen.getAllByRole('button');
-    fireEvent.click(menuBtns[1]);
+    await act(async () => {
+      fireEvent.click(menuBtns[1]);
+    });
     const moveUpBtn = await screen.findByText('Move Up');
-    fireEvent.click(moveUpBtn);
+    await act(async () => {
+      fireEvent.click(moveUpBtn);
+    });
     
     await waitFor(() => {
       expect(actions.moveAssociation).toHaveBeenCalled();
@@ -60,9 +79,13 @@ describe('AssociationListClient', () => {
   it('handles item move down', async () => {
     render(<AssociationListClient initialItems={mockItems} />);
     const menuBtns = screen.getAllByRole('button');
-    fireEvent.click(menuBtns[0]);
+    await act(async () => {
+      fireEvent.click(menuBtns[0]);
+    });
     const moveDownBtn = await screen.findByText('Move Down');
-    fireEvent.click(moveDownBtn);
+    await act(async () => {
+      fireEvent.click(moveDownBtn);
+    });
     
     await waitFor(() => {
       expect(actions.moveAssociation).toHaveBeenCalled();
@@ -72,9 +95,13 @@ describe('AssociationListClient', () => {
   it('handles item refresh', async () => {
     render(<AssociationListClient initialItems={mockItems} />);
     const menuBtns = screen.getAllByRole('button');
-    fireEvent.click(menuBtns[0]);
+    await act(async () => {
+      fireEvent.click(menuBtns[0]);
+    });
     const refreshBtn = await screen.findByText('Refresh Metadata');
-    fireEvent.click(refreshBtn);
+    await act(async () => {
+      fireEvent.click(refreshBtn);
+    });
     
     await waitFor(() => {
       expect(actions.refreshAssociation).toHaveBeenCalledWith('did:1');

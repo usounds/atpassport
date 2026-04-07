@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '../../test/utils';
+import { render, screen, fireEvent, waitFor, act } from '../../test/utils';
 import { AuthAccountList } from '../AuthAccountList';
 import { type AssociationWithProfile } from '@/lib/models';
 import * as actions from '@/lib/actions';
@@ -22,6 +22,15 @@ vi.mock('nextjs-toploader', () => ({
     stop: vi.fn(),
   }),
 }));
+
+// Mock mantine core components to avoid transition issues
+vi.mock('@mantine/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@mantine/core')>();
+  return {
+    ...actual,
+    Transition: ({ children, mounted }: any) => mounted ? children({ transition: {} }) : null,
+  };
+});
 
 // Mock next-intl (partial mock for Auth messages)
 vi.mock('next-intl', async (importOriginal) => {
@@ -120,7 +129,9 @@ describe('AuthAccountList', () => {
     render(<AuthAccountList initialItems={mockItems} domain="example.com" callback="https://callback.com?existing=1" />);
     
     const item = screen.getByText('User One');
-    fireEvent.click(item);
+    await act(async () => {
+      fireEvent.click(item);
+    });
 
     // Should show authenticating message
     expect(screen.getByText('Authenticating example.com via pds1.com')).toBeInTheDocument();
@@ -151,18 +162,24 @@ describe('AuthAccountList', () => {
     
     // Open menu for the first item
     const menuButtons = screen.getAllByRole('button').filter(btn => btn.querySelector('svg.tabler-icon-dots-vertical'));
-    fireEvent.click(menuButtons[0]);
+    await act(async () => {
+      fireEvent.click(menuButtons[0]);
+    });
 
     // Click delete in menu (it might be in a portal, so use findByText)
     const deleteButton = await screen.findByText('Delete');
-    fireEvent.click(deleteButton);
+    await act(async () => {
+      fireEvent.click(deleteButton);
+    });
 
     // Confirm modal should appear
     expect(await screen.findByText('Confirm Delete')).toBeInTheDocument();
     
     // Click confirm delete
     const confirmButton = screen.getByRole('button', { name: 'Delete' });
-    fireEvent.click(confirmButton);
+    await act(async () => {
+      fireEvent.click(confirmButton);
+    });
 
     await waitFor(() => {
       expect(actions.removeAssociation).toHaveBeenCalledWith('did:plc:1');
@@ -173,13 +190,19 @@ describe('AuthAccountList', () => {
     render(<AuthAccountList initialItems={mockItems} domain="example.com" callback="https://callback.com" />);
     
     const menuButtons = screen.getAllByRole('button').filter(btn => btn.querySelector('svg.tabler-icon-dots-vertical'));
-    fireEvent.click(menuButtons[0]);
+    await act(async () => {
+      fireEvent.click(menuButtons[0]);
+    });
 
     const deleteButton = await screen.findByText('Delete');
-    fireEvent.click(deleteButton);
+    await act(async () => {
+      fireEvent.click(deleteButton);
+    });
 
     const cancelButtons = await screen.findAllByText('Cancel');
-    fireEvent.click(cancelButtons[0]);
+    await act(async () => {
+      fireEvent.click(cancelButtons[0]);
+    });
 
     await waitFor(() => {
       expect(screen.queryByText('Confirm Delete')).not.toBeInTheDocument();
@@ -192,9 +215,13 @@ describe('AuthAccountList', () => {
     
     const menuButtons = screen.getAllByRole('button').filter(btn => btn.querySelector('svg.tabler-icon-dots-vertical'));
     
-    fireEvent.click(menuButtons[1]); // Second item
+    await act(async () => {
+      fireEvent.click(menuButtons[1]); // Second item
+    });
     const moveUpButton = await screen.findByText(/Move Up/i);
-    fireEvent.click(moveUpButton);
+    await act(async () => {
+      fireEvent.click(moveUpButton);
+    });
     expect(actions.moveAssociation).toHaveBeenCalledWith('did:plc:2', 'up');
   });
 
@@ -203,9 +230,13 @@ describe('AuthAccountList', () => {
     
     const menuButtons = screen.getAllByRole('button').filter(btn => btn.querySelector('svg.tabler-icon-dots-vertical'));
     
-    fireEvent.click(menuButtons[0]); // First item
+    await act(async () => {
+      fireEvent.click(menuButtons[0]); // First item
+    });
     const moveDownButton = await screen.findByText(/Move Down/i);
-    fireEvent.click(moveDownButton);
+    await act(async () => {
+      fireEvent.click(moveDownButton);
+    });
     expect(actions.moveAssociation).toHaveBeenCalledWith('did:plc:1', 'down');
   });
 
@@ -213,10 +244,14 @@ describe('AuthAccountList', () => {
     render(<AuthAccountList initialItems={mockItems} domain="example.com" callback="https://callback.com" />);
     
     const menuButtons = screen.getAllByRole('button').filter(btn => btn.querySelector('svg.tabler-icon-dots-vertical'));
-    fireEvent.click(menuButtons[0]);
+    await act(async () => {
+      fireEvent.click(menuButtons[0]);
+    });
 
     const refreshButton = await screen.findByText('Refresh Metadata');
-    fireEvent.click(refreshButton);
+    await act(async () => {
+      fireEvent.click(refreshButton);
+    });
     expect(actions.refreshAssociation).toHaveBeenCalledWith('did:plc:1');
   });
 

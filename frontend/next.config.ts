@@ -12,7 +12,9 @@ const nextConfig: NextConfig = {
     "@atcute/identity",
     "@atcute/identity-resolver",
     "@atcute/identity-resolver-node",
-    "@atcute/bluesky"
+    "@atcute/bluesky",
+    "@atcute/crypto",
+    "@atcute/multibase"
   ],
 
   outputFileTracingRoot: path.join(__dirname, ".."),

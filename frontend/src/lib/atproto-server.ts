@@ -7,7 +7,8 @@ import {
   LocalActorResolver
 } from "@atcute/identity-resolver";
 import { NodeDnsHandleResolver } from "@atcute/identity-resolver-node";
-import { isActorIdentifier } from "@atcute/lexicons/syntax";
+import { isActorIdentifier, isDid } from "@atcute/lexicons/syntax";
+import type { AtprotoDid } from "@atcute/lexicons/syntax";
 
 // Setup handle resolver with DNS and HTTP methods
 const handleResolver = new CompositeHandleResolver({
@@ -67,8 +68,15 @@ export async function resolveIdentity(handleOrDid: string) {
 }
 
 export async function resolveDidDocument(did: string) {
+  if (!isDid(did)) {
+    return null;
+  }
+
   try {
-    return await didResolver.resolve(did as `did:${string}`);
+    if (did.startsWith('did:plc:') || did.startsWith('did:web:')) {
+      return await didResolver.resolve(did as AtprotoDid);
+    }
+    return null;
   } catch (error) {
     console.error(`[resolveDidDocument] Failed to resolve DID ${did}:`, error);
     return null;
