@@ -65,3 +65,12 @@ export async function resolveIdentity(handleOrDid: string) {
     return null;
   }
 }
+
+export async function resolveDidDocument(did: string) {
+  try {
+    return await didResolver.resolve(did as `did:${string}`);
+  } catch (error) {
+    console.error(`[resolveDidDocument] Failed to resolve DID ${did}:`, error);
+    return null;
+  }
+}

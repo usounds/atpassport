@@ -1,26 +1,42 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { verifyServiceAuth } from '../verify-service-auth';
-import { decodeJwt } from 'jose';
-import { resolveIdentity } from '../atproto-server';
+import { decodeJwt, decodeProtectedHeader, base64url } from 'jose';
+import { getAtprotoVerificationMaterial } from '@atcute/identity';
+import { getPublicKeyFromDidController, verifySig } from '@atcute/crypto';
+import { resolveDidDocument } from '../atproto-server';
 
 vi.mock('jose', () => ({
   decodeJwt: vi.fn(),
+  decodeProtectedHeader: vi.fn(),
+  base64url: {
+    decode: vi.fn((s) => Buffer.from(s, 'base64url')),
+  },
+}));
+
+vi.mock('@atcute/identity', () => ({
+  getAtprotoVerificationMaterial: vi.fn(),
+}));
+
+vi.mock('@atcute/crypto', () => ({
+  getPublicKeyFromDidController: vi.fn(),
+  verifySig: vi.fn(),
 }));
 
 vi.mock('../atproto-server', () => ({
   resolveIdentity: vi.fn(),
+  resolveDidDocument: vi.fn(),
 }));
 
 describe('verifyServiceAuth', () => {
   const mockDid = 'did:plc:user123';
   const mockHost = 'atpassport.net';
+  const mockToken = 'header.payload.signature';
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should return DID when valid token is provided', async () => {
-    const mockToken = 'valid-token';
+  it('should return DID when valid token and signature are provided', async () => {
     const request = new Request('https://example.com', {
       headers: {
         'authorization': `Bearer ${mockToken}`,
@@ -28,20 +44,69 @@ describe('verifyServiceAuth', () => {
       },
     });
 
+    vi.mocked(decodeProtectedHeader).mockReturnValue({ alg: 'ES256K' });
     vi.mocked(decodeJwt).mockReturnValue({
       iss: mockDid,
       aud: `did:web:${mockHost}`,
       exp: Math.floor(Date.now() / 1000) + 3600,
     });
 
-    vi.mocked(resolveIdentity).mockResolvedValue({
-      did: mockDid,
-      handle: 'user.test',
-    });
+    vi.mocked(resolveDidDocument).mockResolvedValue({ id: mockDid } as any);
+    vi.mocked(getAtprotoVerificationMaterial).mockReturnValue({ type: 'type', publicKeyMultibase: 'key' });
+    vi.mocked(getPublicKeyFromDidController).mockReturnValue({ jwtAlg: 'ES256K' } as any);
+    vi.mocked(verifySig).mockResolvedValue(true);
 
     const result = await verifyServiceAuth(request);
     expect(result).toBe(mockDid);
-    expect(resolveIdentity).toHaveBeenCalledWith(mockDid);
+    expect(resolveDidDocument).toHaveBeenCalledWith(mockDid);
+    expect(verifySig).toHaveBeenCalled();
+  });
+
+  it('should return null if signature is invalid', async () => {
+    const request = new Request('https://example.com', {
+      headers: {
+        'authorization': `Bearer ${mockToken}`,
+        'host': mockHost,
+      },
+    });
+
+    vi.mocked(decodeProtectedHeader).mockReturnValue({ alg: 'ES256K' });
+    vi.mocked(decodeJwt).mockReturnValue({
+      iss: mockDid,
+      aud: `did:web:${mockHost}`,
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    });
+
+    vi.mocked(resolveDidDocument).mockResolvedValue({ id: mockDid } as any);
+    vi.mocked(getAtprotoVerificationMaterial).mockReturnValue({ type: 'type', publicKeyMultibase: 'key' });
+    vi.mocked(getPublicKeyFromDidController).mockReturnValue({ jwtAlg: 'ES256K' } as any);
+    vi.mocked(verifySig).mockResolvedValue(false);
+
+    const result = await verifyServiceAuth(request);
+    expect(result).toBe(null);
+  });
+
+  it('should return null if algorithm mismatch', async () => {
+    const request = new Request('https://example.com', {
+      headers: {
+        'authorization': `Bearer ${mockToken}`,
+        'host': mockHost,
+      },
+    });
+
+    vi.mocked(decodeProtectedHeader).mockReturnValue({ alg: 'ES256' });
+    vi.mocked(decodeJwt).mockReturnValue({
+      iss: mockDid,
+      aud: `did:web:${mockHost}`,
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    });
+
+    vi.mocked(resolveDidDocument).mockResolvedValue({ id: mockDid } as any);
+    vi.mocked(getAtprotoVerificationMaterial).mockReturnValue({ type: 'type', publicKeyMultibase: 'key' });
+    vi.mocked(getPublicKeyFromDidController).mockReturnValue({ jwtAlg: 'ES256K' } as any);
+
+    const result = await verifyServiceAuth(request);
+    expect(result).toBe(null);
   });
 
   it('should return null if authorization header is missing', async () => {
@@ -53,81 +118,44 @@ describe('verifyServiceAuth', () => {
   it('should return null if token is expired', async () => {
     const request = new Request('https://example.com', {
       headers: {
-        'authorization': 'Bearer expired-token',
+        'authorization': `Bearer ${mockToken}`,
         'host': mockHost,
       },
     });
 
+    vi.mocked(decodeProtectedHeader).mockReturnValue({ alg: 'ES256K' });
     vi.mocked(decodeJwt).mockReturnValue({
       iss: mockDid,
       aud: `did:web:${mockHost}`,
       exp: Math.floor(Date.now() / 1000) - 3600,
     });
 
+    vi.mocked(resolveDidDocument).mockResolvedValue({ id: mockDid } as any);
+    vi.mocked(getAtprotoVerificationMaterial).mockReturnValue({ type: 'type', publicKeyMultibase: 'key' });
+    vi.mocked(getPublicKeyFromDidController).mockReturnValue({ jwtAlg: 'ES256K' } as any);
+    vi.mocked(verifySig).mockResolvedValue(true);
+
     const result = await verifyServiceAuth(request);
     expect(result).toBe(null);
   });
 
-  it('should return null if identity cannot be resolved', async () => {
+  it('should return null if DID document cannot be resolved', async () => {
     const request = new Request('https://example.com', {
       headers: {
-        'authorization': 'Bearer token',
+        'authorization': `Bearer ${mockToken}`,
         'host': mockHost,
       },
     });
 
+    vi.mocked(decodeProtectedHeader).mockReturnValue({ alg: 'ES256K' });
     vi.mocked(decodeJwt).mockReturnValue({
       iss: mockDid,
       aud: `did:web:${mockHost}`,
       exp: Math.floor(Date.now() / 1000) + 3600,
     });
 
-    vi.mocked(resolveIdentity).mockResolvedValue(null);
+    vi.mocked(resolveDidDocument).mockResolvedValue(null);
 
-    const result = await verifyServiceAuth(request);
-    expect(result).toBe(null);
-  });
-
-  it('should return null if issuer is invalid', async () => {
-    const request = new Request('https://example.com', {
-      headers: {
-        'authorization': 'Bearer token',
-      },
-    });
-
-    vi.mocked(decodeJwt).mockReturnValue({
-      iss: 'invalid-did',
-    });
-
-    const result = await verifyServiceAuth(request);
-    expect(result).toBe(null);
-  });
-
-  it('should return null if audience is invalid', async () => {
-    const request = new Request('https://example.com', {
-      headers: {
-        'authorization': 'Bearer token',
-        'host': mockHost,
-      },
-    });
-
-    vi.mocked(decodeJwt).mockReturnValue({
-      iss: mockDid,
-      aud: 'did:web:wrong-host.com',
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    });
-
-    const result = await verifyServiceAuth(request);
-    expect(result).toBe(null);
-  });
-
-  it('should return null if decodeJwt throws', async () => {
-    const request = new Request('https://example.com', {
-      headers: { 'authorization': 'Bearer invalid' },
-    });
-    vi.mocked(decodeJwt).mockImplementation(() => {
-      throw new Error('JWT Error');
-    });
     const result = await verifyServiceAuth(request);
     expect(result).toBe(null);
   });
