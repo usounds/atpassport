@@ -1,5 +1,6 @@
 import { Client, ok, simpleFetchHandler } from '@atcute/client';
 import { isDid } from '@atcute/lexicons/syntax';
+import type { AtprotoDid, Handle } from '@atcute/lexicons/syntax';
 import type { AppBskyActorDefs } from '@atcute/bluesky';
 
 export const publicAgent = new Client({
@@ -7,8 +8,8 @@ export const publicAgent = new Client({
 });
 
 export interface BskyProfile {
-  did: string;
-  handle: string;
+  did: AtprotoDid;
+  handle: Handle;
   displayName?: string;
   description?: string;
   avatar?: string;
@@ -20,7 +21,7 @@ export async function getProfile(did: string): Promise<AppBskyActorDefs.ProfileV
   try {
     if (!isDid(did)) return null;
     const profile = await ok(publicAgent.get('app.bsky.actor.getProfile', {
-      params: { actor: did },
+      params: { actor: did as AtprotoDid },
     }));
     return profile;
   } catch {

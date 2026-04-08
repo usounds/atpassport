@@ -1,4 +1,19 @@
 /**
+ * Represents a Decentralized Identifier (DID).
+ */
+export type Did<Method extends string = string> = `did:${Method}:${string}`;
+
+/**
+ * Represents a Decentralized Identifier with methods supported in atproto (plc or web).
+ */
+export type AtprotoDid = Did<'plc' | 'web'>;
+
+/**
+ * Represents an account's handle (e.g., 'alice.bsky.social').
+ */
+export type Handle = `${string}.${string}`;
+
+/**
  * Options for initializing the AtPassport client.
  */
 export interface AtPassportOptions {
@@ -143,8 +158,8 @@ export class AtPassport {
    *                 or required custom parameters are missing.
    */
   parseCallback(currentUrl: string, expectedState?: string | null): {
-    handle: string | null;
-    did: string | null;
+    handle: Handle | string | null;
+    did: AtprotoDid | string | null;
     pdsUrl: string | null;
     atpstate: string;
     customParams: Record<string, string>;
@@ -179,7 +194,13 @@ export class AtPassport {
     // Validate that required custom parameters are present
     this._validateCustomParams(customParams);
 
-    return { handle, did, pdsUrl, atpstate, customParams };
+    return { 
+      handle: handle as Handle | null, 
+      did: did as AtprotoDid | null, 
+      pdsUrl, 
+      atpstate, 
+      customParams 
+    };
   }
 
 }

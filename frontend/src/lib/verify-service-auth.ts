@@ -3,13 +3,14 @@ import { getAtprotoVerificationMaterial } from '@atcute/identity';
 import { getPublicKeyFromDidController, verifySig } from '@atcute/crypto';
 import { encodeUtf8 } from '@atcute/uint8array';
 import { resolveDidDocument } from './atproto-server';
+import type { AtprotoDid } from '@atcute/lexicons/syntax';
 
 /**
  * Parses and verifies the Service Auth JWT (Proxy JWT) from an AT Protocol request.
  * 
  * Returns the originating user's DID (iss) if valid, or null otherwise.
  */
-export async function verifyServiceAuth(request: Request): Promise<string | null> {
+export async function verifyServiceAuth(request: Request): Promise<AtprotoDid | null> {
   try {
     const authHeader = request.headers.get('authorization');
 
@@ -89,7 +90,7 @@ export async function verifyServiceAuth(request: Request): Promise<string | null
        return null;
     }
 
-    return iss;
+    return iss as AtprotoDid;
   } catch (error) {
     console.error('[verifyServiceAuth] Failed to parse Service Auth JWT:', error);
     return null;

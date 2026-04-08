@@ -9,8 +9,9 @@ import { createSessionToken, SESSION_COOKIE_NAME } from './session';
 import { cookies, headers } from 'next/headers';
 import { isRateLimited } from './rate-limit';
 import { verifyDomainInDb, getVerifiedDomainFromDb, getVerifiedDomainsByDid, VerifiedDomain, deleteVerifiedDomainFromDb } from './security';
+import type { AtprotoDid, Handle } from '@atcute/lexicons/syntax';
 
-export async function claimDomainOwnership(did: string, isPublic: boolean = true): Promise<{ success: boolean; error?: string }> {
+export async function claimDomainOwnership(did: AtprotoDid, isPublic: boolean = true): Promise<{ success: boolean; error?: string }> {
   const uuid = await getSessionUuid();
   if (!uuid) return { success: false, error: "No session found" };
 
@@ -57,7 +58,7 @@ export async function resolveHandle(did: string) {
 /**
  * ドメイン検証を取り消します。
  */
-export async function withdrawDomain(domain: string, did: string) {
+export async function withdrawDomain(domain: string, did: AtprotoDid) {
   try {
     // 物理削除
     // セキュリティ上の確認: その DID が本当にそのドメインの所有者かチェック
@@ -81,7 +82,7 @@ export async function withdrawDomain(domain: string, did: string) {
 /**
  * ドメインの設定（公開状態など）を更新します。
  */
-export async function updateDomainSettings(domain: string, did: string, isPublic: boolean) {
+export async function updateDomainSettings(domain: string, did: AtprotoDid, isPublic: boolean) {
   try {
     const existing = await getVerifiedDomainFromDb(domain);
     if (!existing || existing.verifiedByDid !== did) {
@@ -103,7 +104,7 @@ export async function updateDomainSettings(domain: string, did: string, isPublic
 /**
  * 基幹互換性のためのエイリアス
  */
-export async function withdrawDomainViaOAuth(did: string) {
+export async function withdrawDomainViaOAuth(did: AtprotoDid) {
   const identity = await resolveIdentity(did);
   if (!identity || !identity.handle) return { success: false };
   return await withdrawDomain(identity.handle, did);
@@ -151,7 +152,7 @@ export async function registerHandle(handle: string): Promise<{ success: boolean
   }
 }
 
-export async function setPrimaryAssociation(did: string) {
+export async function setPrimaryAssociation(did: AtprotoDid) {
   const uuid = await getSessionUuid();
   if (!uuid) return;
 
@@ -168,7 +169,7 @@ export async function setPrimaryAssociation(did: string) {
   }
 }
 
-export async function refreshAssociation(did: string) {
+export async function refreshAssociation(did: AtprotoDid) {
   const headerList = await headers();
   const ip = headerList.get("x-forwarded-for") || "anonymous";
   if (isRateLimited(`action:refresh:${ip}`, 10, 60000)) {
@@ -189,14 +190,14 @@ export async function refreshAssociation(did: string) {
   }
 }
 
-export async function removeAssociation(did: string) {
+export async function removeAssociation(did: AtprotoDid) {
   const uuid = await getSessionUuid();
   if (!uuid) return;
 
   await deleteAssociation(uuid, did);
 }
 
-export async function moveAssociation(did: string, direction: 'up' | 'down') {
+export async function moveAssociation(did: AtprotoDid, direction: 'up' | 'down') {
   const uuid = await getSessionUuid();
   if (!uuid) return;
 
@@ -288,7 +289,7 @@ export async function initializeSession() {
 /**
  * DID から現在の検証ステータスを取得します。
  */
-export async function getVerificationStatus(did: string) {
+export async function getVerificationStatus(did: AtprotoDid) {
   const identity = await resolveIdentity(did);
   if (!identity || !identity.handle) return null;
 
@@ -298,6 +299,6 @@ export async function getVerificationStatus(did: string) {
 /**
  * DID に紐づく認証済みドメインをすべて取得します。
  */
-export async function getVerifiedDomains(did: string): Promise<VerifiedDomain[]> {
+export async function getVerifiedDomains(did: AtprotoDid): Promise<VerifiedDomain[]> {
   return await getVerifiedDomainsByDid(did);
 }
