@@ -1,11 +1,11 @@
 import { db, SESSION_TABLE_NAME } from "./db";
 import { PutCommand, QueryCommand, DeleteCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { type BskyProfile } from "./atproto";
-import type { AtprotoDid, Handle } from "@atcute/lexicons/syntax";
+import { type AppBskyActorDefs } from "@atcute/bluesky";
+import type { Handle } from "@atcute/lexicons/syntax";
 
 export interface IdentityAssociation {
   uuid: string;
-  did: AtprotoDid;
+  did: string;
   handle: Handle;
   pdsUrl: string;
   createdAt: string;
@@ -15,12 +15,12 @@ export interface IdentityAssociation {
 }
 
 export type AssociationWithProfile = IdentityAssociation & {
-  profile?: BskyProfile | null;
+  profile?: AppBskyActorDefs.ProfileViewDetailed | null;
 };
 
 const TTL_DURATION = 60 * 60 * 24 * 365; // 365 days
 
-export async function addAssociation(uuid: string, did: AtprotoDid, handle: Handle, pdsUrl: string) {
+export async function addAssociation(uuid: string, did: string, handle: Handle, pdsUrl: string) {
   const associations = await getAssociations(uuid);
   const maxSortOrder = associations.reduce((max, curr) => Math.max(max, curr.sortOrder || 0), -1);
 
@@ -80,7 +80,7 @@ export async function getAssociations(uuid: string): Promise<IdentityAssociation
   });
 }
 
-export async function updateAssociation(uuid: string, did: AtprotoDid, updates: Partial<IdentityAssociation>) {
+export async function updateAssociation(uuid: string, did: string, updates: Partial<IdentityAssociation>) {
   const filteredEntries = Object.entries(updates).filter(([key]) => key !== "uuid" && key !== "did");
   if (filteredEntries.length === 0) return;
 
@@ -107,7 +107,7 @@ export async function updateAssociation(uuid: string, did: AtprotoDid, updates: 
   );
 }
 
-export async function deleteAssociation(uuid: string, did: AtprotoDid) {
+export async function deleteAssociation(uuid: string, did: string) {
   await db.send(
     new DeleteCommand({
       TableName: SESSION_TABLE_NAME,

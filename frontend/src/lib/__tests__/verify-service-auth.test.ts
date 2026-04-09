@@ -160,7 +160,7 @@ describe('verifyServiceAuth', () => {
     expect(result).toBe(null);
   });
 
-  it('should continue even if audience mismatch (with warning)', async () => {
+  it('should return null if audience mismatch', async () => {
     const request = new Request('https://example.com', {
       headers: {
         'authorization': `Bearer ${mockToken}`,
@@ -171,7 +171,7 @@ describe('verifyServiceAuth', () => {
     vi.mocked(decodeProtectedHeader).mockReturnValue({ alg: 'ES256K' });
     vi.mocked(decodeJwt).mockReturnValue({
       iss: mockDid,
-      aud: 'did:web:wrong-host.net', // Mismatch
+      aud: 'did:web:evil-host.net', // Mismatch
       exp: Math.floor(Date.now() / 1000) + 3600,
     });
 
@@ -181,7 +181,35 @@ describe('verifyServiceAuth', () => {
     vi.mocked(verifySig).mockResolvedValue(true);
 
     const result = await verifyServiceAuth(request);
-    expect(result).toBe(mockDid); // Currently allowed with just a warning
+    expect(result).toBe(null); 
+  });
+
+  it('should verify with allowed secondary audiences', async () => {
+    const allowedHosts = ['atpassport.net', 'dev.atpassport.net'];
+    
+    for (const host of allowedHosts) {
+      const request = new Request('https://example.com', {
+        headers: {
+          'authorization': `Bearer ${mockToken}`,
+          'host': 'another-host.net', // Host header is different, but aud matches allowed whitelist
+        },
+      });
+
+      vi.mocked(decodeProtectedHeader).mockReturnValue({ alg: 'ES256K' });
+      vi.mocked(decodeJwt).mockReturnValue({
+        iss: mockDid,
+        aud: `did:web:${host}`,
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      });
+
+      vi.mocked(resolveDidDocument).mockResolvedValue({ id: mockDid } as any);
+      vi.mocked(getAtprotoVerificationMaterial).mockReturnValue({ type: 'type', publicKeyMultibase: 'key' });
+      vi.mocked(getPublicKeyFromDidController).mockReturnValue({ jwtAlg: 'ES256K' } as any);
+      vi.mocked(verifySig).mockResolvedValue(true);
+
+      const result = await verifyServiceAuth(request);
+      expect(result).toBe(mockDid);
+    }
   });
 
   it('should return null if JWT format is invalid', async () => {

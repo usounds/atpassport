@@ -34,7 +34,7 @@ const actorResolver = new LocalActorResolver({
 });
 
 export async function resolveIdentity(handleOrDid: string): Promise<{ 
-  did: AtprotoDid; 
+  did: string; 
   handle: Handle | undefined;
   pdsUrl: string;
 } | null> {

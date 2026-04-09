@@ -2,7 +2,8 @@ import { Container, Title, Text, Stack, Center, Paper, Group, Avatar } from '@ma
 import { getTranslations } from 'next-intl/server';
 import { getAssociations } from '@/lib/models';
 import { getSessionUuid } from '@/lib/session';
-import { getProfile, BskyProfile } from '@/lib/atproto';
+import { type AppBskyActorDefs } from '@atcute/bluesky';
+import { getProfile } from '@/lib/atproto';
 import { resolveIdentity } from '@/lib/atproto-server';
 import { AddHandleClient } from './AddHandleClient';
 
@@ -47,7 +48,7 @@ export default async function AddPage({
     handleCount = associations.length;
   }
 
-  const profile: BskyProfile | null = await getProfile(resolved.did);
+  const profile: AppBskyActorDefs.ProfileViewDetailed | null = await getProfile(resolved.did);
 
   return (
     <Container size="sm" py="xl" style={{ maxWidth: 500 }}>
@@ -55,7 +56,7 @@ export default async function AddPage({
         <header style={{ textAlign: 'center' }}>
           <Title order={3} mb="xs">{t('title')}</Title>
           <Text c="dimmed" size="sm">
-            {t('description', { handle: resolved.handle })}
+            {t('description', { handle: resolved.handle ?? handle })}
           </Text>
         </header>
 
@@ -64,13 +65,13 @@ export default async function AddPage({
             <Group wrap="nowrap" gap="md">
               <Avatar src={profile?.avatar} size="lg" radius="xl" />
               <Stack gap={0} style={{ flex: 1, overflow: 'hidden' }}>
-                <Text fw={600} size="lg" truncate>{profile?.displayName || resolved.handle}</Text>
-                <Text size="sm" c="dimmed" truncate>@{resolved.handle}</Text>
+                <Text fw={600} size="lg" truncate>{profile?.displayName || resolved.handle || handle}</Text>
+                <Text size="sm" c="dimmed" truncate>@{resolved.handle || handle}</Text>
               </Stack>
             </Group>
 
             <AddHandleClient 
-              handle={resolved.handle}
+              handle={resolved.handle ?? handle}
               did={resolved.did}
               pdsUrl={resolved.pdsUrl}
               callback={callback}

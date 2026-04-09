@@ -91,21 +91,17 @@ export async function verifyDomainInDb(
   isPublic: boolean = true,
   method: 'oauth' | 'file' = 'oauth'
 ): Promise<void> {
-  try {
-    await db.send(new PutCommand({
-      TableName: VERIFIED_DOMAINS_TABLE_NAME,
-      Item: { 
-        domain: domain.toLowerCase(),
-        verifiedByDid: did,
-        status: 'approved',
-        isPublic: isPublic ? "true" : "false",
-        verifiedAt: new Date().toISOString(),
-        method: method
-      }
-    }));
-  } catch (error) {
-    console.error("Error verifying domain in DB:", error);
-  }
+  await db.send(new PutCommand({
+    TableName: VERIFIED_DOMAINS_TABLE_NAME,
+    Item: { 
+      domain: domain.toLowerCase(),
+      verifiedByDid: did,
+      status: 'approved',
+      isPublic: isPublic ? "true" : "false",
+      verifiedAt: new Date().toISOString(),
+      method: method
+    }
+  }));
 }
 
 /**
