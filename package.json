@@ -22,8 +22,7 @@
       "esbuild": "0.25.0",
       "picomatch": "4.0.4",
       "yaml": "2.8.3",
-      "node-forge": "1.4.0",
-      "brace-expansion": "2.0.3"
+      "node-forge": "1.4.0"
     }
   }
 }
