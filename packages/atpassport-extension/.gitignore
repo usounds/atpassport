@@ -28,3 +28,4 @@ source.zip
 .npm-tmp
 .output
 .wxt
+.env.submit

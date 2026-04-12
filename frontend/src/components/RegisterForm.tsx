@@ -32,7 +32,7 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   const t = useTranslations('Home');
   const isLimitReached = handleCount >= MAX_HANDLES;
   const needsConsent = handleCount === 0;
-  
+
   const normalize = (v: string) => {
     const f = v.trim().replace(/@/g, '').toLowerCase();
     if (f && !f.includes('.')) {
@@ -48,7 +48,7 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
 
     // UI表示を同期させる（ユーザーの要望通り、即時に反映する）
     setHandle(currentHandle);
-    
+
     if (needsConsent && !agreed) return;
     setLoading(true);
     setError(null);
@@ -111,16 +111,16 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
 
   return (
     <>
-      <Box 
+      <Box
         className={isMounted ? "animate-slide-in" : ""}
         style={{ opacity: isMounted ? 1 : 0 }}
       >
         {isLimitReached ? (
-          <Group 
-            gap="xs" 
-            p="sm" 
-            style={{ 
-              borderRadius: 'var(--mantine-radius-md)', 
+          <Group
+            gap="xs"
+            p="sm"
+            style={{
+              borderRadius: 'var(--mantine-radius-md)',
               background: 'light-dark(var(--mantine-color-orange-light), rgba(255, 145, 0, 0.05))',
               border: '1px solid light-dark(var(--mantine-color-orange-light-hover), rgba(255, 145, 0, 0.2))'
             }}
@@ -147,16 +147,15 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
         )}
       </Box>
 
-      <Modal 
-        opened={opened} 
-        onClose={handleClose} 
-        title={t('add_handle')} 
+      <Modal
+        opened={opened}
+        onClose={handleClose}
+        title={t('add_handle')}
         radius="lg"
         closeOnClickOutside={false}
       >
         <Stack gap="md">
           <Autocomplete
-            id="handle"
             label={t('handle')}
             name="handle"
             placeholder={t('placeholder_handle')}
