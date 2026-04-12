@@ -1,6 +1,6 @@
 {
   "name": "atpassport-extension",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "@passport handle auto-filler and clipboard copier.",
   "private": true,
@@ -11,8 +11,8 @@
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
     "zip": "wxt zip && wxt zip -b firefox",
-    "submit:chrome": "npx publish-browser-extension@latest --chrome-zip .output/atpassport-extension-$npm_package_version-chrome.zip",
-    "submit:firefox": "npx publish-browser-extension@latest --firefox-zip .output/atpassport-extension-$npm_package_version-firefox.zip --firefox-sources-zip .output/atpassport-extension-$npm_package_version-sources.zip",
+    "submit:chrome": "pnpm zip && npx publish-browser-extension@latest --chrome-zip .output/atpassport-extension-$npm_package_version-chrome.zip",
+    "submit:firefox": "pnpm zip && npx publish-browser-extension@latest --firefox-zip .output/atpassport-extension-$npm_package_version-firefox.zip --firefox-sources-zip .output/atpassport-extension-$npm_package_version-sources.zip",
     "postinstall": "wxt prepare",
     "compile": "tsc --noEmit",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",

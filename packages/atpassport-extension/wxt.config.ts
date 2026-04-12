@@ -35,7 +35,7 @@ export default defineConfig({
     },
   },
   vite: () => ({
-    esbuild: {
+    build: {
       drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
     },
   }),
