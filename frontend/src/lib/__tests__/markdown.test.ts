@@ -39,4 +39,21 @@ describe('Markdown Library', () => {
     vi.mocked(fs.existsSync).mockReturnValue(false);
     await expect(getMarkdownContent('none', 'en')).rejects.toThrow('Content not found for none');
   });
+
+  it('should sanitize slug and prevent path traversal', async () => {
+    // sanitizedSlug will be 'directory'
+    // sanitizedLocale will be 'en'
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(matter.read).mockReturnValue({
+      data: { title: 'Safe' },
+      content: 'Safe',
+    } as any);
+    
+    await getMarkdownContent('../../../etc/passwd', 'en');
+    
+    // Check if fs.existsSync was called with sanitized path
+    // The path will be .../src/content/etcpasswd/en.md (because non-alphanum are removed)
+    // Actually the regex is [^a-zA-Z0-9_-] so / and . are removed.
+    expect(fs.existsSync).toHaveBeenCalledWith(expect.stringContaining('src/content/etcpasswd/en.md'));
+  });
 });

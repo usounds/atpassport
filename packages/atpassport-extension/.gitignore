@@ -24,3 +24,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 source.zip
+
+.npm-tmp
+.output
+.wxt
+.env.submit

@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { createRoot } from 'react-dom/client';
 import { Loader2, AlertCircle, Copy, User } from 'lucide-react';
 import { HandleManager } from '@/lib/HandleManager';
 
-const Popup = () => {
+export const Popup = () => {
   const manager = useMemo(() => new HandleManager(), []);
   const [handles, setHandles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -190,8 +189,4 @@ const Popup = () => {
   );
 };
 
-const container = document.getElementById('root');
-if (container) {
-  const root = createRoot(container);
-  root.render(<Popup />);
-}
+export default Popup;

@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.1.35",
+  "version": "0.1.36",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001 -H 0.0.0.0",
@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
+    "check": "pnpm test && pnpm lint && pnpm build",
     "deploy": "pnpm test && npx sst deploy --stage production",
     "update": "npx ncu -u -x eslint && pnpm install",
     "lint": "eslint"

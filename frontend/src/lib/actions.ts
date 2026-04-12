@@ -59,8 +59,14 @@ export async function resolveHandle(did: string) {
  */
 export async function withdrawDomain(domain: string, did: string) {
   try {
-    // 物理削除
-    // セキュリティ上の確認: その DID が本当にそのドメインの所有者かチェック
+    const uuid = await getSessionUuid();
+    if (!uuid) return { success: false, error: "No session found" };
+
+    const associations = await getAssociations(uuid);
+    if (!associations.some(a => a.did === did)) {
+      return { success: false, error: "DID not associated with your account" };
+    }
+
     const existing = await getVerifiedDomainFromDb(domain);
     if (!existing || existing.verifiedByDid !== did) {
       return { success: false, error: "Unauthorized or domain not found" };
@@ -83,6 +89,14 @@ export async function withdrawDomain(domain: string, did: string) {
  */
 export async function updateDomainSettings(domain: string, did: string, isPublic: boolean) {
   try {
+    const uuid = await getSessionUuid();
+    if (!uuid) return { success: false, error: "No session found" };
+
+    const associations = await getAssociations(uuid);
+    if (!associations.some(a => a.did === did)) {
+      return { success: false, error: "DID not associated with your account" };
+    }
+
     const existing = await getVerifiedDomainFromDb(domain);
     if (!existing || existing.verifiedByDid !== did) {
       return { success: false, error: "Unauthorized or domain not found" };

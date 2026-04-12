@@ -1,11 +1,12 @@
 import { db, SESSION_TABLE_NAME } from "./db";
 import { PutCommand, QueryCommand, DeleteCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { type BskyProfile } from "./atproto";
+import { type AppBskyActorDefs } from "@atcute/bluesky";
+import type { Handle } from "@atcute/lexicons/syntax";
 
 export interface IdentityAssociation {
   uuid: string;
   did: string;
-  handle: string;
+  handle: Handle;
   pdsUrl: string;
   createdAt: string;
   expiresAt?: number; // DynamoDB TTL (Unix timestamp)
@@ -14,12 +15,12 @@ export interface IdentityAssociation {
 }
 
 export type AssociationWithProfile = IdentityAssociation & {
-  profile?: BskyProfile | null;
+  profile?: AppBskyActorDefs.ProfileViewDetailed | null;
 };
 
 const TTL_DURATION = 60 * 60 * 24 * 365; // 365 days
 
-export async function addAssociation(uuid: string, did: string, handle: string, pdsUrl: string) {
+export async function addAssociation(uuid: string, did: string, handle: Handle, pdsUrl: string) {
   const associations = await getAssociations(uuid);
   const maxSortOrder = associations.reduce((max, curr) => Math.max(max, curr.sortOrder || 0), -1);
 

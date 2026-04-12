@@ -54,7 +54,7 @@ describe('Actions Library', () => {
     it('should claim ownership if handle is in associations', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid, handle: 'user.com' } as AssociationWithProfile
+        { did: mockDid, handle: 'user.com' } as unknown as AssociationWithProfile
       ]);
       vi.mocked(verifyDomainInDb).mockResolvedValue({} as any);
 
@@ -68,7 +68,7 @@ describe('Actions Library', () => {
     it('should fail if handle is infrastructure domain', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid, handle: 'bsky.social' } as AssociationWithProfile
+        { did: mockDid, handle: 'bsky.social' } as unknown as AssociationWithProfile
       ]);
 
       const result = await claimDomainOwnership(mockDid);
@@ -79,7 +79,7 @@ describe('Actions Library', () => {
     it('should fail if handle does not contain a dot', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid, handle: 'localhost' } as AssociationWithProfile
+        { did: mockDid, handle: 'localhost' } as unknown as AssociationWithProfile
       ]);
 
       const result = await claimDomainOwnership(mockDid);
@@ -105,7 +105,7 @@ describe('Actions Library', () => {
       vi.spyOn(console, 'error').mockImplementation(() => {});
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid, handle: 'user.com' } as AssociationWithProfile
+        { did: mockDid, handle: 'user.com' } as unknown as AssociationWithProfile
       ]);
       vi.mocked(verifyDomainInDb).mockRejectedValue(new Error('DB Error'));
 
@@ -121,6 +121,10 @@ describe('Actions Library', () => {
     const domain = 'remove.me';
 
     it('should delete if user is owner', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: mockDid } as unknown as AssociationWithProfile
+      ]);
       vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
         domain, verifiedByDid: mockDid, status: 'approved', verifiedAt: 't'
       });
@@ -132,7 +136,26 @@ describe('Actions Library', () => {
       expect(deleteVerifiedDomainFromDb).toHaveBeenCalledWith(domain);
     });
 
+    it('should fail if no session', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(null);
+      const result = await withdrawDomain(domain, mockDid);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('No session found');
+    });
+
+    it('should fail if DID not associated', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([]);
+      const result = await withdrawDomain(domain, mockDid);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('DID not associated with your account');
+    });
+
     it('should fail if user is not owner', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: mockDid } as unknown as AssociationWithProfile
+      ]);
       vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
         domain, verifiedByDid: 'other', status: 'approved', verifiedAt: 't'
       });
@@ -143,6 +166,10 @@ describe('Actions Library', () => {
     });
 
     it('should fail if domain not found', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: mockDid } as unknown as AssociationWithProfile
+      ]);
       vi.mocked(getVerifiedDomainFromDb).mockResolvedValue(null);
       const result = await withdrawDomain(domain, mockDid);
       expect(result.success).toBe(false);
@@ -151,6 +178,10 @@ describe('Actions Library', () => {
 
     it('should handle errors during withdrawal', async () => {
       vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: mockDid } as unknown as AssociationWithProfile
+      ]);
       vi.mocked(getVerifiedDomainFromDb).mockRejectedValue(new Error('DB Error'));
       const result = await withdrawDomain(domain, mockDid);
       expect(result.success).toBe(false);
@@ -162,6 +193,10 @@ describe('Actions Library', () => {
   describe('updateDomainSettings', () => {
     it('should update isPublic setting', async () => {
       const domain = 'update.me';
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: mockDid } as unknown as AssociationWithProfile
+      ]);
       vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
         domain, verifiedByDid: mockDid, status: 'approved', verifiedAt: 't', method: 'file'
       });
@@ -173,7 +208,26 @@ describe('Actions Library', () => {
       expect(verifyDomainInDb).toHaveBeenCalledWith(domain, mockDid, false, 'file');
     });
 
+    it('should fail if no session in updateDomainSettings', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(null);
+      const result = await updateDomainSettings('d', mockDid, true);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('No session found');
+    });
+
+    it('should fail if DID not associated in updateDomainSettings', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([]);
+      const result = await updateDomainSettings('d', mockDid, true);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('DID not associated with your account');
+    });
+
     it('should fail if unauthorized in updateDomainSettings', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: mockDid } as unknown as AssociationWithProfile
+      ]);
       vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
         domain: 'd', verifiedByDid: 'other', status: 'approved', verifiedAt: 't'
       });
@@ -183,6 +237,10 @@ describe('Actions Library', () => {
 
     it('should handle errors in updateDomainSettings', async () => {
       vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: mockDid } as unknown as AssociationWithProfile
+      ]);
       vi.mocked(getVerifiedDomainFromDb).mockRejectedValue(new Error('DB Error'));
       const result = await updateDomainSettings('d', mockDid, true);
       expect(result.success).toBe(false);
@@ -214,7 +272,7 @@ describe('Actions Library', () => {
     it('should update metadata if DID already exists', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:plc:existing', handle: 'new.handle', pdsUrl: 'http://new-pds' });
-      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:plc:existing', handle: 'old.handle' } as AssociationWithProfile]);
+      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:plc:existing', handle: 'old.handle' } as unknown as AssociationWithProfile]);
 
       const result = await registerHandle(mockHandle);
 
@@ -229,7 +287,7 @@ describe('Actions Library', () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       // pdsUrl is empty, which should trigger the early return
       vi.mocked(resolveIdentity).mockResolvedValue({ did: 'did:plc:existing', handle: 'new.handle', pdsUrl: '' });
-      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:plc:existing', handle: 'old.handle' } as AssociationWithProfile]);
+      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:plc:existing', handle: 'old.handle' } as unknown as AssociationWithProfile]);
 
       const result = await registerHandle(mockHandle);
 
@@ -257,11 +315,11 @@ describe('Actions Library', () => {
     it('should set primary association correctly', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { did: 'did:1', isPrimary: true } as AssociationWithProfile,
-        { did: 'did:2', isPrimary: false } as AssociationWithProfile,
+        { did: 'did:1', isPrimary: true } as unknown as AssociationWithProfile,
+        { did: 'did:2', isPrimary: false } as unknown as AssociationWithProfile,
       ]);
 
-      await setPrimaryAssociation('did:2');
+      await setPrimaryAssociation('did:2' as any);
 
       // did:2 should become primary
       expect(updateAssociation).toHaveBeenCalledWith(mockUuid, 'did:2', { isPrimary: true });
@@ -295,8 +353,8 @@ describe('Actions Library', () => {
     it('should swap sort orders when moving up', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { did: 'did:plc:1', sortOrder: 0 } as AssociationWithProfile,
-        { did: 'did:plc:2', sortOrder: 1 } as AssociationWithProfile,
+        { did: 'did:plc:1', sortOrder: 0 } as unknown as AssociationWithProfile,
+        { did: 'did:plc:2', sortOrder: 1 } as unknown as AssociationWithProfile,
       ]);
 
       await moveAssociation('did:plc:2', 'up');
@@ -308,8 +366,8 @@ describe('Actions Library', () => {
     it('should swap sort orders when moving down', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { did: 'did:plc:1', sortOrder: 0 } as AssociationWithProfile,
-        { did: 'did:plc:2', sortOrder: 1 } as AssociationWithProfile,
+        { did: 'did:plc:1', sortOrder: 0 } as unknown as AssociationWithProfile,
+        { did: 'did:plc:2', sortOrder: 1 } as unknown as AssociationWithProfile,
       ]);
 
       await moveAssociation('did:plc:1', 'down');
@@ -321,14 +379,14 @@ describe('Actions Library', () => {
     it('should do nothing if DID not found', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([]);
-      await moveAssociation('nonexistent', 'up');
+      await moveAssociation('nonexistent' as any, 'up');
       expect(updateAssociation).not.toHaveBeenCalled();
     });
 
     it('should do nothing if moving up from index 0', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { did: 'did:plc:1', sortOrder: 0 } as AssociationWithProfile,
+        { did: 'did:plc:1', sortOrder: 0 } as unknown as AssociationWithProfile,
       ]);
       await moveAssociation('did:plc:1', 'up');
       expect(updateAssociation).not.toHaveBeenCalled();
@@ -337,7 +395,7 @@ describe('Actions Library', () => {
     it('should do nothing if moving down from last index', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { did: 'did:plc:1', sortOrder: 0 } as AssociationWithProfile,
+        { did: 'did:plc:1', sortOrder: 0 } as unknown as AssociationWithProfile,
       ]);
       await moveAssociation('did:plc:1', 'down');
       expect(updateAssociation).not.toHaveBeenCalled();
@@ -365,7 +423,7 @@ describe('Actions Library', () => {
       vi.mocked(getUuidByShareToken).mockResolvedValue('target-uuid');
       vi.mocked(createSessionToken).mockResolvedValue('session-token');
       const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
+      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
 
       const result = await syncWithToken('valid-token');
 
@@ -385,7 +443,7 @@ describe('Actions Library', () => {
       vi.mocked(isRateLimited).mockReturnValue(false);
       vi.mocked(getSessionUuid).mockResolvedValue('existing');
       const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
+      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
       await initializeSession();
       expect(mockCookieSet).not.toHaveBeenCalled();
     });
@@ -395,13 +453,13 @@ describe('Actions Library', () => {
       vi.mocked(getSessionUuid).mockResolvedValue(null);
       // Collide 3 times, then succeed
       vi.mocked(getAssociations)
-        .mockResolvedValueOnce([{ did: 'did:1' } as AssociationWithProfile])
-        .mockResolvedValueOnce([{ did: 'did:2' } as AssociationWithProfile])
-        .mockResolvedValueOnce([{ did: 'did:3' } as AssociationWithProfile])
+        .mockResolvedValueOnce([{ did: 'did:1' } as unknown as AssociationWithProfile])
+        .mockResolvedValueOnce([{ did: 'did:2' } as unknown as AssociationWithProfile])
+        .mockResolvedValueOnce([{ did: 'did:3' } as unknown as AssociationWithProfile])
         .mockResolvedValueOnce([]);
       
       const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
+      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
 
       await initializeSession();
 
@@ -415,7 +473,7 @@ describe('Actions Library', () => {
       vi.mocked(getAssociations).mockResolvedValue([]);
       vi.mocked(createSessionToken).mockResolvedValue('new-token');
       const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ get: vi.fn(), set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
+      vi.mocked(cookies).mockResolvedValue({ get: vi.fn(), set: mockCookieSet } as any);
 
       await initializeSession();
 
@@ -426,10 +484,10 @@ describe('Actions Library', () => {
       vi.mocked(isRateLimited).mockReturnValue(false);
       vi.mocked(getSessionUuid).mockResolvedValue(null);
       // Always return associations (collision)
-      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:1' } as AssociationWithProfile]);
+      vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:1' } as unknown as AssociationWithProfile]);
       
       const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as unknown as ReturnType<typeof cookies>);
+      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
 
       await initializeSession();
 

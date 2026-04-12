@@ -18,8 +18,17 @@ const chromeMock = {
 vi.stubGlobal('chrome', chromeMock);
 
 // Mock navigator.clipboard
-vi.stubGlobal('navigator', {
-  clipboard: {
-    writeText: vi.fn(),
-  },
-});
+if (typeof navigator !== 'undefined') {
+  Object.defineProperty(navigator, 'clipboard', {
+    value: {
+      writeText: vi.fn(),
+    },
+    configurable: true,
+  });
+} else {
+  vi.stubGlobal('navigator', {
+    clipboard: {
+      writeText: vi.fn(),
+    },
+  });
+}
