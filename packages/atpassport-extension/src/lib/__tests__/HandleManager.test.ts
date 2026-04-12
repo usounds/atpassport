@@ -60,16 +60,16 @@ describe('HandleManager', () => {
 
   describe('applyHandle', () => {
     it('should return filledSuccess when scripting succeeds', async () => {
-      vi.mocked(chrome.tabs.query).mockResolvedValue([{ id: 1 }] as unknown as chrome.tabs.Tab[]);
-      vi.mocked(chrome.scripting.executeScript).mockResolvedValue([{ result: { success: true } }] as unknown as chrome.scripting.InjectionResult<unknown>[]);
+      vi.mocked(chrome.tabs.query as any).mockResolvedValue([{ id: 1 }] as unknown as chrome.tabs.Tab[]);
+      vi.mocked(chrome.scripting.executeScript as any).mockResolvedValue([{ result: { success: true } }] as unknown as chrome.scripting.InjectionResult<unknown>[]);
 
       const result = await manager.applyHandle('test.handle');
       expect(result).toBe('filledSuccess');
     });
 
     it('should return copiedFallback when scripting results are undefined', async () => {
-      vi.mocked(chrome.tabs.query).mockResolvedValue([{ id: 1 }] as unknown as chrome.tabs.Tab[]);
-      vi.mocked(chrome.scripting.executeScript).mockResolvedValue(undefined as any);
+      vi.mocked(chrome.tabs.query as any).mockResolvedValue([{ id: 1 }] as unknown as chrome.tabs.Tab[]);
+      vi.mocked(chrome.scripting.executeScript as any).mockResolvedValue(undefined as any);
 
       const result = await manager.applyHandle('test.handle');
       expect(result).toBe('copiedFallback');
@@ -77,8 +77,8 @@ describe('HandleManager', () => {
     });
 
     it('should return copiedFallback and use clipboard when scripting finds no input', async () => {
-      vi.mocked(chrome.tabs.query).mockResolvedValue([{ id: 1 }] as unknown as chrome.tabs.Tab[]);
-      vi.mocked(chrome.scripting.executeScript).mockResolvedValue([{ result: { success: false } }] as unknown as chrome.scripting.InjectionResult<unknown>[]);
+      vi.mocked(chrome.tabs.query as any).mockResolvedValue([{ id: 1 }] as unknown as chrome.tabs.Tab[]);
+      vi.mocked(chrome.scripting.executeScript as any).mockResolvedValue([{ result: { success: false } }] as unknown as chrome.scripting.InjectionResult<unknown>[]);
 
       const result = await manager.applyHandle('test.handle');
       expect(result).toBe('copiedFallback');
@@ -98,8 +98,8 @@ describe('HandleManager', () => {
       // We extract the function and call it manually in our jsdom environment.
       
       const spy = vi.spyOn(chrome.scripting, 'executeScript');
-      vi.mocked(chrome.tabs.query).mockResolvedValue([{ id: 1 }] as any);
-      vi.mocked(chrome.scripting.executeScript).mockResolvedValue([{ result: { success: true } }] as any);
+      vi.mocked(chrome.tabs.query as any).mockResolvedValue([{ id: 1 }] as any);
+      vi.mocked(chrome.scripting.executeScript as any).mockResolvedValue([{ result: { success: true } }] as any);
 
       await manager.applyHandle('test.handle');
       

@@ -28,6 +28,7 @@ export default defineConfig({
       gecko: {
         id: 'extension@atpassport.net',
         strict_min_version: '142.0',
+        // @ts-expect-error - Firefox specific field not in WXT schema
         data_collection_permissions: {
           required: ['none'],
         },
@@ -35,7 +36,7 @@ export default defineConfig({
     },
   },
   vite: () => ({
-    build: {
+    esbuild: {
       drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
     },
   }),

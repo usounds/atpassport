@@ -16,6 +16,6 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["chrome", "wxt/client", "node"]
+    "types": ["chrome", "node"]
   }
 }
