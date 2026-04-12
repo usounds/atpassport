@@ -9,6 +9,8 @@ const eslintConfig = defineConfig([
     "node_modules/**",
     "web-ext-artifacts/**",
     "coverage/**",
+    ".output/**",
+    ".wxt/**",
   ]),
 ]);
 

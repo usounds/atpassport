@@ -72,8 +72,8 @@ export class HandleManager {
 
           // 2. Prioritized search for handle fields
           const selectors = [
-            'input[id="handle"]',
             'input[name="handle"]',
+            'input[id="handle"]',
             'input[placeholder*="handle" i]',
             'input[autocomplete="username"]',
             'input[type="text"]'
