@@ -142,6 +142,6 @@ We have a [sample application](/example) where you can check the actual behavior
 In your web application's login forms, we recommend setting the following attributes for the handle input field (`<input>`):
 
 - **`name="handle"`** (Most recommended): Allows the extension to identify the field most reliably.
-- **`id="handle"`**: Recommended for backward compatibility.
+- **`id="handle"`**: Can be used as a fallback if `name="handle"` does not work as expected.
 
 By setting these, the @passport extension will automatically recognize the field, and values will be accurately reflected even on sites using advanced frameworks like React.
