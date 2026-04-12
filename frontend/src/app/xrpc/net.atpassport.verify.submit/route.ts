@@ -4,6 +4,7 @@ import { NetAtpassportVerifySubmit } from '@/lexicons/index';
 import { verifyDomainInDb } from '@/lib/security';
 import { resolveIdentity } from '@/lib/atproto-server';
 import { isRateLimited } from '@/lib/rate-limit';
+import net from 'node:net';
 
 export async function POST(request: Request) {
   try {
@@ -46,8 +47,13 @@ export async function POST(request: Request) {
     // - localhost不可
     // - IPアドレス（IPv4/IPv6）不可
     // - TLDを含むドメイン形式であること
-    const domainRegex = /^(?!localhost$)(?!.*[\d]+\.[\d]+\.[\d]+\.[\d]+$)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
-    if (!domainRegex.test(lowerDomain)) {
+    if (net.isIP(lowerDomain)) {
+      return NextResponse.json({ success: false, error: 'Invalid domain format. IP addresses are not allowed.' }, { status: 400 });
+    }
+
+    // Improved regex to avoid ReDoS and ensure proper format
+    const domainRegex = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*\.[a-z]{2,}$/;
+    if (!domainRegex.test(lowerDomain) || lowerDomain === 'localhost' || lowerDomain.endsWith('.localhost')) {
       return NextResponse.json({ success: false, error: 'Invalid domain format. IP addresses and localhost are not allowed.' }, { status: 400 });
     }
 
@@ -89,7 +95,7 @@ export async function POST(request: Request) {
       return NextResponse.json(output);
     } catch (fetchError: unknown) {
       const error = fetchError as Error;
-      console.warn(`[xrpc/net.atpassport.verify.submit] Fetch failed for ${url}:`, error.message);
+      console.warn('[xrpc/net.atpassport.verify.submit] Fetch failed for %s:', url, error.message);
       const output: NetAtpassportVerifySubmit.Output = { 
         success: false, 
         error: "Connection failed. Ensure HTTPS is working and the domain is correct." 

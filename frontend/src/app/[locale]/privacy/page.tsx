@@ -47,8 +47,14 @@ export default async function PrivacyPage({
                     </div>
                   ),
                   a: ({ href, children }) => {
-                    const isInternal = href?.startsWith('/') || href?.startsWith('https://atpassport.net') || href?.startsWith('https://dev.atpassport.net');
-                    const finalHref = href?.replace(/https:\/\/(dev\.)?atpassport\.net(\/[a-z]{2})?/, '') || '';
+                    const isInternal = !!href && (
+                      href.startsWith('/') || 
+                      href === 'https://atpassport.net' || 
+                      href.startsWith('https://atpassport.net/') || 
+                      href === 'https://dev.atpassport.net' || 
+                      href.startsWith('https://dev.atpassport.net/')
+                    );
+                    const finalHref = href?.replace(/^https:\/\/(dev\.)?atpassport\.net(\/[a-z]{2})?/, '') || '';
                     
                     if (isInternal && href) {
                       return <Link href={finalHref as "/"} style={{ color: 'var(--mantine-color-blue-6)' }}>{children}</Link>;

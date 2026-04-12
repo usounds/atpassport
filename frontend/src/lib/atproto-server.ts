@@ -60,7 +60,7 @@ export async function resolveIdentity(handleOrDid: string): Promise<{
     // ActorResolutionError や DidNotFoundError は想定内のエラーとして扱う
     if (error?.name !== 'ActorResolutionError' && error?.cause?.name !== 'DidNotFoundError') {
       // それ以外の予期せぬエラーは詳細に出力
-      console.error(`[resolveIdentity] UNEXPECTED ERROR for ${handleOrDid}:`, {
+      console.error('[resolveIdentity] UNEXPECTED ERROR for %s:', handleOrDid, {
         name: error?.name,
         message: error?.message,
         cause: error?.cause,
@@ -82,7 +82,7 @@ export async function resolveDidDocument(did: string) {
     }
     return null;
   } catch (error) {
-    console.error(`[resolveDidDocument] Failed to resolve DID ${did}:`, error);
+    console.error('[resolveDidDocument] Failed to resolve DID %s:', did, error);
     return null;
   }
 }
