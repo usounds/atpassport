@@ -17,13 +17,17 @@
   },
   "pnpm": {
     "overrides": {
-      "minimatch": "8.0.4",
+      "minimatch": "8.0.6",
+      "brace-expansion": "2.0.3",
+      "next": "16.2.3",
+      "next-intl": "4.9.1",
+      "react": "19.2.5",
+      "react-dom": "19.2.5",
       "@types/react": "19.2.14",
       "@types/react-dom": "19.2.3",
       "esbuild": "0.25.0",
       "picomatch": "4.0.4",
-      "yaml": "2.8.3",
-      "node-forge": "1.4.0"
+      "yaml": "2.8.3"
     }
   }
 }
