@@ -9,6 +9,17 @@ atprotoは分散型であるがゆえに、「Blueskyでログイン」のよう
 
 この課題を解決するために、一度ハンドルを登録すれば、複数のatprotoサービスで都度ハンドルの入力が不要になる仕組みとして@passportを立ち上げました。
 
+```bluesky-embed
+<blockquote class="bluesky-embed" data-bluesky-uri="at://did:plc:7qu7hsthk2mtm5ilru4umrsf/app.bsky.feed.post/3mjwiio2yns2s" data-bluesky-cid="bafyreidnvrfgytgt52wqbxldkh5uhribi7acfbc2tkqxmwghhndnrxb5uu" data-bluesky-embed-color-mode="system"><p lang="en">対応サイトではこのように動作します。
+※初めてログインするアプリでは、権限の確認が入ります
+
+ネイティブに対応しているアプリは現在下記の3つとなります
+
+chavatar.app
+skyblur.uk
+rito.blue<br><br><a href="https://bsky.app/profile/did:plc:7qu7hsthk2mtm5ilru4umrsf/post/3mjwiio2yns2s?ref_src=embed">[image or embed]</a></p>&mdash; @passport (<a href="https://bsky.app/profile/did:plc:7qu7hsthk2mtm5ilru4umrsf?ref_src=embed">@atpassport.net</a>) <a href="https://bsky.app/profile/did:plc:7qu7hsthk2mtm5ilru4umrsf/post/3mjwiio2yns2s?ref_src=embed">2026年4月20日 21:41</a></blockquote><script async src="https://embed.bsky.app/static/embed.js" charset="utf-8"></script>
+```
+
 あくまでも「ハンドル(例: @alice.bsky.social)」のみが本サーバーに保存され、パスワードを始めとしたJWTトークンなどの認証情報は一切本サーバーには保存されませんので、安心してご利用いただけます。
 
 # 2つの連携・利用方法
@@ -87,7 +98,7 @@ atprotoは分散型であるがゆえに、「Blueskyでログイン」のよう
 ### 1.　@passport連携
 @passport連携は下記のメカニズムで動作します。
 
-1. 各アプリは、@passportで認証ボタンをタップすると、callbackパラメータを指定し@passportに遷移する
+1. 各アプリは、「@passportでログイン」ボタンをタップすると、callbackパラメータを指定し@passportに遷移する
 2. @passportは、該当セッションに該当するハンドルを一覧表示し、ユーザーがハンドルをタップするとタップしたハンドルを1で指定したcallbackに付与してリダイレクトする
 3. 各アプリは戻ったハンドルを利用してOAuth認証フローを開始する
 

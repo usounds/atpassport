@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Link } from '@/i18n/routing';
 import { IconInfoCircle } from '@tabler/icons-react';
+import Script from 'next/script';
 
 export async function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ja' }];
@@ -27,6 +28,7 @@ export default async function AboutPage({
           shadow="sm"
           className="responsive-content-paper"
         >
+          <Script src="https://embed.bsky.app/static/embed.js" strategy="lazyOnload" />
           <Stack gap="lg">
             <div>
               <Title order={2}>{data.title || 'Untitled'}</Title>
@@ -71,6 +73,15 @@ export default async function AboutPage({
                     </td>
                   ),
                   code: ({ className, children }) => {
+                    if (className === 'language-bluesky-embed' && typeof children === 'string') {
+                      return (
+                        <div 
+                          dangerouslySetInnerHTML={{ __html: children }} 
+                          style={{ marginBottom: '16px' }}
+                        />
+                      );
+                    }
+
                     const isBlock = className?.includes('language-') || (typeof children === 'string' && children.includes('\n'));
                     
                     if (isBlock) {
