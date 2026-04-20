@@ -9,6 +9,19 @@ Because atproto is decentralized, one-button authentication like "Login with Blu
 
 To solve this problem, we launched @passport as a mechanism that allows you to register your handle once and eliminate the need for manual handle entry across multiple atproto services.
 
+```bluesky-embed
+<blockquote class="bluesky-embed" data-bluesky-uri="at://did:plc:7qu7hsthk2mtm5ilru4umrsf/app.bsky.feed.post/3mjwipt2dbc2s" data-bluesky-cid="bafyreidrjblk3g2qt23y3yhh76n6oswqrwdrm3k4qst6n425sjs7dgfpva" data-bluesky-embed-color-mode="system"><p lang="en">Here is how it works on supported sites.
+*Please note: Apps you are logging into for the first time will require an permission check.
+
+Currently, the following three apps have native support:
+
+chavatar.app
+skyblur.uk
+rito.blue
+
+(4/4)<br><br><a href="https://bsky.app/profile/did:plc:7qu7hsthk2mtm5ilru4umrsf/post/3mjwipt2dbc2s?ref_src=embed">[image or embed]</a></p>&mdash; @passport (<a href="https://bsky.app/profile/did:plc:7qu7hsthk2mtm5ilru4umrsf?ref_src=embed">@atpassport.net</a>) <a href="https://bsky.app/profile/did:plc:7qu7hsthk2mtm5ilru4umrsf/post/3mjwipt2dbc2s?ref_src=embed">2026年4月20日 21:45</a></blockquote>
+```
+
 Only your "handle (e.g., @alice.bsky.social)" is stored on this server. Authentication information, including passwords and JWT tokens, is never stored on this server, so you can use it with peace of mind.
 
 # Two Ways to Use @passport
@@ -87,7 +100,7 @@ If you change your handle or move your PDS, you will need to "Update Metadata."
 ### 1. @passport Integration
 @passport integration works with the following mechanism:
 
-1. Each app transitions to @passport with a `callback` parameter when the authentication button in @passport is tapped.
+1. Each app transitions to @passport with a `callback` parameter when the Login with @passport button is tapped.
 2. @passport lists handles corresponding to that session. When a user taps a handle, the tapped handle is added to the `callback` specified in step 1, and the user is redirected.
 3. Each app uses the returned handle to start the OAuth authentication flow.
 
