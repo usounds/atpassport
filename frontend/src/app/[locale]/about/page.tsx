@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { Link } from '@/i18n/routing';
 import { IconInfoCircle } from '@tabler/icons-react';
 import Script from 'next/script';
+import { BlueskyEmbedManager } from '@/components/BlueskyEmbedManager';
 
 export async function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ja' }];
@@ -28,6 +29,7 @@ export default async function AboutPage({
           shadow="sm"
           className="responsive-content-paper"
         >
+          <BlueskyEmbedManager />
           <Script src="https://embed.bsky.app/static/embed.js" strategy="lazyOnload" />
           <Stack gap="lg">
             <div>
