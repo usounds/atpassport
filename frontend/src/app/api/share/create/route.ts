@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUuid } from "@/lib/session";
 import { createShareToken } from "@/lib/share";
+import { getAssociations } from "@/lib/models";
 import { isRateLimited } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
@@ -14,6 +15,12 @@ export async function POST(request: NextRequest) {
 
   if (!uuid) {
     return NextResponse.json({ error: "No session found" }, { status: 401 });
+  }
+
+  // 登録済みのハンドルがあるかチェック
+  const associations = await getAssociations(uuid);
+  if (associations.length === 0) {
+    return NextResponse.json({ error: "No handles registered" }, { status: 403 });
   }
 
   // セッションUUIDベースのレート制限 (1分間に5回まで)

@@ -7,7 +7,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { useTranslations } from 'next-intl';
 import { ShareModal } from './ShareModal';
 
-export function ShareSection() {
+export function ShareSection({ handleCount = 0 }: { handleCount?: number }) {
   const t = useTranslations('Home');
   const tShare = useTranslations('Share');
   const [opened, { open, close }] = useDisclosure(false);
@@ -17,6 +17,10 @@ export function ShareSection() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
   }, []);
+
+  if (handleCount === 0) {
+    return null;
+  }
 
   return (
     <>

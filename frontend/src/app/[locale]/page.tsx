@@ -39,7 +39,7 @@ export default async function HomePage({
 
         <RegisterForm handleCount={handleCount} />
 
-        <ShareSection />
+        <ShareSection handleCount={handleCount} />
       </Stack>
     </Container>
   );
