@@ -178,7 +178,11 @@
     "invalid_handle_format": "Formato de handle inválido",
     "failed": "Falló",
     "unexpected_failure": "Error inesperado",
-    "failed_to_update_settings": "Error al actualizar los ajustes"
+    "failed_to_update_settings": "Error al actualizar los ajustes",
+    "check_cors_hint": "Por favor, comprueba la configuración de CORS o la ubicación de /.well-known/did.json",
+    "verification_mismatch": "El contenido de la verificación no coincide. Asegúrate de incluir el DID correcto.",
+    "unreachable_url": "No se pudo acceder a la URL. Por favor, comprueba el estado de tu servidor.",
+    "connection_failed": "Error de conexión. Asegúrate de que HTTPS funcione y el dominio sea correcto."
   },
   "Directory": {
     "title": "Dominios",

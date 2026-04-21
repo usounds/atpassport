@@ -178,7 +178,11 @@
     "invalid_handle_format": "ハンドルの形式が正しくありません",
     "failed": "失敗しました",
     "unexpected_failure": "予期しないエラーが発生しました",
-    "failed_to_update_settings": "設定の更新に失敗しました"
+    "failed_to_update_settings": "設定の更新に失敗しました",
+    "check_cors_hint": "CORS設定や /.well-known/did.json の配置を確認してください",
+    "verification_mismatch": "検証内容が一致しません。正しいDIDが含まれているか確認してください。",
+    "unreachable_url": "URLに接続できませんでした。サーバーの状態を確認してください。",
+    "connection_failed": "接続に失敗しました。HTTPSが有効で、ドメインが正しいことを確認してください。"
   },
   "Directory": {
     "title": "ドメイン一覧",

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getSessionUuid } from './session';
 import { getAssociations, updateAssociation, deleteAssociation, addAssociation } from './models';
-import { resolveIdentity } from './atproto-server';
+import { resolveIdentity, resolveDidDocument } from './atproto-server';
 import { getUuidByShareToken } from './share';
 import { createSessionToken, SESSION_COOKIE_NAME } from './session';
 import { cookies, headers } from 'next/headers';
@@ -52,6 +52,13 @@ export async function claimDomainOwnership(did: string, isPublic: boolean = true
  */
 export async function resolveHandle(did: string) {
   return await resolveIdentity(did);
+}
+
+/**
+ * DID ドキュメントを解決します。
+ */
+export async function resolveDidDoc(did: string) {
+  return await resolveDidDocument(did);
 }
 
 /**

@@ -1,15 +1,35 @@
 'use client';
 
-import { configureOAuth } from '@atcute/oauth-browser-client';
+import type { DidDocument } from '@atcute/identity';
 import {
-  CompositeDidDocumentResolver,
-  LocalActorResolver,
-  PlcDidDocumentResolver,
-  WebDidDocumentResolver,
-  XrpcHandleResolver,
+  LocalActorResolver
 } from '@atcute/identity-resolver';
+import type { AtprotoDid } from '@atcute/lexicons/syntax';
+import { configureOAuth } from '@atcute/oauth-browser-client';
+
+import { resolveDidDoc, resolveHandle } from './actions';
 
 let initialized = false;
+
+class ProxyHandleResolver {
+  async resolve(handle: string): Promise<AtprotoDid> {
+    const result = await resolveHandle(handle);
+    if (!result?.did) {
+      throw new Error('Handle not found');
+    }
+    return result.did as AtprotoDid;
+  }
+}
+
+class ProxyDidDocumentResolver {
+  async resolve(did: string): Promise<DidDocument> {
+    const doc = await resolveDidDoc(did);
+    if (!doc) {
+      throw new Error('DID document not found');
+    }
+    return doc as DidDocument;
+  }
+}
 
 export function initOAuth() {
   if (initialized || typeof window === 'undefined') return;
@@ -25,15 +45,8 @@ export function initOAuth() {
       redirect_uri: redirectUri,
     },
     identityResolver: new LocalActorResolver({
-      handleResolver: new XrpcHandleResolver({
-        serviceUrl: 'https://public.api.bsky.app',
-      }),
-      didDocumentResolver: new CompositeDidDocumentResolver({
-        methods: {
-          plc: new PlcDidDocumentResolver(),
-          web: new WebDidDocumentResolver(),
-        },
-      }),
+      handleResolver: new ProxyHandleResolver(),
+      didDocumentResolver: new ProxyDidDocumentResolver(),
     }),
   });
 

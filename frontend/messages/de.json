@@ -178,7 +178,11 @@
     "invalid_handle_format": "Ungültiges Handle-Format",
     "failed": "Fehlgeschlagen",
     "unexpected_failure": "Unerwarteter Fehler",
-    "failed_to_update_settings": "Fehler beim Aktualisieren der Einstellungen"
+    "failed_to_update_settings": "Fehler beim Aktualisieren der Einstellungen",
+    "check_cors_hint": "Bitte CORS-Einstellungen oder Ablageort von /.well-known/did.json prüfen",
+    "verification_mismatch": "Inhalt der Verifizierung fehlerhaft. Bitte stellen Sie sicher, dass die korrekte DID enthalten ist.",
+    "unreachable_url": "URL nicht erreichbar. Bitte prüfen Sie den Serverstatus.",
+    "connection_failed": "Verbindung fehlgeschlagen. Stellen Sie sicher, dass HTTPS funktioniert und die Domain korrekt ist."
   },
   "Directory": {
     "title": "Domains",
