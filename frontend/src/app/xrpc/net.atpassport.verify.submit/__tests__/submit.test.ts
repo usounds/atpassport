@@ -100,7 +100,7 @@ describe('XRPC: net.atpassport.verify.submit', () => {
     const data = await response.json();
 
     expect(data.success).toBe(false);
-    expect(data.error).toContain('Verification content mismatch');
+    expect(data.error).toBe('verification_mismatch');
     expect(verifyDomainInDb).not.toHaveBeenCalled();
   });
 
@@ -138,7 +138,7 @@ describe('XRPC: net.atpassport.verify.submit', () => {
     const response = await POST(request);
     const data = await response.json();
     expect(data.success).toBe(false);
-    expect(data.error).toContain('Connection failed');
+    expect(data.error).toBe('connection_failed');
   });
 
   it('should fail if domain is localhost or IP address', async () => {
@@ -216,7 +216,7 @@ describe('XRPC: net.atpassport.verify.submit', () => {
     const response = await POST(request);
     const data = await response.json();
     expect(data.success).toBe(false);
-    expect(data.error).toContain('Status: 404');
+    expect(data.error).toBe('unreachable_url');
   });
 
   it('should return 500 if an unexpected error occurs', async () => {

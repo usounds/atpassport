@@ -239,7 +239,7 @@ export function DeveloperPortal({
       else if (errorKey === 'check_cors_hint') displayMessage = t('check_cors_hint');
       else if (errorKey) {
         try {
-          displayMessage = t(errorKey as any);
+          displayMessage = t(errorKey as Parameters<typeof t>[0]);
         } catch {
           // Fallback to errorKey string if translation fails
           displayMessage = errorKey;
@@ -291,7 +291,7 @@ export function DeveloperPortal({
       else if (errorKey === 'check_cors_hint') displayMessage = t('check_cors_hint');
       else if (errorKey) {
         try {
-          displayMessage = t(errorKey as any);
+          displayMessage = t(errorKey as Parameters<typeof t>[0]);
         } catch {
           displayMessage = errorKey;
         }
@@ -319,7 +319,7 @@ export function DeveloperPortal({
       const err = error as { message?: string; kind?: string; error?: string };
       console.error('[Withdraw Proxy] Error:', err);
       const errorKey = err?.kind || err?.error;
-      const displayMessage = errorKey ? t(errorKey as any) : (err?.message !== 'Invalid Request' && err?.message ? err.message : t('failed'));
+      const displayMessage = errorKey ? t(errorKey as Parameters<typeof t>[0]) : (err?.message !== 'Invalid Request' && err?.message ? err.message : t('failed'));
       
       notifications.update({ id, title: t('error_title'), message: displayMessage, color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
