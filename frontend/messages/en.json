@@ -178,7 +178,11 @@
     "invalid_handle_format": "Invalid handle format",
     "failed": "Failed",
     "unexpected_failure": "Unexpected failure",
-    "failed_to_update_settings": "Failed to update settings"
+    "failed_to_update_settings": "Failed to update settings",
+    "check_cors_hint": "Please check CORS settings or /.well-known/did.json placement",
+    "verification_mismatch": "Verification content mismatch. Please ensure the correct DID is included.",
+    "unreachable_url": "Could not reach the URL. Please check your server status.",
+    "connection_failed": "Connection failed. Ensure HTTPS is working and the domain is correct."
   },
   "Directory": {
     "title": "Domains",

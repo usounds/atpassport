@@ -51,13 +51,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Invalid domain format. IP addresses are not allowed.' }, { status: 400 });
     }
 
-    // Improved regex to avoid ReDoS and ensure proper format
-    const domainRegex = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*\.[a-z]{2,}$/;
-    if (!domainRegex.test(lowerDomain) || lowerDomain === 'localhost' || lowerDomain.endsWith('.localhost')) {
-      return NextResponse.json({ success: false, error: 'Invalid domain format. IP addresses and localhost are not allowed.' }, { status: 400 });
+    // Relaxed regex for local testing
+    const isDev = process.env.NODE_ENV === 'development';
+    const domainRegex = isDev 
+      ? /^([a-z0-9.-]+)(:[0-9]+)?$/ 
+      : /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*\.[a-z]{2,}$/;
+    
+    if (!domainRegex.test(lowerDomain)) {
+      return NextResponse.json({ success: false, error: `Invalid domain format (server): ${lowerDomain}` }, { status: 400 });
     }
 
-    const url = `https://${lowerDomain}/.well-known/atpassport`;
+    // Block localhost in production for security (SSRF prevention)
+    if (!isDev && (lowerDomain === 'localhost' || lowerDomain.endsWith('.localhost'))) {
+      return NextResponse.json({ success: false, error: 'Localhost is not allowed in production.' }, { status: 400 });
+    }
+
+    const protocol = (isDev && (lowerDomain.startsWith('localhost') || lowerDomain.includes('127.0.0.1'))) ? 'http' : 'https';
+    const url = `${protocol}://${lowerDomain}/.well-known/atpassport`;
     
     try {
       const controller = new AbortController();
@@ -73,7 +83,7 @@ export async function POST(request: Request) {
       if (!response.ok) {
         const output: NetAtpassportVerifySubmit.Output = { 
           success: false, 
-          error: `Could not reach ${url} (Status: ${response.status})` 
+          error: 'unreachable_url' 
         };
         return NextResponse.json(output, { status: 400 });
       }
@@ -83,7 +93,7 @@ export async function POST(request: Request) {
       if (!content.includes(expectedPrefix) || !content.includes(did)) {
         const output: NetAtpassportVerifySubmit.Output = { 
           success: false, 
-          error: `Verification content mismatch. Expected: ${expectedPrefix} ${did}` 
+          error: 'verification_mismatch'
         };
         return NextResponse.json(output, { status: 400 });
       }
@@ -98,7 +108,7 @@ export async function POST(request: Request) {
       console.warn('[xrpc/net.atpassport.verify.submit] Fetch failed for %s:', url, error.message);
       const output: NetAtpassportVerifySubmit.Output = { 
         success: false, 
-        error: "Connection failed. Ensure HTTPS is working and the domain is correct." 
+        error: "connection_failed" 
       };
       return NextResponse.json(output, { status: 400 });
     }

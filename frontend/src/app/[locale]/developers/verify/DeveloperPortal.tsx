@@ -2,7 +2,7 @@
 
 import { Stack, Title, Text, Button, Group, Box, Paper, Avatar, Loader, Divider, Tabs, TextInput, Center } from '@mantine/core';
 import { IconPlus, IconLayoutDashboard, IconLogin, IconInfoCircle, IconExternalLink, IconLogout } from '@tabler/icons-react';
-import { useState, useEffect, useCallback, ChangeEvent } from 'react';
+import { useState, useEffect, useCallback, ChangeEvent, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { initOAuth } from '@/lib/oauth';
 import { createAuthorizationUrl, finalizeAuthorization, getSession, listStoredSessions, deleteStoredSession, OAuthUserAgent, Session } from '@atcute/oauth-browser-client';
@@ -41,6 +41,7 @@ export function DeveloperPortal({
   const [activeTab, setActiveTab] = useState<string | null>('dashboard');
   const [showManualInput, setShowManualInput] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const attemptedAutoLogin = useRef(false);
 
   // Proxy client setup
   const getProxyClient = useCallback((s?: Session) => {
@@ -93,6 +94,14 @@ export function DeveloperPortal({
     }
 
     setActionLoading(true);
+    
+    // Clear params immediately to prevent re-login loop
+    if (typeof window !== 'undefined' && window.location.search) {
+      const url = new URL(window.location.href);
+      url.search = '';
+      window.history.replaceState(null, '', url.toString());
+    }
+
     try {
       const scope = 'atproto include:net.atpassport.permissionSet';
       const authUrl = await createAuthorizationUrl({
@@ -103,16 +112,20 @@ export function DeveloperPortal({
         scope: scope,
         prompt: 'consent'
       });
-      // Clear params to prevent re-login loop
-      if (window.location.search) {
-        window.history.replaceState(null, '', window.location.pathname);
-      }
       await new Promise(resolve => setTimeout(resolve, 200));
       window.location.assign(authUrl);
     } catch (error: unknown) {
       console.error('OAuth start failed:', error);
       setActionLoading(false);
-      notifications.show({ title: t('error_title'), message: t('login_failed'), color: 'red' });
+      
+      const isFetchError = error instanceof Error && 
+        (error.message.includes('fetch') || error.message.includes('NetworkError') || error.message.includes('DID'));
+      
+      notifications.show({ 
+        title: t('error_title'), 
+        message: isFetchError ? `${t('login_failed')} (${t('check_cors_hint')})` : t('login_failed'), 
+        color: 'red' 
+      });
     }
   }, [handleInput, t]);
 
@@ -158,8 +171,9 @@ export function DeveloperPortal({
 
   // Handle library callback
   useEffect(() => {
-    // Only start auto-login when not already loading/in session and handle param exists
-    if (initialResult && initialResult.handle && !session && !loading && !actionLoading) {
+    // Only start auto-login once when not already loading/in session and handle param exists
+    if (initialResult && initialResult.handle && !session && !loading && !actionLoading && !attemptedAutoLogin.current) {
+      attemptedAutoLogin.current = true;
       handleLogin(initialResult.handle);
     }
   }, [initialResult, session, loading, actionLoading, handleLogin]);
@@ -215,9 +229,24 @@ export function DeveloperPortal({
     } catch (error: unknown) {
       const err = error as { message?: string; kind?: string; error?: string };
       console.error('[Verify Proxy] Error:', err);
-      // @atcute/client XRPCError puts our custom error string in err.kind or err.error
-      const errorMessage = err?.message !== 'Invalid Request' && err?.message ? err.message : (err?.kind || err?.error || t('failed'));
-      notifications.update({ id, title: t('error_title'), message: errorMessage, color: 'red', loading: false, autoClose: true, withCloseButton: true });
+      // Explicitly check for known error keys first
+      const errorKey = err?.kind || err?.error;
+      let displayMessage = (err?.message !== 'Invalid Request' && err?.message) ? err.message : t('failed');
+
+      if (errorKey === 'verification_mismatch') displayMessage = t('verification_mismatch');
+      else if (errorKey === 'unreachable_url') displayMessage = t('unreachable_url');
+      else if (errorKey === 'connection_failed') displayMessage = t('connection_failed');
+      else if (errorKey === 'check_cors_hint') displayMessage = t('check_cors_hint');
+      else if (errorKey) {
+        try {
+          displayMessage = t(errorKey as any);
+        } catch {
+          // Fallback to errorKey string if translation fails
+          displayMessage = errorKey;
+        }
+      }
+      
+      notifications.update({ id, title: t('error_title'), message: displayMessage, color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }
@@ -234,9 +263,10 @@ export function DeveloperPortal({
         return;
       }
 
-      const domainRegex = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+      // Simplified regex for local testing
+      const domainRegex = /^([a-zA-Z0-9.-]+)(:[0-9]+)?$/;
       if (!domainRegex.test(domain.trim().toLowerCase())) {
-        notifications.update({ id, title: t('error_title'), message: t('invalid_domain_format'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
+        notifications.update({ id, title: t('error_title'), message: `${t('invalid_domain_format')} (client)`, color: 'red', loading: false, autoClose: true, withCloseButton: true });
         return;
       }
 
@@ -252,8 +282,22 @@ export function DeveloperPortal({
     } catch (error: unknown) {
       const err = error as { message?: string; kind?: string; error?: string };
       console.error('[Verify File] Error:', err);
-      const errorMessage = err?.message !== 'Invalid Request' && err?.message ? err.message : (err?.kind || err?.error || t('failed'));
-      notifications.update({ id, title: t('error_title'), message: errorMessage, color: 'red', loading: false, autoClose: true, withCloseButton: true });
+      const errorKey = err?.kind || err?.error;
+      let displayMessage = (err?.message !== 'Invalid Request' && err?.message) ? err.message : t('failed');
+
+      if (errorKey === 'verification_mismatch') displayMessage = t('verification_mismatch');
+      else if (errorKey === 'unreachable_url') displayMessage = t('unreachable_url');
+      else if (errorKey === 'connection_failed') displayMessage = t('connection_failed');
+      else if (errorKey === 'check_cors_hint') displayMessage = t('check_cors_hint');
+      else if (errorKey) {
+        try {
+          displayMessage = t(errorKey as any);
+        } catch {
+          displayMessage = errorKey;
+        }
+      }
+      
+      notifications.update({ id, title: t('error_title'), message: displayMessage, color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }
@@ -274,8 +318,10 @@ export function DeveloperPortal({
     } catch (error: unknown) {
       const err = error as { message?: string; kind?: string; error?: string };
       console.error('[Withdraw Proxy] Error:', err);
-      const errorMessage = err?.message !== 'Invalid Request' && err?.message ? err.message : (err?.kind || err?.error || t('failed'));
-      notifications.update({ id, title: t('error_title'), message: errorMessage, color: 'red', loading: false, autoClose: true, withCloseButton: true });
+      const errorKey = err?.kind || err?.error;
+      const displayMessage = errorKey ? t(errorKey as any) : (err?.message !== 'Invalid Request' && err?.message ? err.message : t('failed'));
+      
+      notifications.update({ id, title: t('error_title'), message: displayMessage, color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
       setActionLoading(false);
     }
