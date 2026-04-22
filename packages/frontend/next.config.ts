@@ -19,10 +19,10 @@ const nextConfig: NextConfig = {
 
   transpilePackages: ["@atpassport/client"],
 
-  outputFileTracingRoot: path.join(__dirname, ".."),
-  turbopack: process.env.NODE_ENV === "development" ? {
-    root: path.join(__dirname, ".."),
-  } : undefined,
+  outputFileTracingRoot: path.join(__dirname, "../../"),
+  turbopack: {
+    root: path.join(__dirname, "../../"),
+  },
   experimental: {
     serverActions: {
       allowedOrigins: ['atpassport.net', 'dev.atpassport.net', 'localhost:3001'],

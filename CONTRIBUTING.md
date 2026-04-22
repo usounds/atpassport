@@ -37,9 +37,9 @@ We love new ideas! To suggest a feature, please open a GitHub Issue and describe
 
 > **Note**: Languages other than Japanese are currently machine-translated. We highly appreciate any contributions to improve these translations with more natural expressions.
 
-1. **Locate the message files** in `frontend/messages/`.
+1. **Locate the message files** in `packages/frontend/messages/`.
 2. **Add or edit the JSON file** for your language (e.g., `fr.json` for French).
-3. **Register the new locale** in `frontend/src/i18n/routing.ts` by adding the language code to the `locales` array.
+3. **Register the new locale** in `packages/frontend/src/i18n/routing.ts` by adding the language code to the `locales` array.
 4. **Submit a Pull Request**.
 
 ## License
