@@ -16,13 +16,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. pnpm を最初にインストール (これで pnpm: command not found を防ぐ)
+      # 1. pnpm をインストール (version 指定を消すことで package.json の指定と競合させない)
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10 # 以前のログに合わせて v10 を指定
 
-      # 2. Node.js のセットアップ (corepack-enabled オプションは削除)
+      # 2. Node.js 22 をセットアップ (これで styleText エラーを解決)
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
@@ -33,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # 4. AWS 認証 (Secrets に AWS_ROLE_ARN が必要)
+      # 4. AWS 認証
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
