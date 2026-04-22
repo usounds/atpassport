@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.1.42",
+  "version": "0.1.41",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001 -H 0.0.0.0",
@@ -14,7 +14,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@atcute/bluesky": "^3.3.3",
+    "@atcute/bluesky": "^3.3.1",
     "@atcute/client": "^4.2.1",
     "@atcute/identity-resolver-node": "^1.0.3",
     "@atcute/lex-cli": "^2.6.1",
