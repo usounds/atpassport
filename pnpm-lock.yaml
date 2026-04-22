@@ -34,151 +34,6 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  frontend:
-    dependencies:
-      '@atcute/bluesky':
-        specifier: ^3.3.1
-        version: 3.3.1
-      '@atcute/client':
-        specifier: ^4.2.1
-        version: 4.2.1
-      '@atcute/identity-resolver-node':
-        specifier: ^1.0.3
-        version: 1.0.3(@atcute/identity-resolver@1.2.2(@atcute/identity@1.1.4))(@atcute/identity@1.1.4)
-      '@atcute/lex-cli':
-        specifier: ^2.6.1
-        version: 2.6.1
-      '@atcute/lexicons':
-        specifier: ^1.2.10
-        version: 1.2.10
-      '@atcute/oauth-browser-client':
-        specifier: ^3.0.0
-        version: 3.0.0(@atcute/identity@1.1.4)
-      '@atpassport/client':
-        specifier: workspace:*
-        version: link:../packages/atpassport-client
-      '@aws-sdk/client-dynamodb':
-        specifier: ^3.1025.0
-        version: 3.1025.0
-      '@aws-sdk/lib-dynamodb':
-        specifier: ^3.1025.0
-        version: 3.1025.0(@aws-sdk/client-dynamodb@3.1025.0)
-      '@emotion/react':
-        specifier: ^11.14.0
-        version: 11.14.0(@types/react@19.2.14)(react@19.2.5)
-      '@emotion/styled':
-        specifier: ^11.14.1
-        version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5)
-      '@mantine/core':
-        specifier: ^9.0.1
-        version: 9.0.1(@mantine/hooks@9.0.1(react@19.2.5))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@mantine/hooks':
-        specifier: ^9.0.1
-        version: 9.0.1(react@19.2.5)
-      '@mantine/notifications':
-        specifier: ^9.0.1
-        version: 9.0.1(@mantine/core@9.0.1(@mantine/hooks@9.0.1(react@19.2.5))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@mantine/hooks@9.0.1(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@tabler/icons-react':
-        specifier: ^3.41.1
-        version: 3.41.1(react@19.2.5)
-      cookie:
-        specifier: ^1.1.1
-        version: 1.1.1
-      gray-matter:
-        specifier: ^4.0.3
-        version: 4.0.3
-      jose:
-        specifier: ^6.2.2
-        version: 6.2.2
-      lucide-react:
-        specifier: ^1.7.0
-        version: 1.7.0(react@19.2.5)
-      next:
-        specifier: 16.2.3
-        version: 16.2.3(@babel/core@7.29.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      next-intl:
-        specifier: 4.9.1
-        version: 4.9.1(next@16.2.3(@babel/core@7.29.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(typescript@6.0.2)
-      nextjs-toploader:
-        specifier: ^3.9.17
-        version: 3.9.17(next@16.2.3(@babel/core@7.29.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      qrcode.react:
-        specifier: ^4.2.0
-        version: 4.2.0(react@19.2.5)
-      react:
-        specifier: 19.2.5
-        version: 19.2.5
-      react-dom:
-        specifier: 19.2.5
-        version: 19.2.5(react@19.2.5)
-      react-markdown:
-        specifier: ^10.1.0
-        version: 10.1.0(@types/react@19.2.14)(react@19.2.5)
-      remark-gfm:
-        specifier: ^4.0.1
-        version: 4.0.1
-      sst:
-        specifier: ^4.6.11
-        version: 4.6.11
-      uuid:
-        specifier: ^13.0.0
-        version: 13.0.0
-    devDependencies:
-      '@atcute/crypto':
-        specifier: ^2.4.1
-        version: 2.4.1
-      '@atcute/identity':
-        specifier: ^1.1.4
-        version: 1.1.4
-      '@atcute/identity-resolver':
-        specifier: ^1.2.2
-        version: 1.2.2(@atcute/identity@1.1.4)
-      '@atcute/uint8array':
-        specifier: ^1.1.1
-        version: 1.1.1
-      '@testing-library/jest-dom':
-        specifier: ^6.9.1
-        version: 6.9.1
-      '@testing-library/react':
-        specifier: ^16.3.2
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@types/node':
-        specifier: ^25.5.2
-        version: 25.5.2
-      '@types/react':
-        specifier: 19.2.14
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: 19.2.3
-        version: 19.2.3(@types/react@19.2.14)
-      '@vitejs/plugin-react':
-        specifier: ^6.0.1
-        version: 6.0.1(vite@8.0.8(@types/node@25.5.2)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3))
-      '@vitest/coverage-v8':
-        specifier: 4.1.3
-        version: 4.1.3(vitest@4.1.3)
-      eslint:
-        specifier: ^9.39.4
-        version: 9.39.4(jiti@2.6.1)
-      eslint-config-next:
-        specifier: ^16.2.2
-        version: 16.2.2(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2)
-      jsdom:
-        specifier: ^29.0.2
-        version: 29.0.2
-      postcss-preset-mantine:
-        specifier: ^1.18.0
-        version: 1.18.0(postcss@8.5.9)
-      postcss-simple-vars:
-        specifier: ^7.0.1
-        version: 7.0.1(postcss@8.5.9)
-      typescript:
-        specifier: ^6.0.2
-        version: 6.0.2
-      vitest:
-        specifier: ^4.1.3
-        version: 4.1.3(@types/node@25.5.2)(@vitest/coverage-v8@4.1.3)(jsdom@29.0.2)(vite@8.0.8(@types/node@25.5.2)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3))
-
   packages/atpassport-client:
     devDependencies:
       '@eslint/js':
@@ -296,6 +151,151 @@ importers:
       wxt:
         specifier: ^0.20.20
         version: 0.20.20(@types/node@25.6.0)(eslint@10.2.0(jiti@2.6.1))(jiti@2.6.1)(rollup@4.60.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3)
+
+  packages/frontend:
+    dependencies:
+      '@atcute/bluesky':
+        specifier: ^3.3.1
+        version: 3.3.1
+      '@atcute/client':
+        specifier: ^4.2.1
+        version: 4.2.1
+      '@atcute/identity-resolver-node':
+        specifier: ^1.0.3
+        version: 1.0.3(@atcute/identity-resolver@1.2.2(@atcute/identity@1.1.4))(@atcute/identity@1.1.4)
+      '@atcute/lex-cli':
+        specifier: ^2.6.1
+        version: 2.6.1
+      '@atcute/lexicons':
+        specifier: ^1.2.10
+        version: 1.2.10
+      '@atcute/oauth-browser-client':
+        specifier: ^3.0.0
+        version: 3.0.0(@atcute/identity@1.1.4)
+      '@atpassport/client':
+        specifier: workspace:*
+        version: link:../atpassport-client
+      '@aws-sdk/client-dynamodb':
+        specifier: ^3.1025.0
+        version: 3.1025.0
+      '@aws-sdk/lib-dynamodb':
+        specifier: ^3.1025.0
+        version: 3.1025.0(@aws-sdk/client-dynamodb@3.1025.0)
+      '@emotion/react':
+        specifier: ^11.14.0
+        version: 11.14.0(@types/react@19.2.14)(react@19.2.5)
+      '@emotion/styled':
+        specifier: ^11.14.1
+        version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5)
+      '@mantine/core':
+        specifier: ^9.0.1
+        version: 9.0.1(@mantine/hooks@9.0.1(react@19.2.5))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@mantine/hooks':
+        specifier: ^9.0.1
+        version: 9.0.1(react@19.2.5)
+      '@mantine/notifications':
+        specifier: ^9.0.1
+        version: 9.0.1(@mantine/core@9.0.1(@mantine/hooks@9.0.1(react@19.2.5))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@mantine/hooks@9.0.1(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@tabler/icons-react':
+        specifier: ^3.41.1
+        version: 3.41.1(react@19.2.5)
+      cookie:
+        specifier: ^1.1.1
+        version: 1.1.1
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
+      jose:
+        specifier: ^6.2.2
+        version: 6.2.2
+      lucide-react:
+        specifier: ^1.7.0
+        version: 1.8.0(react@19.2.5)
+      next:
+        specifier: 16.2.3
+        version: 16.2.3(@babel/core@7.29.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      next-intl:
+        specifier: 4.9.1
+        version: 4.9.1(next@16.2.3(@babel/core@7.29.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(typescript@6.0.2)
+      nextjs-toploader:
+        specifier: ^3.9.17
+        version: 3.9.17(next@16.2.3(@babel/core@7.29.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      qrcode.react:
+        specifier: ^4.2.0
+        version: 4.2.0(react@19.2.5)
+      react:
+        specifier: 19.2.5
+        version: 19.2.5
+      react-dom:
+        specifier: 19.2.5
+        version: 19.2.5(react@19.2.5)
+      react-markdown:
+        specifier: ^10.1.0
+        version: 10.1.0(@types/react@19.2.14)(react@19.2.5)
+      remark-gfm:
+        specifier: ^4.0.1
+        version: 4.0.1
+      sst:
+        specifier: ^4.6.11
+        version: 4.6.11
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
+    devDependencies:
+      '@atcute/crypto':
+        specifier: ^2.4.1
+        version: 2.4.1
+      '@atcute/identity':
+        specifier: ^1.1.4
+        version: 1.1.4
+      '@atcute/identity-resolver':
+        specifier: ^1.2.2
+        version: 1.2.2(@atcute/identity@1.1.4)
+      '@atcute/uint8array':
+        specifier: ^1.1.1
+        version: 1.1.1
+      '@testing-library/jest-dom':
+        specifier: ^6.9.1
+        version: 6.9.1
+      '@testing-library/react':
+        specifier: ^16.3.2
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@types/node':
+        specifier: ^25.5.2
+        version: 25.6.0
+      '@types/react':
+        specifier: 19.2.14
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: 19.2.3
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^6.0.1
+        version: 6.0.1(vite@8.0.8(@types/node@25.6.0)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3))
+      '@vitest/coverage-v8':
+        specifier: 4.1.3
+        version: 4.1.3(vitest@4.1.4)
+      eslint:
+        specifier: ^9.39.4
+        version: 9.39.4(jiti@2.6.1)
+      eslint-config-next:
+        specifier: ^16.2.2
+        version: 16.2.2(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2)
+      jsdom:
+        specifier: ^29.0.2
+        version: 29.0.2
+      postcss-preset-mantine:
+        specifier: ^1.18.0
+        version: 1.18.0(postcss@8.5.9)
+      postcss-simple-vars:
+        specifier: ^7.0.1
+        version: 7.0.1(postcss@8.5.9)
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^4.1.3
+        version: 4.1.4(@types/node@25.6.0)(@vitest/coverage-v8@4.1.3)(jsdom@29.0.2)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3))
 
 packages:
 
@@ -1968,9 +1968,6 @@ packages:
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
-  '@types/node@25.5.2':
-    resolution: {integrity: sha512-tO4ZIRKNC+MDWV4qKVZe3Ql/woTnmHDr5JD8UI5hn2pwBrHEwOEMZK7WlNb5RKB6EoJ02gwmQS9OrjuFnZYdpg==}
-
   '@types/node@25.6.0':
     resolution: {integrity: sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ==}
 
@@ -2179,22 +2176,8 @@ packages:
       '@vitest/browser':
         optional: true
 
-  '@vitest/expect@4.1.3':
-    resolution: {integrity: sha512-CW8Q9KMtXDGHj0vCsqui0M5KqRsu0zm0GNDW7Gd3U7nZ2RFpPKSCpeCXoT+/+5zr1TNlsoQRDEz+LzZUyq6gnQ==}
-
   '@vitest/expect@4.1.4':
     resolution: {integrity: sha512-iPBpra+VDuXmBFI3FMKHSFXp3Gx5HfmSCE8X67Dn+bwephCnQCaB7qWK2ldHa+8ncN8hJU8VTMcxjPpyMkUjww==}
-
-  '@vitest/mocker@4.1.3':
-    resolution: {integrity: sha512-XN3TrycitDQSzGRnec/YWgoofkYRhouyVQj4YNsJ5r/STCUFqMrP4+oxEv3e7ZbLi4og5kIHrZwekDJgw6hcjw==}
-    peerDependencies:
-      msw: ^2.4.9
-      vite: ^6.0.0 || ^7.0.0 || ^8.0.0
-    peerDependenciesMeta:
-      msw:
-        optional: true
-      vite:
-        optional: true
 
   '@vitest/mocker@4.1.4':
     resolution: {integrity: sha512-R9HTZBhW6yCSGbGQnDnH3QHfJxokKN4KB+Yvk9Q1le7eQNYwiCyKxmLmurSpFy6BzJanSLuEUDrD+j97Q+ZLPg==}
@@ -2213,20 +2196,11 @@ packages:
   '@vitest/pretty-format@4.1.4':
     resolution: {integrity: sha512-ddmDHU0gjEUyEVLxtZa7xamrpIefdEETu3nZjWtHeZX4QxqJ7tRxSteHVXJOcr8jhiLoGAhkK4WJ3WqBpjx42A==}
 
-  '@vitest/runner@4.1.3':
-    resolution: {integrity: sha512-VwgOz5MmT0KhlUj40h02LWDpUBVpflZ/b7xZFA25F29AJzIrE+SMuwzFf0b7t4EXdwRNX61C3B6auIXQTR3ttA==}
-
   '@vitest/runner@4.1.4':
     resolution: {integrity: sha512-xTp7VZ5aXP5ZJrn15UtJUWlx6qXLnGtF6jNxHepdPHpMfz/aVPx+htHtgcAL2mDXJgKhpoo2e9/hVJsIeFbytQ==}
 
-  '@vitest/snapshot@4.1.3':
-    resolution: {integrity: sha512-9l+k/J9KG5wPJDX9BcFFzhhwNjwkRb8RsnYhaT1vPY7OufxmQFc9sZzScRCPTiETzl37mrIWVY9zxzmdVeJwDQ==}
-
   '@vitest/snapshot@4.1.4':
     resolution: {integrity: sha512-MCjCFgaS8aZz+m5nTcEcgk/xhWv0rEH4Yl53PPlMXOZ1/Ka2VcZU6CJ+MgYCZbcJvzGhQRjVrGQNZqkGPttIKw==}
-
-  '@vitest/spy@4.1.3':
-    resolution: {integrity: sha512-ujj5Uwxagg4XUIfAUyRQxAg631BP6e9joRiN99mr48Bg9fRs+5mdUElhOoZ6rP5mBr8Bs3lmrREnkrQWkrsTCw==}
 
   '@vitest/spy@4.1.4':
     resolution: {integrity: sha512-XxNdAsKW7C+FLydqFJLb5KhJtl3PGCMmYwFRfhvIgxJvLSXhhVI1zM8f1qD3Zg7RCjTSzDVyct6sghs9UEgBEQ==}
@@ -3908,11 +3882,6 @@ packages:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
     engines: {node: '>=10'}
 
-  lucide-react@1.7.0:
-    resolution: {integrity: sha512-yI7BeItCLZJTXikmK4KNUGCKoGzSvbKlfCvw44bU4fXAL6v3gYS4uHD1jzsLkfwODYwI6Drw5Tu9Z5ulDe0TSg==}
-    peerDependencies:
-      react: 19.2.5
-
   lucide-react@1.8.0:
     resolution: {integrity: sha512-WuvlsjngSk7TnTBJ1hsCy3ql9V9VOdcPkd3PKcSmM34vJD8KG6molxz7m7zbYFgICwsanQWmJ13JlYs4Zp7Arw==}
     peerDependencies:
@@ -5087,10 +5056,6 @@ packages:
   tinyexec@0.3.2:
     resolution: {integrity: sha512-KQQR9yN7R5+OSwaK0XQoj22pwHoTlgYqmUscPYoknOoWCWfj/5/ABTMRi69FrKU5ffPVh5QcFikpWJI/P1ocHA==}
 
-  tinyexec@1.0.4:
-    resolution: {integrity: sha512-u9r3uZC0bdpGOXtlxUIdwf9pkmvhqJdrVCH9fapQtgy/OeTTMZ1nqH7agtvEfmGui6e1XxjcdrlxvxJvc3sMqw==}
-    engines: {node: '>=18'}
-
   tinyexec@1.1.1:
     resolution: {integrity: sha512-VKS/ZaQhhkKFMANmAOhhXVoIfBXblQxGX1myCQ2faQrfmobMftXeJPcZGp0gS07ocvGJWDLZGyOZDadDBqYIJg==}
     engines: {node: '>=18'}
@@ -5235,9 +5200,6 @@ packages:
   unbox-primitive@1.1.0:
     resolution: {integrity: sha512-nWJ91DjeOkej/TA8pXQ3myruKpKEYgqvpw9lz4OPHj/NWFNluYrjbz9j01CJ8yKQd2g4jFoOkINCTW2I5LEEyw==}
     engines: {node: '>= 0.4'}
-
-  undici-types@7.18.2:
-    resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
 
   undici-types@7.19.2:
     resolution: {integrity: sha512-qYVnV5OEm2AW8cJMCpdV20CDyaN3g0AjDlOGf1OW4iaDEx8MwdtChUp4zu4H0VP3nDRF/8RKWH+IPp9uW0YGZg==}
@@ -5387,47 +5349,6 @@ packages:
       tsx:
         optional: true
       yaml:
-        optional: true
-
-  vitest@4.1.3:
-    resolution: {integrity: sha512-DBc4Tx0MPNsqb9isoyOq00lHftVx/KIU44QOm2q59npZyLUkENn8TMFsuzuO+4U2FUa9rgbbPt3udrP25GcjXw==}
-    engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
-    hasBin: true
-    peerDependencies:
-      '@edge-runtime/vm': '*'
-      '@opentelemetry/api': ^1.9.0
-      '@types/node': ^20.0.0 || ^22.0.0 || >=24.0.0
-      '@vitest/browser-playwright': 4.1.3
-      '@vitest/browser-preview': 4.1.3
-      '@vitest/browser-webdriverio': 4.1.3
-      '@vitest/coverage-istanbul': 4.1.3
-      '@vitest/coverage-v8': 4.1.3
-      '@vitest/ui': 4.1.3
-      happy-dom: '*'
-      jsdom: '*'
-      vite: ^6.0.0 || ^7.0.0 || ^8.0.0
-    peerDependenciesMeta:
-      '@edge-runtime/vm':
-        optional: true
-      '@opentelemetry/api':
-        optional: true
-      '@types/node':
-        optional: true
-      '@vitest/browser-playwright':
-        optional: true
-      '@vitest/browser-preview':
-        optional: true
-      '@vitest/browser-webdriverio':
-        optional: true
-      '@vitest/coverage-istanbul':
-        optional: true
-      '@vitest/coverage-v8':
-        optional: true
-      '@vitest/ui':
-        optional: true
-      happy-dom:
-        optional: true
-      jsdom:
         optional: true
 
   vitest@4.1.4:
@@ -7512,10 +7433,6 @@ snapshots:
 
   '@types/ms@2.1.0': {}
 
-  '@types/node@25.5.2':
-    dependencies:
-      undici-types: 7.18.2
-
   '@types/node@25.6.0':
     dependencies:
       undici-types: 7.19.2
@@ -7737,17 +7654,12 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
 
-  '@vitejs/plugin-react@6.0.1(vite@8.0.8(@types/node@25.5.2)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3))':
-    dependencies:
-      '@rolldown/pluginutils': 1.0.0-rc.7
-      vite: 8.0.8(@types/node@25.5.2)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3)
-
   '@vitejs/plugin-react@6.0.1(vite@8.0.8(@types/node@25.6.0)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3))':
     dependencies:
       '@rolldown/pluginutils': 1.0.0-rc.7
       vite: 8.0.8(@types/node@25.6.0)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3)
 
-  '@vitest/coverage-v8@4.1.3(vitest@4.1.3)':
+  '@vitest/coverage-v8@4.1.3(vitest@4.1.4)':
     dependencies:
       '@bcoe/v8-coverage': 1.0.2
       '@vitest/utils': 4.1.3
@@ -7759,7 +7671,7 @@ snapshots:
       obug: 2.1.1
       std-env: 4.0.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.3(@types/node@25.5.2)(@vitest/coverage-v8@4.1.3)(jsdom@29.0.2)(vite@8.0.8(@types/node@25.5.2)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3))
+      vitest: 4.1.4(@types/node@25.6.0)(@vitest/coverage-v8@4.1.3)(jsdom@29.0.2)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3))
 
   '@vitest/coverage-v8@4.1.4(vitest@4.1.4)':
     dependencies:
@@ -7775,15 +7687,6 @@ snapshots:
       tinyrainbow: 3.1.0
       vitest: 4.1.4(@types/node@25.6.0)(@vitest/coverage-v8@4.1.4)(jsdom@29.0.2)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3))
 
-  '@vitest/expect@4.1.3':
-    dependencies:
-      '@standard-schema/spec': 1.1.0
-      '@types/chai': 5.2.3
-      '@vitest/spy': 4.1.3
-      '@vitest/utils': 4.1.3
-      chai: 6.2.2
-      tinyrainbow: 3.1.0
-
   '@vitest/expect@4.1.4':
     dependencies:
       '@standard-schema/spec': 1.1.0
@@ -7792,14 +7695,6 @@ snapshots:
       '@vitest/utils': 4.1.4
       chai: 6.2.2
       tinyrainbow: 3.1.0
-
-  '@vitest/mocker@4.1.3(vite@8.0.8(@types/node@25.5.2)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3))':
-    dependencies:
-      '@vitest/spy': 4.1.3
-      estree-walker: 3.0.3
-      magic-string: 0.30.21
-    optionalDependencies:
-      vite: 8.0.8(@types/node@25.5.2)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3)
 
   '@vitest/mocker@4.1.4(vite@8.0.8(@types/node@25.6.0)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3))':
     dependencies:
@@ -7817,21 +7712,9 @@ snapshots:
     dependencies:
       tinyrainbow: 3.1.0
 
-  '@vitest/runner@4.1.3':
-    dependencies:
-      '@vitest/utils': 4.1.3
-      pathe: 2.0.3
-
   '@vitest/runner@4.1.4':
     dependencies:
       '@vitest/utils': 4.1.4
-      pathe: 2.0.3
-
-  '@vitest/snapshot@4.1.3':
-    dependencies:
-      '@vitest/pretty-format': 4.1.3
-      '@vitest/utils': 4.1.3
-      magic-string: 0.30.21
       pathe: 2.0.3
 
   '@vitest/snapshot@4.1.4':
@@ -7840,8 +7723,6 @@ snapshots:
       '@vitest/utils': 4.1.4
       magic-string: 0.30.21
       pathe: 2.0.3
-
-  '@vitest/spy@4.1.3': {}
 
   '@vitest/spy@4.1.4': {}
 
@@ -8617,8 +8498,8 @@ snapshots:
       '@next/eslint-plugin-next': 16.2.2
       eslint: 9.39.4(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.10
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.4(jiti@2.6.1))
-      eslint-plugin-import: 2.32.0(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.4(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.39.4(jiti@2.6.1))
       eslint-plugin-react-hooks: 7.0.1(eslint@9.39.4(jiti@2.6.1))
@@ -8640,7 +8521,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.4(jiti@2.6.1)):
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.3
@@ -8651,21 +8532,21 @@ snapshots:
       tinyglobby: 0.2.16
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(eslint-import-resolver-node@0.3.10)(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.6.1)):
+  eslint-module-utils@2.12.1(eslint-import-resolver-node@0.3.10)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       eslint: 9.39.4(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.10
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.4(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.6.1)):
+  eslint-plugin-import@2.32.0(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -8676,7 +8557,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.39.4(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.10
-      eslint-module-utils: 2.12.1(eslint-import-resolver-node@0.3.10)(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.6.1))
+      eslint-module-utils: 2.12.1(eslint-import-resolver-node@0.3.10)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -9682,10 +9563,6 @@ snapshots:
   lru-cache@6.0.0:
     dependencies:
       yallist: 4.0.0
-
-  lucide-react@1.7.0(react@19.2.5):
-    dependencies:
-      react: 19.2.5
 
   lucide-react@1.8.0(react@19.2.5):
     dependencies:
@@ -11215,8 +11092,6 @@ snapshots:
 
   tinyexec@0.3.2: {}
 
-  tinyexec@1.0.4: {}
-
   tinyexec@1.1.1: {}
 
   tinyglobby@0.2.15:
@@ -11384,8 +11259,6 @@ snapshots:
       has-bigints: 1.1.0
       has-symbols: 1.1.0
       which-boxed-primitive: 1.1.1
-
-  undici-types@7.18.2: {}
 
   undici-types@7.19.2: {}
 
@@ -11563,21 +11436,6 @@ snapshots:
       - tsx
       - yaml
 
-  vite@8.0.8(@types/node@25.5.2)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3):
-    dependencies:
-      lightningcss: 1.32.0
-      picomatch: 4.0.4
-      postcss: 8.5.9
-      rolldown: 1.0.0-rc.15
-      tinyglobby: 0.2.16
-    optionalDependencies:
-      '@types/node': 25.5.2
-      esbuild: 0.25.0
-      fsevents: 2.3.3
-      jiti: 2.6.1
-      sugarss: 5.0.1(postcss@8.5.9)
-      yaml: 2.8.3
-
   vite@8.0.8(@types/node@25.6.0)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3):
     dependencies:
       lightningcss: 1.32.0
@@ -11593,15 +11451,15 @@ snapshots:
       sugarss: 5.0.1(postcss@8.5.9)
       yaml: 2.8.3
 
-  vitest@4.1.3(@types/node@25.5.2)(@vitest/coverage-v8@4.1.3)(jsdom@29.0.2)(vite@8.0.8(@types/node@25.5.2)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3)):
+  vitest@4.1.4(@types/node@25.6.0)(@vitest/coverage-v8@4.1.3)(jsdom@29.0.2)(vite@8.0.8(@types/node@25.6.0)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3)):
     dependencies:
-      '@vitest/expect': 4.1.3
-      '@vitest/mocker': 4.1.3(vite@8.0.8(@types/node@25.5.2)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3))
-      '@vitest/pretty-format': 4.1.3
-      '@vitest/runner': 4.1.3
-      '@vitest/snapshot': 4.1.3
-      '@vitest/spy': 4.1.3
-      '@vitest/utils': 4.1.3
+      '@vitest/expect': 4.1.4
+      '@vitest/mocker': 4.1.4(vite@8.0.8(@types/node@25.6.0)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3))
+      '@vitest/pretty-format': 4.1.4
+      '@vitest/runner': 4.1.4
+      '@vitest/snapshot': 4.1.4
+      '@vitest/spy': 4.1.4
+      '@vitest/utils': 4.1.4
       es-module-lexer: 2.0.0
       expect-type: 1.3.0
       magic-string: 0.30.21
@@ -11610,14 +11468,14 @@ snapshots:
       picomatch: 4.0.4
       std-env: 4.0.0
       tinybench: 2.9.0
-      tinyexec: 1.0.4
-      tinyglobby: 0.2.15
+      tinyexec: 1.1.1
+      tinyglobby: 0.2.16
       tinyrainbow: 3.1.0
-      vite: 8.0.8(@types/node@25.5.2)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3)
+      vite: 8.0.8(@types/node@25.6.0)(esbuild@0.25.0)(jiti@2.6.1)(sugarss@5.0.1(postcss@8.5.9))(yaml@2.8.3)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 25.5.2
-      '@vitest/coverage-v8': 4.1.3(vitest@4.1.3)
+      '@types/node': 25.6.0
+      '@vitest/coverage-v8': 4.1.3(vitest@4.1.4)
       jsdom: 29.0.2
     transitivePeerDependencies:
       - msw

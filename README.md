@@ -13,7 +13,7 @@
 
 ## Directory Structure
 
-- `/frontend`: The main application built with Next.js (App Router). See [frontend/README.md](./frontend/README.md) for setup and build instructions.
+- `/packages/frontend`: The main application built with Next.js (App Router). See [packages/frontend/README.md](./packages/frontend/README.md) for setup and build instructions.
 - `/packages/atpassport-client`: A client library for external applications.
 - `/packages/atpassport-extension`: Browser extension for Chrome and Firefox.
 

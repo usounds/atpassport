@@ -1,11 +1,12 @@
-name: Deploy atpassport (Production)
+name: Deploy atpassport
 
 on:
   push:
     branches:
       - main
+      - preview
     paths:
-      - 'frontend/**'
+      - 'packages/frontend/**'
 
 permissions:
   id-token: write
@@ -14,15 +15,17 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
 
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'pnpm'
@@ -31,15 +34,24 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: packages/frontend/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ github.ref_name }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('packages/frontend/**.[jt]s', 'packages/frontend/**.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ github.ref_name }}-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-nextjs-${{ github.ref_name }}-
+
       - name: Build packages
         run: pnpm --filter "@atpassport/client" build
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ap-northeast-1
 
       - name: Deploy
-        working-directory: frontend
-        run: pnpm sst deploy --stage production
+        working-directory: packages/frontend
+        run: pnpm sst deploy --stage ${{ github.ref_name == 'main' && 'production' || 'preview' }}
