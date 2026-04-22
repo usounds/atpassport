@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'frontend/**'
 
 permissions:
   id-token: write
@@ -12,32 +14,31 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. pnpm をインストール (version 指定を消すことで package.json の指定と競合させない)
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
-      # 2. Node.js 22 をセットアップ (これで styleText エラーを解決)
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
 
-      # 3. 依存関係のインストール
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # 4. AWS 認証
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ap-northeast-1
 
-      # 5. SST デプロイ
       - name: Deploy
         run: pnpm sst deploy --stage production
