@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
     "@atcute/multibase"
   ],
 
+  transpilePackages: ["@atpassport/client"],
+
   outputFileTracingRoot: path.join(__dirname, ".."),
   turbopack: process.env.NODE_ENV === "development" ? {
     root: path.join(__dirname, ".."),
