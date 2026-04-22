@@ -4,6 +4,11 @@ export default $config({
       name: "atpassport",
       removal: input?.stage === "production" ? "retain" : "remove",
       home: "aws",
+      build: {
+        nodejs: {
+          version: "22.x"
+        }
+      }
     };
   },
   async run() {
