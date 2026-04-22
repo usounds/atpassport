@@ -3,9 +3,8 @@ name: Deploy AtPassport (Production)
 on:
   push:
     branches:
-      - main # mainブランチにpushされたら実行
+      - main
 
-# AWS OIDC認証に必須の権限
 permissions:
   id-token: write
   contents: read
@@ -13,32 +12,34 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. Node.js 24 をセットアップ 
+      # 1. pnpm を最初にインストール (これで pnpm: command not found を防ぐ)
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10 # 以前のログに合わせて v10 を指定
+
+      # 2. Node.js のセットアップ (corepack-enabled オプションは削除)
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
-          corepack-enabled: true # pnpmを使用可能にする
+          node-version: 22
+          cache: 'pnpm'
 
-      # 2. 依存関係のインストール
-      # 拡張機能の postinstall が不要なら --ignore-scripts を付けてもOK
+      # 3. 依存関係のインストール
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # 3. AWS 認証情報のセットアップ (ステップ2で作ったARNを使用)
+      # 4. AWS 認証 (Secrets に AWS_ROLE_ARN が必要)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ap-northeast-1 # あなたのリージョンに合わせて変更
+          aws-region: ap-northeast-1
 
-      # 4. SST デプロイ
-      # 既存の環境を更新するため、必ず --stage production を指定
+      # 5. SST デプロイ
       - name: Deploy
         run: pnpm sst deploy --stage production
