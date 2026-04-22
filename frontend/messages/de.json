@@ -182,7 +182,11 @@
     "check_cors_hint": "Bitte CORS-Einstellungen oder Ablageort von /.well-known/did.json prüfen",
     "verification_mismatch": "Inhalt der Verifizierung fehlerhaft. Bitte stellen Sie sicher, dass die korrekte DID enthalten ist.",
     "unreachable_url": "URL nicht erreichbar. Bitte prüfen Sie den Serverstatus.",
-    "connection_failed": "Verbindung fehlgeschlagen. Stellen Sie sicher, dass HTTPS funktioniert und die Domain korrekt ist."
+    "connection_failed": "Verbindung fehlgeschlagen. Stellen Sie sicher, dass HTTPS funktioniert und die Domain korrekt ist.",
+    "unauthorized": "Authentifizierung fehlgeschlagen. Bitte melden Sie sich erneut an.",
+    "rate_limited": "Zu viele Anfragen. Bitte versuchen Sie es später noch einmal.",
+    "invalid_request": "Ungültige Anfrage.",
+    "internal_error": "Ein interner Serverfehler ist aufgetreten."
   },
   "Directory": {
     "title": "Domains",

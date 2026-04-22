@@ -182,7 +182,11 @@
     "check_cors_hint": "CORS設定や /.well-known/did.json の配置を確認してください",
     "verification_mismatch": "検証内容が一致しません。正しいDIDが含まれているか確認してください。",
     "unreachable_url": "URLに接続できませんでした。サーバーの状態を確認してください。",
-    "connection_failed": "接続に失敗しました。HTTPSが有効で、ドメインが正しいことを確認してください。"
+    "connection_failed": "接続に失敗しました。HTTPSが有効で、ドメインが正しいことを確認してください。",
+    "unauthorized": "認証に失敗しました。再度ログインしてください。",
+    "rate_limited": "リクエストが多すぎます。しばらく時間を置いてから再度お試しください。",
+    "invalid_request": "不正なリクエストです。",
+    "internal_error": "サーバー内部エラーが発生しました。"
   },
   "Directory": {
     "title": "ドメイン一覧",

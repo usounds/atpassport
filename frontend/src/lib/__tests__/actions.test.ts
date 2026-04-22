@@ -5,7 +5,6 @@ import {
   syncWithToken, 
   refreshAssociation, 
   initializeSession,
-  claimDomainOwnership,
   withdrawDomain,
   updateDomainSettings,
   removeAssociation,
@@ -49,73 +48,6 @@ describe('Actions Library', () => {
     vi.mocked(isRateLimited).mockReturnValue(false);
     vi.stubGlobal('fetch', vi.fn());
   });
-
-  describe('claimDomainOwnership', () => {
-    it('should claim ownership if handle is in associations', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid, handle: 'user.com' } as unknown as AssociationWithProfile
-      ]);
-      vi.mocked(verifyDomainInDb).mockResolvedValue({} as any);
-
-      const result = await claimDomainOwnership(mockDid);
-
-      expect(result.success).toBe(true);
-      expect(verifyDomainInDb).toHaveBeenCalledWith('user.com', mockDid, true, 'oauth');
-      expect(revalidatePath).toHaveBeenCalled();
-    });
-
-    it('should fail if handle is infrastructure domain', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid, handle: 'bsky.social' } as unknown as AssociationWithProfile
-      ]);
-
-      const result = await claimDomainOwnership(mockDid);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Infrastructure');
-    });
-
-    it('should fail if handle does not contain a dot', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid, handle: 'localhost' } as unknown as AssociationWithProfile
-      ]);
-
-      const result = await claimDomainOwnership(mockDid);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('format');
-    });
-
-    it('should fail if DID not found in associations', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([]);
-      const result = await claimDomainOwnership(mockDid);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('not found');
-    });
-
-    it('should fail if no session', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(null);
-      const result = await claimDomainOwnership(mockDid);
-      expect(result.success).toBe(false);
-    });
-
-    it('should fail if verifyDomainInDb throws error', async () => {
-      vi.spyOn(console, 'error').mockImplementation(() => {});
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid, handle: 'user.com' } as unknown as AssociationWithProfile
-      ]);
-      vi.mocked(verifyDomainInDb).mockRejectedValue(new Error('DB Error'));
-
-      const result = await claimDomainOwnership(mockDid);
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Internal server error');
-      expect(console.error).toHaveBeenCalled();
-    });
-  });
-
 
   describe('withdrawDomain', () => {
     const domain = 'remove.me';

@@ -182,7 +182,11 @@
     "check_cors_hint": "Veuillez vérifier les paramètres CORS ou l'emplacement de /.well-known/did.json",
     "verification_mismatch": "Le contenu de la vérification ne correspond pas. Veuillez vous assurer que le bon DID est inclus.",
     "unreachable_url": "Impossible d'accéder à l'URL. Veuillez vérifier l'état de votre serveur.",
-    "connection_failed": "Échec de la connexion. Assurez-vous que le HTTPS fonctionne et que le domaine est correct."
+    "connection_failed": "Échec de la connexion. Assurez-vous que le HTTPS fonctionne et que le domaine est correct.",
+    "unauthorized": "Échec de l'authentification. Veuillez vous reconnecter.",
+    "rate_limited": "Trop de requêtes. Veuillez réessayer plus tard.",
+    "invalid_request": "Requête invalide.",
+    "internal_error": "Une erreur interne du serveur s'est produite."
   },
   "Directory": {
     "title": "Domaines",

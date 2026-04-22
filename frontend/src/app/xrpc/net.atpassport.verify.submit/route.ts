@@ -12,15 +12,13 @@ export async function POST(request: Request) {
     const did = await verifyServiceAuth(request);
     
     if (!did) {
-      const output: NetAtpassportVerifySubmit.Output = { success: false, error: 'Unauthorized: Invalid Service Auth token' };
-      return NextResponse.json(output, { status: 401 });
+      return NextResponse.json({ success: false, error: 'unauthorized', message: 'Invalid Service Auth token' }, { status: 401 });
     }
 
     // 2. DIDによるレート制限
     // 1つのDIDにつき、1分間に5リクエストまで許可
     if (isRateLimited(did, 5, 60000)) {
-      const output: NetAtpassportVerifySubmit.Output = { success: false, error: 'Too many requests. Please try again later.' };
-      return NextResponse.json(output, { status: 429 });
+      return NextResponse.json({ success: false, error: 'rate_limited', message: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
     // 3. リクエストボディのパース
@@ -29,8 +27,7 @@ export async function POST(request: Request) {
     const isPublic = body.isPublic;
 
     if (!domain) {
-      const output: NetAtpassportVerifySubmit.Output = { success: false, error: 'Domain is required' };
-      return NextResponse.json(output, { status: 400 });
+      return NextResponse.json({ success: false, error: 'invalid_request', message: 'Domain is required' }, { status: 400 });
     }
 
     const lowerDomain = domain.toLowerCase().trim();
@@ -48,7 +45,7 @@ export async function POST(request: Request) {
     // - IPアドレス（IPv4/IPv6）不可
     // - TLDを含むドメイン形式であること
     if (net.isIP(lowerDomain)) {
-      return NextResponse.json({ success: false, error: 'Invalid domain format. IP addresses are not allowed.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'invalid_request', message: 'Invalid domain format. IP addresses are not allowed.' }, { status: 400 });
     }
 
     // Relaxed regex for local testing
@@ -58,12 +55,12 @@ export async function POST(request: Request) {
       : /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*\.[a-z]{2,}$/;
     
     if (!domainRegex.test(lowerDomain)) {
-      return NextResponse.json({ success: false, error: `Invalid domain format (server): ${lowerDomain}` }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'invalid_request', message: `Invalid domain format (server): ${lowerDomain}` }, { status: 400 });
     }
 
     // Block localhost in production for security (SSRF prevention)
     if (!isDev && (lowerDomain === 'localhost' || lowerDomain.endsWith('.localhost'))) {
-      return NextResponse.json({ success: false, error: 'Localhost is not allowed in production.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'invalid_request', message: 'Localhost is not allowed in production.' }, { status: 400 });
     }
 
     const protocol = (isDev && (lowerDomain.startsWith('localhost') || lowerDomain.includes('127.0.0.1'))) ? 'http' : 'https';
@@ -81,21 +78,21 @@ export async function POST(request: Request) {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const output: NetAtpassportVerifySubmit.Output = { 
+        return NextResponse.json({ 
           success: false, 
-          error: 'unreachable_url' 
-        };
-        return NextResponse.json(output, { status: 400 });
+          error: 'unreachable_url',
+          message: `Could not reach ${url}: ${response.statusText}`
+        }, { status: 400 });
       }
 
       const content = await response.text();
       const expectedPrefix = 'atpassport-verification:';
       if (!content.includes(expectedPrefix) || !content.includes(did)) {
-        const output: NetAtpassportVerifySubmit.Output = { 
+        return NextResponse.json({ 
           success: false, 
-          error: 'verification_mismatch'
-        };
-        return NextResponse.json(output, { status: 400 });
+          error: 'verification_mismatch',
+          message: 'The file content does not match the expected verification string.'
+        }, { status: 400 });
       }
 
       // 3. Register verified domain
@@ -106,15 +103,14 @@ export async function POST(request: Request) {
     } catch (fetchError: unknown) {
       const error = fetchError as Error;
       console.warn('[xrpc/net.atpassport.verify.submit] Fetch failed for %s:', url, error.message);
-      const output: NetAtpassportVerifySubmit.Output = { 
+      return NextResponse.json({ 
         success: false, 
-        error: "connection_failed" 
-      };
-      return NextResponse.json(output, { status: 400 });
+        error: "connection_failed",
+        message: error.message || 'Connection failed'
+      }, { status: 400 });
     }
   } catch (error: unknown) {
     console.error('[xrpc/net.atpassport.verify.submit] Error:', error);
-    const output: NetAtpassportVerifySubmit.Output = { success: false, error: 'Internal server error' };
-    return NextResponse.json(output, { status: 500 });
+    return NextResponse.json({ success: false, error: 'internal_error', message: 'Internal server error' }, { status: 500 });
   }
 }

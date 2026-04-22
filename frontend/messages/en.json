@@ -182,7 +182,11 @@
     "check_cors_hint": "Please check CORS settings or /.well-known/did.json placement",
     "verification_mismatch": "Verification content mismatch. Please ensure the correct DID is included.",
     "unreachable_url": "Could not reach the URL. Please check your server status.",
-    "connection_failed": "Connection failed. Ensure HTTPS is working and the domain is correct."
+    "connection_failed": "Connection failed. Ensure HTTPS is working and the domain is correct.",
+    "unauthorized": "Authentication failed. Please login again.",
+    "rate_limited": "Too many requests. Please try again later.",
+    "invalid_request": "Invalid request.",
+    "internal_error": "Internal server error occurred."
   },
   "Directory": {
     "title": "Domains",
