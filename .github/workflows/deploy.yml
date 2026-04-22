@@ -13,15 +13,17 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. Node.js 22 をセットアップ (wxt prepare のエラーを回避)
+      # 1. Node.js 24 をセットアップ 
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           corepack-enabled: true # pnpmを使用可能にする
 
       # 2. 依存関係のインストール
