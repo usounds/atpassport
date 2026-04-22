@@ -10,43 +10,6 @@ import { cookies, headers } from 'next/headers';
 import { isRateLimited } from './rate-limit';
 import { verifyDomainInDb, getVerifiedDomainFromDb, getVerifiedDomainsByDid, VerifiedDomain, deleteVerifiedDomainFromDb } from './security';
 
-export async function claimDomainOwnership(did: string, isPublic: boolean = true): Promise<{ success: boolean; error?: string }> {
-  const uuid = await getSessionUuid();
-  if (!uuid) return { success: false, error: "No session found" };
-
-  const associations = await getAssociations(uuid);
-  const target = associations.find(a => a.did === did);
-
-  if (!target) {
-    return { success: false, error: "Handle not found in your account" };
-  }
-
-  const handle = target.handle.toLowerCase();
-  
-  // インフラドメイン（bsky.socialなど）は除外する簡易チェック
-  const INFRA_DOMAINS = ['bsky.social', 'bsky.network', 'atproto.com', 'bluesky.app'];
-  if (INFRA_DOMAINS.some(infra => handle === infra || handle.endsWith('.' + infra))) {
-    return { success: false, error: "Infrastructure domains cannot be verified" };
-  }
-
-  // ドメインとして妥当か（ピリオドを含み、かつインフラでない）
-  if (!handle.includes('.')) {
-    return { success: false, error: "Invalid handle format for domain verification" };
-  }
-
-  try {
-    // DBに登録（これが「申請・承認」のステップとなる）
-    await verifyDomainInDb(handle, did, isPublic, 'oauth');
-    revalidatePath('/[locale]', 'page');
-    revalidatePath('/[locale]/directory', 'page');
-    return { success: true };
-  } catch (error) {
-    console.error('[ServerAction:claimDomainOwnership] ERROR:', error);
-    return { success: false, error: "Internal server error" };
-  }
-}
-
-
 /**
  * DID からハンドル名を解決します。
  */
@@ -69,11 +32,14 @@ export async function withdrawDomain(domain: string, did: string) {
     const uuid = await getSessionUuid();
     if (!uuid) return { success: false, error: "No session found" };
 
+    // 権限チェック: 
+    // 1. セッションにそのDIDが紐付いていること (Passportとしての所有)
     const associations = await getAssociations(uuid);
     if (!associations.some(a => a.did === did)) {
       return { success: false, error: "DID not associated with your account" };
     }
 
+    // 2. DB上の登録者がそのDIDであること (ドメイン自体の所有者)
     const existing = await getVerifiedDomainFromDb(domain);
     if (!existing || existing.verifiedByDid !== did) {
       return { success: false, error: "Unauthorized or domain not found" };
@@ -99,11 +65,14 @@ export async function updateDomainSettings(domain: string, did: string, isPublic
     const uuid = await getSessionUuid();
     if (!uuid) return { success: false, error: "No session found" };
 
+    // 権限チェック:
+    // 1. セッションにそのDIDが紐付いていること
     const associations = await getAssociations(uuid);
     if (!associations.some(a => a.did === did)) {
       return { success: false, error: "DID not associated with your account" };
     }
 
+    // 2. DB上の登録者がそのDIDであること
     const existing = await getVerifiedDomainFromDb(domain);
     if (!existing || existing.verifiedByDid !== did) {
       return { success: false, error: "Unauthorized or domain not found" };

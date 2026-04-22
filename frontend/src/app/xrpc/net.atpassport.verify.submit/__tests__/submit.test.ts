@@ -51,7 +51,8 @@ describe('XRPC: net.atpassport.verify.submit', () => {
 
     expect(response.status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toBe('Domain is required');
+    expect(data.error).toBe('invalid_request');
+    expect(data.message).toContain('Domain is required');
   });
 
   it('should verify domain via File (domain in body)', async () => {
@@ -113,7 +114,9 @@ describe('XRPC: net.atpassport.verify.submit', () => {
     });
 
     const response = await POST(request);
+    const data = await response.json();
     expect(response.status).toBe(401);
+    expect(data.error).toBe('unauthorized');
   });
 
   it('should fail if domain format is invalid', async () => {
@@ -125,7 +128,8 @@ describe('XRPC: net.atpassport.verify.submit', () => {
     const response = await POST(request);
     const data = await response.json();
     expect(data.success).toBe(false);
-    expect(data.error).toContain('Invalid domain format');
+    expect(data.error).toBe('invalid_request');
+    expect(data.message).toContain('Invalid domain format');
   });
 
   it('should fail if fetch throws error', async () => {
@@ -155,7 +159,7 @@ describe('XRPC: net.atpassport.verify.submit', () => {
       const response = await POST(request);
       const data = await response.json();
       expect(data.success).toBe(false);
-      expect(data.error).toContain('Invalid domain format');
+      expect(data.error).toBe('invalid_request');
       expect(response.status).toBe(400);
     }
   });
@@ -181,7 +185,8 @@ describe('XRPC: net.atpassport.verify.submit', () => {
     const response = await POST(request);
     const data = await response.json();
     expect(response.status).toBe(429);
-    expect(data.error).toContain('Too many requests');
+    expect(data.error).toBe('rate_limited');
+    expect(data.message).toContain('Too many requests');
   });
 
   it('should fail if identity not found for OAuth', async () => {

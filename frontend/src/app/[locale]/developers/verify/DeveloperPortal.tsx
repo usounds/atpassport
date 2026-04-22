@@ -57,6 +57,15 @@ export function DeveloperPortal({
     });
   }, [session]);
 
+  const handleLogout = useCallback(async () => {
+    if (session) {
+      await deleteStoredSession(session.info.sub);
+      setSession(null);
+      setProfile(null);
+      setDomains([]);
+    }
+  }, [session]);
+
   const fetchData = useCallback(async (s: Session) => {
     try {
       const identity = await resolveHandle(s.info.sub);
@@ -72,9 +81,20 @@ export function DeveloperPortal({
 
       const proxyClient = getProxyClient(s);
       if (proxyClient) {
-        const { data } = await proxyClient.get('net.atpassport.verify.list', { params: {} }) as { data: NetAtpassportVerifyList.Output };
-        if (data && data.domains) {
-          setDomains(data.domains);
+        try {
+          const { data } = await proxyClient.get('net.atpassport.verify.list', { params: {} }) as { data: NetAtpassportVerifyList.Output };
+          if (data && data.domains) {
+            setDomains(data.domains);
+          }
+        } catch (err: unknown) {
+          const error = err as { status?: number; name?: string; message?: string };
+          // If the proxy call fails with an auth error, the session might be expired
+          if (error?.status === 401 || error?.name === 'TokenRefreshError' || error?.message?.includes('expired')) {
+            console.warn('Session expired or unauthorized, logging out...');
+            await handleLogout();
+            return;
+          }
+          throw err;
         }
       }
     } catch (error: unknown) {
@@ -82,7 +102,7 @@ export function DeveloperPortal({
     } finally {
       setLoading(false);
     }
-  }, [getProxyClient]);
+  }, [getProxyClient, handleLogout]);
 
   const handleLogin = useCallback(async (manualHandle?: string) => {
     const handle = manualHandle || handleInput;
@@ -129,55 +149,74 @@ export function DeveloperPortal({
     }
   }, [handleInput, t]);
 
+  const fetchDataRef = useRef(fetchData);
+  useEffect(() => {
+    fetchDataRef.current = fetchData;
+  }, [fetchData]);
+
   useEffect(() => {
     setMounted(true);
     initOAuth();
 
     const checkState = async () => {
-      if (typeof window !== 'undefined' && window.location.hash) {
-        const params = new URLSearchParams(window.location.hash.slice(1));
-        if (params.has('state')) {
-          setLoading(true);
-          try {
-            const { session: newSession } = await finalizeAuthorization(params);
-            window.history.replaceState(null, '', window.location.pathname + window.location.search);
-            setSession(newSession);
-            await fetchData(newSession);
-            return;
-          } catch (error: unknown) {
-            console.error('OAuth callback failed:', error);
+      try {
+        if (typeof window !== 'undefined' && window.location.hash) {
+          const params = new URLSearchParams(window.location.hash.slice(1));
+          if (params.has('state')) {
+            setLoading(true);
+            try {
+              const { session: newSession } = await finalizeAuthorization(params);
+              window.history.replaceState(null, '', window.location.pathname + window.location.search);
+              setSession(newSession);
+              await fetchDataRef.current(newSession);
+              return;
+            } catch (error: unknown) {
+              console.error('OAuth callback failed:', error);
+            }
           }
         }
-      }
 
-      try {
         const storedDids = listStoredSessions();
         if (storedDids.length > 0) {
-          const existingSession = await getSession(storedDids[0], { allowStale: true });
-          if (existingSession) {
-            setSession(existingSession);
-            await fetchData(existingSession);
+          try {
+            const existingSession = await getSession(storedDids[0], { allowStale: true });
+            if (existingSession) {
+              setSession(existingSession);
+              await fetchDataRef.current(existingSession);
+            }
+          } catch (e) {
+            console.warn('Failed to restore session:', e);
           }
         }
-      } catch {
-        // No session
+      } catch (err) {
+        console.error('checkState error:', err);
       } finally {
         setLoading(false);
       }
     };
 
     checkState();
-  }, [fetchData]);
+  }, []); // Only run on mount
 
   // Handle library callback
   useEffect(() => {
+    // Session が既に存在する場合は、initialResult による自動ログインを絶対に試みない
+    if (session) {
+      attemptedAutoLogin.current = true;
+      return;
+    }
+
     // Only start auto-login once when not already loading/in session and handle param exists
-    if (initialResult && initialResult.handle && !session && !loading && !actionLoading && !attemptedAutoLogin.current) {
+    if (initialResult && initialResult.handle && !loading && !actionLoading && !attemptedAutoLogin.current) {
       attemptedAutoLogin.current = true;
       handleLogin(initialResult.handle);
     }
   }, [initialResult, session, loading, actionLoading, handleLogin]);
 
+  useEffect(() => {
+    // Reset action loading when switching tabs to prevent spinners from sticking
+    setActionLoading(false);
+  }, [activeTab]);
   const handlePassportLogin = () => {
     const atp = new AtPassport({
       callbackUrl: window.location.origin + window.location.pathname,
@@ -187,16 +226,6 @@ export function DeveloperPortal({
     const { url } = atp.generateAuthUrl();
     window.location.href = url;
   };
-
-  const handleLogout = async () => {
-    if (session) {
-      await deleteStoredSession(session.info.sub);
-      setSession(null);
-      setProfile(null);
-      setDomains([]);
-    }
-  };
-
 
   const handleVerifyOAuth = useCallback(async (isPublic: boolean) => {
     if (!session) return;
@@ -219,30 +248,48 @@ export function DeveloperPortal({
         isPublic 
       };
       const { data } = await proxyClient.post('net.atpassport.verify.submit', { input }) as { data: NetAtpassportVerifySubmit.Output };
+      
       if (!data.success) {
-        notifications.update({ id, title: t('error_title'), message: data.error || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
-        return;
+        throw { kind: data.error, message: data.error };
       }
+
       await fetchData(session);
       notifications.update({ id, title: t('success_title'), message: t('success_message', { domain: profile?.handle || '' }), color: 'green', loading: false, autoClose: true, withCloseButton: true });
       setActiveTab('dashboard');
     } catch (error: unknown) {
+      console.error('[Verify Proxy] Error:', error);
       const err = error as { message?: string; kind?: string; error?: string };
-      console.error('[Verify Proxy] Error:', err);
-      // Explicitly check for known error keys first
-      const errorKey = err?.kind || err?.error;
-      let displayMessage = (err?.message !== 'Invalid Request' && err?.message) ? err.message : t('failed');
+      
+      // Extract error key - handle both XRPCError and our custom error throw above
+      let errorKey = err?.kind || err?.error;
+      
+      // Handle qualified error names like 'net.atpassport.verify.submit#unreachable_url'
+      if (errorKey?.includes('#')) {
+        errorKey = errorKey.split('#')[1];
+      }
 
-      if (errorKey === 'verification_mismatch') displayMessage = t('verification_mismatch');
-      else if (errorKey === 'unreachable_url') displayMessage = t('unreachable_url');
-      else if (errorKey === 'connection_failed') displayMessage = t('connection_failed');
-      else if (errorKey === 'check_cors_hint') displayMessage = t('check_cors_hint');
-      else if (errorKey) {
+      let displayMessage = (err?.message !== 'Invalid Request' && err?.message && err.message !== errorKey) 
+        ? err.message 
+        : t('failed');
+
+      if (errorKey) {
         try {
-          displayMessage = t(errorKey as Parameters<typeof t>[0]);
+          // Try to translate the key directly
+          const translated = t(errorKey as Parameters<typeof t>[0]);
+          if (translated && translated !== errorKey) {
+            displayMessage = translated;
+          } else {
+            // Fallback for specific keys if t() returns the key itself
+            if (errorKey === 'verification_mismatch') displayMessage = t('verification_mismatch');
+            else if (errorKey === 'unreachable_url') displayMessage = t('unreachable_url');
+            else if (errorKey === 'connection_failed') displayMessage = t('connection_failed');
+          }
         } catch {
-          // Fallback to errorKey string if translation fails
-          displayMessage = errorKey;
+          // Final fallbacks
+          if (errorKey === 'verification_mismatch') displayMessage = t('verification_mismatch');
+          else if (errorKey === 'unreachable_url') displayMessage = t('unreachable_url');
+          else if (errorKey === 'connection_failed') displayMessage = t('connection_failed');
+          else if (errorKey.includes('_')) displayMessage = errorKey; // Show key if it looks like one
         }
       }
       
@@ -272,28 +319,42 @@ export function DeveloperPortal({
 
       const input: NetAtpassportVerifySubmit.Input = { domain, isPublic };
       const { data } = await proxyClient.post('net.atpassport.verify.submit', { input }) as { data: NetAtpassportVerifySubmit.Output };
+      
       if (!data.success) {
-        notifications.update({ id, title: t('error_title'), message: data.error || t('failed'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
-        return;
+        throw { kind: data.error, message: data.error };
       }
+
       await fetchData(session);
       notifications.update({ id, title: t('success_title'), message: t('success_message', { domain }), color: 'green', loading: false, autoClose: true, withCloseButton: true });
       setActiveTab('dashboard');
     } catch (error: unknown) {
+      console.error('[Verify File] Error:', error);
       const err = error as { message?: string; kind?: string; error?: string };
-      console.error('[Verify File] Error:', err);
-      const errorKey = err?.kind || err?.error;
-      let displayMessage = (err?.message !== 'Invalid Request' && err?.message) ? err.message : t('failed');
+      
+      let errorKey = err?.kind || err?.error;
+      if (errorKey?.includes('#')) {
+        errorKey = errorKey.split('#')[1];
+      }
 
-      if (errorKey === 'verification_mismatch') displayMessage = t('verification_mismatch');
-      else if (errorKey === 'unreachable_url') displayMessage = t('unreachable_url');
-      else if (errorKey === 'connection_failed') displayMessage = t('connection_failed');
-      else if (errorKey === 'check_cors_hint') displayMessage = t('check_cors_hint');
-      else if (errorKey) {
+      let displayMessage = (err?.message !== 'Invalid Request' && err?.message && err.message !== errorKey) 
+        ? err.message 
+        : t('failed');
+
+      if (errorKey) {
         try {
-          displayMessage = t(errorKey as Parameters<typeof t>[0]);
+          const translated = t(errorKey as Parameters<typeof t>[0]);
+          if (translated && translated !== errorKey) {
+            displayMessage = translated;
+          } else {
+            if (errorKey === 'verification_mismatch') displayMessage = t('verification_mismatch');
+            else if (errorKey === 'unreachable_url') displayMessage = t('unreachable_url');
+            else if (errorKey === 'connection_failed') displayMessage = t('connection_failed');
+          }
         } catch {
-          displayMessage = errorKey;
+          if (errorKey === 'verification_mismatch') displayMessage = t('verification_mismatch');
+          else if (errorKey === 'unreachable_url') displayMessage = t('unreachable_url');
+          else if (errorKey === 'connection_failed') displayMessage = t('connection_failed');
+          else if (errorKey.includes('_')) displayMessage = errorKey;
         }
       }
       
@@ -316,10 +377,28 @@ export function DeveloperPortal({
       await fetchData(session);
       notifications.update({ id, title: t('success_title'), message: t('withdraw_success'), color: 'blue', loading: false, autoClose: true, withCloseButton: true });
     } catch (error: unknown) {
+      console.error('[Withdraw Proxy] Error:', error);
       const err = error as { message?: string; kind?: string; error?: string };
-      console.error('[Withdraw Proxy] Error:', err);
-      const errorKey = err?.kind || err?.error;
-      const displayMessage = errorKey ? t(errorKey as Parameters<typeof t>[0]) : (err?.message !== 'Invalid Request' && err?.message ? err.message : t('failed'));
+      
+      let errorKey = err?.kind || err?.error;
+      if (errorKey?.includes('#')) {
+        errorKey = errorKey.split('#')[1];
+      }
+
+      let displayMessage = (err?.message !== 'Invalid Request' && err?.message && err.message !== errorKey) 
+        ? err.message 
+        : t('failed');
+
+      if (errorKey) {
+        try {
+          const translated = t(errorKey as Parameters<typeof t>[0]);
+          if (translated && translated !== errorKey) {
+            displayMessage = translated;
+          }
+        } catch {
+          if (errorKey.includes('_')) displayMessage = errorKey;
+        }
+      }
       
       notifications.update({ id, title: t('error_title'), message: displayMessage, color: 'red', loading: false, autoClose: true, withCloseButton: true });
     } finally {
@@ -345,8 +424,8 @@ export function DeveloperPortal({
   // Only apply animation classes once mounted to avoid SSR double animation
   const animationClass = mounted ? 'animate-fade-in' : '';
 
-  // Show full-page loader only during initial loading or OAuth redirection (not for background actions)
-  const isFullLoading = loading || (initialResult && initialResult.handle && !session);
+  // Show full-page loader only during initial loading or explicit action loading
+  const isFullLoading = loading || (actionLoading && !session);
 
   if (isFullLoading) {
     return (
@@ -523,6 +602,7 @@ export function DeveloperPortal({
           <Tabs.Panel value="add">
             <Stack gap="lg">
               <VerifyDomainStepper
+                key={activeTab === 'add' ? 'active-add' : 'inactive-add'}
                 did={session.info.sub}
                 handle={profile?.handle || undefined}
                 isHandleVerified={domains.some(d => d.domain === profile?.handle)}
