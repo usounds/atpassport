@@ -71,7 +71,10 @@ export default $config({
       ],
       environment: {
         SESSION_SECRET: sessionSecret.value,
-        NEXT_PUBLIC_URL: $app.stage === "production" ? "https://atpassport.net" : "https://dev.atpassport.net",
+        NEXT_PUBLIC_URL: 
+          $app.stage === "production" ? "https://atpassport.net" : 
+          $app.stage === "preview" ? "https://preview.atpassport.net" : 
+          "https://dev.atpassport.net",
       },
       transform: {
         server: {
@@ -83,6 +86,10 @@ export default $config({
         name: "atpassport.net",
         dns: false,
         cert: "arn:aws:acm:us-east-1:036820509199:certificate/8079cb72-a379-4240-b071-8274653e6ace"
+      } : $app.stage === "preview" ? {
+        name: "preview.atpassport.net",
+        dns: false,
+        cert: "arn:aws:acm:us-east-1:036820509199:certificate/5fcb00ba-ef88-4d6f-b909-21a1237ac677"
       } : undefined,
     });
   },

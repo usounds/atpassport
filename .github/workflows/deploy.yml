@@ -1,9 +1,10 @@
-name: Deploy atpassport (Production)
+name: Deploy atpassport
 
 on:
   push:
     branches:
       - main
+      - preview
     paths:
       - 'frontend/**'
 
@@ -44,4 +45,4 @@ jobs:
 
       - name: Deploy
         working-directory: frontend
-        run: pnpm sst deploy --stage production
+        run: pnpm sst deploy --stage ${{ github.ref_name == 'main' && 'production' || 'preview' }}
