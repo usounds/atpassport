@@ -19,9 +19,9 @@ const nextConfig: NextConfig = {
 
   transpilePackages: ["@atpassport/client"],
 
-  outputFileTracingRoot: path.join(__dirname, ".."),
+  outputFileTracingRoot: path.join(__dirname, "..", ".."),
   turbopack: {
-    root: path.join(__dirname, ".."),
+    root: path.join(__dirname, "..", ".."),
   },
   experimental: {
     serverActions: {
