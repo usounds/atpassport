@@ -17,7 +17,6 @@
 1. **ディレクトリ移動**: `cd frontend`
 2. **準備**: `pnpm lint` と `pnpm test` を実行。
 3. **ビルド確認**: `pnpm run build`
-4. **デプロイ**: `pnpm run deploy`
 5. **プッシュ**: `git push`
 
 ### 3. パッケージのデプロイフロー（自動実行）
@@ -25,16 +24,12 @@
 1. **ディレクトリ移動**: `cd packages/atpassport-client`
 2. **テスト実行**: `pnpm run test`
 3. **ビルド**: `pnpm run build`
-4. **npm更新**: `pnpm run deploy` (ユーザーの認証を待機)
 5. **プッシュ**: `git push`
 
 ### 4. ブラウザ拡張機能のデプロイフロー（自動実行）
 `packages/atpassport-extension/` に変更がある場合に実行します。
 1. **ディレクトリ移動**: `cd packages/atpassport-extension`
 2. **テスト・リンター実行**: `pnpm run test` および `pnpm run lint`
-3. **デプロイ**:
-   - `pnpm run deploy:chrome`
-   - `pnpm run deploy:firefox` (Waiting for approval...になったら終了)
 4. **プッシュ**: `git push`
 
 ---
