@@ -6,7 +6,7 @@ export default $config({
       home: "aws",
       build: {
         nodejs: {
-          version: "22.x"
+          version: "24.x"
         }
       }
     };
