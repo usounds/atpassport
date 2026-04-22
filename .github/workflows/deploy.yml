@@ -1,0 +1,42 @@
+name: Deploy AtPassport (Production)
+
+on:
+  push:
+    branches:
+      - main # mainブランチにpushされたら実行
+
+# AWS OIDC認証に必須の権限
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Node.js 22 をセットアップ (wxt prepare のエラーを回避)
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          corepack-enabled: true # pnpmを使用可能にする
+
+      # 2. 依存関係のインストール
+      # 拡張機能の postinstall が不要なら --ignore-scripts を付けてもOK
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 3. AWS 認証情報のセットアップ (ステップ2で作ったARNを使用)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ap-northeast-1 # あなたのリージョンに合わせて変更
+
+      # 4. SST デプロイ
+      # 既存の環境を更新するため、必ず --stage production を指定
+      - name: Deploy
+        run: pnpm sst deploy --stage production
