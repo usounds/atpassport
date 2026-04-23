@@ -15,6 +15,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
@@ -54,4 +55,4 @@ jobs:
 
       - name: Deploy
         working-directory: packages/frontend
-        run: pnpm sst deploy --stage ${{ github.ref_name == 'main' && 'production' || 'preview' }}
+        run: pnpm sst deploy --stage ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}

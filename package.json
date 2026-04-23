@@ -18,9 +18,11 @@
   },
   "pnpm": {
     "overrides": {
+      "fast-xml-parser": "^5.7.0",
+      "uuid": "^14.0.0",
       "minimatch": "8.0.6",
       "brace-expansion": "2.0.3",
-      "next": "16.2.3",
+      "next": "^16.2.3",
       "next-intl": "4.9.1",
       "react": "19.2.5",
       "react-dom": "19.2.5",

@@ -42,7 +42,7 @@
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "sst": "^4.6.11",
-    "uuid": "^13.0.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@atcute/crypto": "^2.4.1",
