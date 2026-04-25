@@ -35,8 +35,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build packages
-        run: pnpm -r build
+      - name: Build client library
+        run: pnpm --filter "@atpassport/client" build
 
       - name: Lint
         run: pnpm -r lint
@@ -49,6 +49,9 @@ jobs:
 
       - name: Run E2E tests
         run: pnpm --filter frontend test:e2e --project=chromium
+        env:
+          SESSION_SECRET: "dummy_secret_for_testing_purposes_only"
+          NODE_ENV: development
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
