@@ -1,5 +1,5 @@
 import { version } from '../../package.json';
-import { Text, Anchor, Group, Divider, Stack, Center } from '@mantine/core';
+import { Text, Anchor, Group, Divider, Stack } from '@mantine/core';
 import { useTranslations, useLocale } from 'next-intl';
 import { FaGithub } from "react-icons/fa6";
 import { FaBluesky } from "react-icons/fa6";

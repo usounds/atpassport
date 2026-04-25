@@ -45,7 +45,8 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
 
   useEffect(() => {
     if (opened && !token && !loading) {
-      generateToken();
+      const timer = setTimeout(() => generateToken(), 0);
+      return () => clearTimeout(timer);
     }
   }, [opened, token, loading, generateToken]);
 
@@ -54,7 +55,8 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     } else if (token) {
-      setToken(null);
+      const timer = setTimeout(() => setToken(null), 0);
+      return () => clearTimeout(timer);
     }
   }, [timeLeft, token]);
 
