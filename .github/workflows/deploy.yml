@@ -4,9 +4,18 @@ on:
   push:
     branches:
       - main
-      - preview
     paths:
       - 'packages/frontend/**'
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: 'Stage to deploy'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - production
 
 permissions:
   id-token: write
@@ -55,4 +64,4 @@ jobs:
 
       - name: Deploy
         working-directory: packages/frontend
-        run: pnpm sst deploy --stage ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+        run: pnpm sst deploy --stage ${{ github.event.inputs.stage || (github.ref == 'refs/heads/main' && 'production' || 'preview') }}
