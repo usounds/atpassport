@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+      - preview
 
 permissions:
   contents: read
@@ -39,3 +40,17 @@ jobs:
 
       - name: Test
         run: pnpm -r test
+
+      - name: Install Playwright Browsers
+        run: pnpm --filter frontend exec playwright install chromium --with-deps
+
+      - name: Run E2E tests
+        run: pnpm --filter frontend test:e2e --project=chromium
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: packages/frontend/playwright-report/
+          retention-days: 30
