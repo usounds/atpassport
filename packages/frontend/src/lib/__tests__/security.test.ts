@@ -92,7 +92,12 @@ describe('Security Library', () => {
       expect(await getPublicVerifiedDomains()).toEqual([]);
       expect(await getVerifiedDomainsByDid('did')).toEqual([]);
       
-      await expect(verifyDomainInDb('err.com', 'd')).rejects.toThrow('DB Error');
+      try {
+        await verifyDomainInDb('err.com', 'd');
+        expect.fail('Should have thrown error');
+      } catch (e: any) {
+        expect(e.message).toContain('DB Error');
+      }
       
       await deleteVerifiedDomainFromDb('err.com');
       expect(consoleSpy).toHaveBeenCalled();

@@ -8,15 +8,20 @@ import {
   withdrawDomain,
   updateDomainSettings,
   removeAssociation,
-  setPrimaryAssociation
+  setPrimaryAssociation,
+  resolveHandle,
+  resolveDidDoc,
+  withdrawDomainViaOAuth,
+  getVerificationStatus,
+  getVerifiedDomains
 } from '../actions';
 import { getSessionUuid, createSessionToken, SESSION_COOKIE_NAME } from '../session';
 import { getAssociations, addAssociation, updateAssociation, deleteAssociation, type AssociationWithProfile } from '../models';
-import { resolveIdentity } from '../atproto-server';
+import { resolveIdentity, resolveDidDocument } from '../atproto-server';
 import { getUuidByShareToken } from '../share';
 import { cookies, headers } from 'next/headers';
 import { isRateLimited } from '../rate-limit';
-import { verifyDomainInDb, getVerifiedDomainFromDb, deleteVerifiedDomainFromDb } from '../security';
+import { verifyDomainInDb, getVerifiedDomainFromDb, deleteVerifiedDomainFromDb, getVerifiedDomainsByDid } from '../security';
 import { revalidatePath } from 'next/cache';
 
 vi.mock('../session');
@@ -434,6 +439,65 @@ describe('Actions Library', () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       await removeAssociation(mockDid);
       expect(deleteAssociation).toHaveBeenCalledWith(mockUuid, mockDid);
+    });
+
+    it('should skip if no session', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(null);
+      await removeAssociation(mockDid);
+      expect(deleteAssociation).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Utility Functions', () => {
+    it('resolveHandle should call resolveIdentity', async () => {
+      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'd', handle: 'h', pdsUrl: 'p' } as any);
+      const result = await resolveHandle('d');
+      expect(result).toEqual({ did: 'd', handle: 'h', pdsUrl: 'p' });
+      expect(resolveIdentity).toHaveBeenCalledWith('d');
+    });
+
+    it('resolveDidDoc should call resolveDidDocument', async () => {
+      vi.mocked(resolveDidDocument).mockResolvedValue({ id: 'd' } as any);
+      const result = await resolveDidDoc('d');
+      expect(result).toEqual({ id: 'd' });
+      expect(resolveDidDocument).toHaveBeenCalledWith('d');
+    });
+
+    it('withdrawDomainViaOAuth should withdraw using resolved handle', async () => {
+      vi.mocked(resolveIdentity).mockResolvedValue({ did: mockDid, handle: mockHandle, pdsUrl: 'p' } as any);
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([{ did: mockDid } as any]);
+      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({ domain: mockHandle, verifiedByDid: mockDid } as any);
+
+      const result = await withdrawDomainViaOAuth(mockDid);
+      expect(result.success).toBe(true);
+      expect(deleteVerifiedDomainFromDb).toHaveBeenCalledWith(mockHandle);
+    });
+
+    it('withdrawDomainViaOAuth should return failure if identity not found', async () => {
+      vi.mocked(resolveIdentity).mockResolvedValue(null);
+      const result = await withdrawDomainViaOAuth(mockDid);
+      expect(result.success).toBe(false);
+    });
+
+    it('getVerificationStatus should return status from DB', async () => {
+      vi.mocked(resolveIdentity).mockResolvedValue({ handle: mockHandle } as any);
+      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({ status: 'approved' } as any);
+      const result = await getVerificationStatus(mockDid);
+      expect(result).toEqual({ status: 'approved' });
+    });
+
+    it('getVerificationStatus should return null if identity not found', async () => {
+      vi.mocked(resolveIdentity).mockResolvedValue(null);
+      const result = await getVerificationStatus(mockDid);
+      expect(result).toBeNull();
+    });
+
+    it('getVerifiedDomains should call getVerifiedDomainsByDid', async () => {
+      vi.mocked(getVerifiedDomainsByDid).mockResolvedValue([{ domain: 'd' } as any]);
+      const result = await getVerifiedDomains(mockDid);
+      expect(result).toEqual([{ domain: 'd' }]);
+      expect(getVerifiedDomainsByDid).toHaveBeenCalledWith(mockDid);
     });
   });
 });
