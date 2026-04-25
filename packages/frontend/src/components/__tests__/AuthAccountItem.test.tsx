@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '../../test/utils';
 import { AuthAccountItem } from '../AuthAccountItem';
+import { AssociationWithProfile } from '../../lib/models';
 
 vi.mock('nextjs-toploader', () => ({
   useTopLoader: () => ({
@@ -30,12 +31,13 @@ vi.mock('@mantine/core', async (importOriginal) => {
 });
 
 describe('AuthAccountItem', () => {
-  const mockItem = {
+  const mockItem: AssociationWithProfile = {
+    uuid: 'uuid-1',
     did: 'did:plc:1',
-    handle: 'user.test',
+    handle: 'user.test' as any,
     pdsUrl: 'http://pds',
-    profile: { displayName: 'User Name', avatar: 'http://avatar' },
-    verifiedAt: '2023-01-01',
+    profile: { did: 'did:plc:1', handle: 'user.test' as any, displayName: 'User Name', avatar: 'http://avatar' },
+    createdAt: '2023-01-01',
   };
 
   beforeEach(() => {

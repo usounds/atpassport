@@ -58,7 +58,7 @@ describe('Header', () => {
     vi.clearAllMocks();
     mockUsePathname.mockReturnValue('/');
     mockUseLocale.mockReturnValue('en');
-    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams());
+    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams() as any);
   });
 
   it('renders logo and navigation links', async () => {
@@ -113,7 +113,7 @@ describe('Header', () => {
   it('handles locale change with searchParams', async () => {
     const mockReplace = vi.fn();
     vi.mocked(useRouter).mockReturnValue({ replace: mockReplace } as any);
-    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams('foo=bar'));
+    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams('foo=bar') as any);
 
     render(<Header />);
     const langBtns = screen.getAllByLabelText('change_language');

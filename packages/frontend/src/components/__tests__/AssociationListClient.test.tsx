@@ -21,8 +21,8 @@ vi.mock('@mantine/core', async (importOriginal) => {
 
 describe('AssociationListClient', () => {
   const mockItems = [
-    { did: 'did:1', handle: 'user1.bsky.social', pdsUrl: 'http://pds1' },
-    { did: 'did:2', handle: 'user2.bsky.social', pdsUrl: 'http://pds2' },
+    { uuid: 'u1', did: 'did:1', handle: 'user1.bsky.social' as any, pdsUrl: 'http://pds1', createdAt: '2024-01-01T00:00:00Z' },
+    { uuid: 'u2', did: 'did:2', handle: 'user2.bsky.social' as any, pdsUrl: 'http://pds2', createdAt: '2024-01-02T00:00:00Z' },
   ];
 
   beforeEach(() => {

@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { db, SESSION_TABLE_NAME, VERIFIED_DOMAINS_TABLE_NAME } from '../db';
-import { PutCommand, GetCommand, DeleteCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { 
+  PutCommand, GetCommand, DeleteCommand, QueryCommand, UpdateCommand,
+  type GetCommandOutput, type QueryCommandOutput 
+} from '@aws-sdk/lib-dynamodb';
 
 describe('Database Library (Stub)', () => {
   const mockItem = { uuid: 'u1', did: 'd1', handle: 'h1' };
@@ -22,16 +25,16 @@ describe('Database Library (Stub)', () => {
     const getResult = await db.send(new GetCommand({
       TableName: SESSION_TABLE_NAME,
       Key: { uuid: 'u1', did: 'd1' }
-    }));
+    })) as GetCommandOutput;
     expect(getResult.Item).toEqual(expect.objectContaining(mockItem));
 
     // Query
     const queryResult = await db.send(new QueryCommand({
       TableName: SESSION_TABLE_NAME,
       ExpressionAttributeValues: { ':uuid': 'u1' }
-    }));
+    })) as QueryCommandOutput;
     expect(queryResult.Items).toHaveLength(1);
-    expect(queryResult.Items[0].handle).toBe('h1');
+    expect(queryResult.Items![0].handle).toBe('h1');
 
     // Update
     await db.send(new UpdateCommand({
@@ -45,8 +48,8 @@ describe('Database Library (Stub)', () => {
     const updated = await db.send(new GetCommand({
       TableName: SESSION_TABLE_NAME,
       Key: { uuid: 'u1', did: 'd1' }
-    }));
-    expect(updated.Item.handle).toBe('new-h');
+    })) as GetCommandOutput;
+    expect(updated.Item!.handle).toBe('new-h');
 
     // Delete
     await db.send(new DeleteCommand({
@@ -57,7 +60,7 @@ describe('Database Library (Stub)', () => {
     const deleted = await db.send(new GetCommand({
       TableName: SESSION_TABLE_NAME,
       Key: { uuid: 'u1', did: 'd1' }
-    }));
+    })) as GetCommandOutput;
     expect(deleted.Item).toBeUndefined();
   });
 
@@ -71,7 +74,7 @@ describe('Database Library (Stub)', () => {
     const publicResult = await db.send(new QueryCommand({
       TableName: table,
       ExpressionAttributeValues: { ':true': true }
-    }));
+    })) as QueryCommandOutput;
     expect(publicResult.Items).toHaveLength(2);
 
     // Query with sorting (ScanIndexForward: false)
@@ -79,7 +82,7 @@ describe('Database Library (Stub)', () => {
       TableName: table,
       ExpressionAttributeValues: { ':true': true },
       ScanIndexForward: false
-    }));
+    })) as QueryCommandOutput;
     expect(sortedResult.Items![0].domain).toBe('c.com');
     expect(sortedResult.Items![1].domain).toBe('a.com');
 
@@ -95,7 +98,7 @@ describe('Database Library (Stub)', () => {
     const didResult = await db.send(new QueryCommand({
       TableName: table,
       ExpressionAttributeValues: { ':did': 'did:1' }
-    }));
+    })) as QueryCommandOutput;
     // Item did:1 should match either did or verifiedByDid in the stub
     expect(didResult.Items).toBeDefined();
 
@@ -103,7 +106,7 @@ describe('Database Library (Stub)', () => {
     const verifiedResult = await db.send(new QueryCommand({
       TableName: table,
       ExpressionAttributeValues: { ':verifiedByDid': 'did:1' }
-    }));
+    })) as QueryCommandOutput;
     expect(verifiedResult.Items).toBeDefined();
   });
 
@@ -120,8 +123,8 @@ describe('Database Library (Stub)', () => {
       ExpressionAttributeValues: { ':v': 10 }
     }));
     
-    const res = await db.send(new GetCommand({ TableName: table, Key: { uuid: 'u2', did: 'd2' } }));
-    expect(res.Item.val).toBe(10);
+    const res = await db.send(new GetCommand({ TableName: table, Key: { uuid: 'u2', did: 'd2' } })) as GetCommandOutput;
+    expect(res.Item!.val).toBe(10);
 
     // Invalid expression format (no SET)
     await db.send(new UpdateCommand({
