@@ -37,7 +37,12 @@ describe('Markdown Library', () => {
 
   it('should throw error if content not found at all', async () => {
     vi.mocked(fs.existsSync).mockReturnValue(false);
-    await expect(getMarkdownContent('none', 'en')).rejects.toThrow('Content not found for none');
+    try {
+      await getMarkdownContent('none', 'en');
+      expect.fail('Should have thrown error');
+    } catch (e: any) {
+      expect(e.message).toContain('Content not found for none');
+    }
   });
 
   it('should sanitize slug and prevent path traversal', async () => {

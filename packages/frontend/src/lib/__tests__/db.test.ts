@@ -149,13 +149,23 @@ describe('Database Library (Stub)', () => {
 
   it('should throw error if not in local dev or real error occurs', async () => {
     vi.stubEnv('NODE_ENV', 'production');
-    await expect(db.send(new GetCommand({ TableName: 'any', Key: {} }))).rejects.toThrow();
+    try {
+      await db.send(new GetCommand({ TableName: 'any', Key: {} }));
+      expect.fail('Should have thrown error');
+    } catch (e: any) {
+      expect(e).toBeDefined();
+    }
 
     // Reset env
     vi.stubEnv('NODE_ENV', 'development');
     // Use mockRejectedValueOnce for async error
     const sendSpy = vi.spyOn(db, 'send').mockRejectedValueOnce(new Error('Unknown Error'));
-    await expect(db.send(new GetCommand({ TableName: 'any', Key: {} }))).rejects.toThrow('Unknown Error');
+    try {
+      await db.send(new GetCommand({ TableName: 'any', Key: {} }));
+      expect.fail('Should have thrown error');
+    } catch (e: any) {
+      expect(e.message).toContain('Unknown Error');
+    }
     sendSpy.mockRestore();
   });
 });

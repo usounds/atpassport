@@ -30,7 +30,7 @@ export function AuthAccountList({
   const [selectedItem, setSelectedItem] = useState<AssociationWithProfile | null>(null);
 
   useEffect(() => {
-    setItems(initialItems);
+    setTimeout(() => setItems(initialItems), 0);
   }, [initialItems]);
 
   const normalizePds = (url: string) => {

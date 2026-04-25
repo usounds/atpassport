@@ -155,7 +155,7 @@ export function DeveloperPortal({
   }, [fetchData]);
 
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
     initOAuth();
 
     const checkState = async () => {
@@ -215,7 +215,7 @@ export function DeveloperPortal({
 
   useEffect(() => {
     // Reset action loading when switching tabs to prevent spinners from sticking
-    setActionLoading(false);
+    setTimeout(() => setActionLoading(false), 0);
   }, [activeTab]);
   const handlePassportLogin = () => {
     const atp = new AtPassport({
@@ -297,7 +297,7 @@ export function DeveloperPortal({
     } finally {
       setActionLoading(false);
     }
-  }, [session, profile?.handle, getProxyClient, fetchData, t]);
+  }, [session, profile, getProxyClient, fetchData, t]);
 
   const handleVerifyFile = useCallback(async (domain: string, isPublic: boolean) => {
     if (!session) return;

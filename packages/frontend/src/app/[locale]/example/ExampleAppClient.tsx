@@ -59,7 +59,8 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
       lang: locale as SupportedLang
     });
     const { url } = atp.generateAuthUrl(getParamsObj());
-    if (url.startsWith('https://')) {
+    // Allow http on localhost for development/testing
+    if (url.startsWith('https://') || (window.location.hostname === 'localhost' && url.startsWith('http://'))) {
       window.location.href = url;
     } else {
       console.error('Invalid redirect URL (HTTPS required):', url);
@@ -74,7 +75,8 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
       lang: locale as SupportedLang
     });
     const { url } = atp.generateAddUrl(suggestHandle, getParamsObj());
-    if (url.startsWith('https://')) {
+    // Allow http on localhost for development/testing
+    if (url.startsWith('https://') || (window.location.hostname === 'localhost' && url.startsWith('http://'))) {
       window.location.href = url;
     } else {
       console.error('Invalid redirect URL (HTTPS required):', url);

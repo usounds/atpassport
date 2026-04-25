@@ -27,7 +27,7 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    setTimeout(() => setIsMounted(true), 0);
   }, []);
   const t = useTranslations('Home');
   const isLimitReached = handleCount >= MAX_HANDLES;

@@ -61,9 +61,9 @@ describe('Header', () => {
     vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams());
   });
 
-  it('renders logo and navigation links', () => {
+  it('renders logo and navigation links', async () => {
     render(<Header />);
-    expect(screen.getByText('@passport')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('@passport')).toBeInTheDocument());
   });
 
   it('toggles color scheme', async () => {
@@ -125,13 +125,17 @@ describe('Header', () => {
     expect(mockReplace).toHaveBeenCalledWith('/?foo=bar', { locale: 'ja' });
   });
 
-  it('covers various language labels in menu', async () => {
+  it('covers various language labels in menu and clicking them', async () => {
     const languages = [
-      { locale: 'pt', label: 'Selecionar Idioma' },
-      { locale: 'de', label: 'Sprache wählen' },
-      { locale: 'fr', label: 'Choisir la langue' },
-      { locale: 'es', label: 'Seleccionar idioma' },
+      { locale: 'pt', label: 'Selecionar Idioma', item: 'Português' },
+      { locale: 'de', label: 'Sprache wählen', item: 'Deutsch' },
+      { locale: 'fr', label: 'Choisir la langue', item: 'Français' },
+      { locale: 'es', label: 'Seleccionar idioma', item: 'Español' },
+      { locale: 'en', label: 'Select Language', item: 'English' },
     ];
+
+    const mockReplace = vi.fn();
+    vi.mocked(useRouter).mockReturnValue({ replace: mockReplace } as any);
 
     for (const lang of languages) {
       mockUseLocale.mockReturnValue(lang.locale);
@@ -139,9 +143,13 @@ describe('Header', () => {
       const langBtn = screen.getAllByLabelText('change_language')[0];
       fireEvent.click(langBtn);
       
-      // Use findByText to wait for portal
       const label = await screen.findByText(lang.label);
       expect(label).toBeInTheDocument();
+
+      const item = await screen.findByText(lang.item);
+      fireEvent.click(item);
+      expect(mockReplace).toHaveBeenCalledWith('/', { locale: lang.locale });
+
       unmount();
     }
   });

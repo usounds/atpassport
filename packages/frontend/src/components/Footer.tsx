@@ -1,6 +1,8 @@
 import { version } from '../../package.json';
 import { Text, Anchor, Group, Divider, Stack } from '@mantine/core';
 import { useTranslations, useLocale } from 'next-intl';
+import { FaGithub } from "react-icons/fa6";
+import { FaBluesky } from "react-icons/fa6";
 
 export function Footer() {
   const t = useTranslations('Nav');
@@ -10,21 +12,32 @@ export function Footer() {
     <footer style={{ marginTop: 'auto', paddingTop: '2rem' }}>
       <Divider mb="sm" />
       <Stack align="center" gap="xs" pb="xl">
-        <Group justify="center" gap="xs" wrap="wrap">
+        <Group justify="center" align="center" gap="md" wrap="wrap">
           <Anchor size="xs" c="dimmed" href={`/${locale}/developers/verify`}>
             {t('developers')}
           </Anchor>
-          <Text size="xs" c="dimmed">|</Text>
-          <Anchor
-            size="xs"
-            c="dimmed"
-            href="https://github.com/usounds/atpassport"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            GitHub
-          </Anchor>
-          <Text size="xs" c="dimmed">|</Text>
+          <Group gap={14} align="center">
+            <Anchor
+              c="dimmed"
+              href="https://github.com/usounds/atpassport"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center' }}
+              aria-label="GitHub"
+            >
+              <FaGithub size={16} style={{ transform: 'translateY(-2px)' }} />
+            </Anchor>
+            <Anchor
+              c="dimmed"
+              href="https://bsky.app/profile/atpassport.net"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center' }}
+              aria-label="Bluesky"
+            >
+              <FaBluesky size={16} style={{ transform: 'translateY(-2px)' }} />
+            </Anchor>
+          </Group>
           <Text size="xs" c="dimmed">
             v{version}
           </Text>
