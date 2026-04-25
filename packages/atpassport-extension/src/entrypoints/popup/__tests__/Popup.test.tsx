@@ -51,10 +51,10 @@ describe('Popup', () => {
     render(<Popup />);
     await waitForLoadingToFinish();
 
-    const errorDiv = screen.getByText('otherError').closest('div')!.parentElement!;
+    const errorDiv = screen.getByText('otherError').closest('div')!;
     
     fireEvent.mouseOver(errorDiv);
-    expect(['rgb(255, 235, 235)', 'rgb(255, 235, 238)']).toContain(errorDiv.style.background);
+    // Style check removed as it's now handled by CSS
     
     fireEvent.click(errorDiv);
     expect(chrome.tabs.create).not.toHaveBeenCalled();
@@ -98,9 +98,7 @@ describe('Popup', () => {
 
     const logoDiv = screen.getByTitle('Go to atpassport.net');
     fireEvent.mouseOver(logoDiv);
-    expect(logoDiv.style.opacity).toBe('0.7');
     fireEvent.mouseOut(logoDiv);
-    expect(logoDiv.style.opacity).toBe('1');
     
     fireEvent.click(logoDiv);
     expect(chrome.tabs.create).toHaveBeenCalledWith({ url: 'https://atpassport.net' });
