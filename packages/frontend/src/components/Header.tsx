@@ -136,7 +136,7 @@ export function Header() {
       {/* 以前は size="sm" 定義でしたが、項目が増えたため wider な "lg" に変更 */}
       <Container size="lg" className={classes.inner}>
         <Link href="/" className={classes.logo}>
-          <Image src="/icon128.svg" alt="logo" width={24} height={24} style={{ position: 'relative', top: '2px' }} />
+          <Image src="/icon128.svg" alt="logo" width={24} height={24} style={{ position: 'relative', top: '2px' }} priority />
           <Title order={3} fw={700} m={0} style={{ lineHeight: 1 }}>{t('title')}</Title>
         </Link>
 

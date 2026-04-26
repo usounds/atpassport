@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "check": "pnpm test && pnpm lint && pnpm build",
+    "check": "pnpm test && pnpm lint && pnpm run test:e2e && pnpm build",
     "deploy": "pnpm test && npx sst deploy --stage production",
     "update": "npx ncu -u -x eslint && pnpm install",
     "lint": "eslint"
