@@ -9,12 +9,10 @@
     "test": "pnpm -r test",
     "build": "pnpm -r build",
     "dev": "pnpm -r dev",
-    "update": "pnpm -r update",
-    "release": "pnpm -r build && pnpm --filter '@atpassport/client' publish --access public --no-git-checks --provenance"
+    "update": "pnpm -r update"
   },
   "devDependencies": {
     "@atcute/lex-cli": "^2.6.1",
-    "@changesets/cli": "^2.28.1",
     "npm-check-updates": "^17.1.18",
     "sst": "^4.6.11",
     "typescript": "^5.9.3"
