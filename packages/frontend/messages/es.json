@@ -1,7 +1,7 @@
 {
   "Home": {
     "title": "@passport",
-    "description": "@passport es un asistente de gestión de identificadores (ID de usuario) y autenticación para usuarios del protocolo social descentralizado \"atproto\". Al registrar su identificador una vez, puede disfrutar de inicios de sesión fluidos en varias aplicaciones compatibles relacionadas con Bluesky.",
+    "description": "@passport es un asistente de gestión de identificadores (ID de usuario) y autenticación para usuarios del protocolo social descentralizado \"atproto\". Al registrar su identificador una vez, puede disfrutar de inicios de sesión fluidos en varias aplicaciones compatibles en el ecosistema atproto.",
     "registered_handles": "Handles Registrados",
     "no_session": "Sin handles registrados aún",
     "no_handles": "Sin handles registrados",
