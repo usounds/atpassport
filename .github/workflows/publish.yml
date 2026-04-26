@@ -1,0 +1,61 @@
+name: Publish to npm
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/atpassport-client/**'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # To create Git tags
+      id-token: write # For Trusted Publisher (OIDC)
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Check if version changed
+        id: version_check
+        run: |
+          LOCAL_VERSION=$(node -p "require('./packages/atpassport-client/package.json').version")
+          NPM_VERSION=$(npm view @atpassport/client version 2>/dev/null || echo "0.0.0")
+          echo "local=$LOCAL_VERSION" >> $GITHUB_OUTPUT
+          echo "npm=$NPM_VERSION" >> $GITHUB_OUTPUT
+          if [ "$LOCAL_VERSION" != "$NPM_VERSION" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install pnpm
+        if: steps.version_check.outputs.changed == 'true'
+        uses: pnpm/action-setup@v6
+
+      - name: Install Node.js
+        if: steps.version_check.outputs.changed == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        if: steps.version_check.outputs.changed == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and publish
+        if: steps.version_check.outputs.changed == 'true'
+        run: |
+          pnpm --filter "@atpassport/client" build
+          pnpm --filter "@atpassport/client" publish --access public --no-git-checks --provenance
+
+      - name: Create Git tag
+        if: steps.version_check.outputs.changed == 'true'
+        run: |
+          VERSION=${{ steps.version_check.outputs.local }}
+          git tag "client@${VERSION}"
+          git push origin "client@${VERSION}"

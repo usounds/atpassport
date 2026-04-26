@@ -2,7 +2,7 @@
 
 import { MantineProvider, createTheme } from '@mantine/core';
 
-const theme = createTheme({
+export const theme = createTheme({
   components: {
     Badge: {
       styles: {

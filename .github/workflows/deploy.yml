@@ -10,7 +10,7 @@ on:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 jobs:
   deploy:
@@ -56,3 +56,13 @@ jobs:
       - name: Deploy
         working-directory: packages/frontend
         run: pnpm sst deploy --stage ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+
+      - name: Create Git tag for frontend
+        if: github.ref == 'refs/heads/main'
+        run: |
+          VERSION=$(node -p "require('./packages/frontend/package.json').version")
+          TAG="frontend@${VERSION}"
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
