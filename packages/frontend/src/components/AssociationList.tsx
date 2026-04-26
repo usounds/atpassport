@@ -18,6 +18,7 @@ export async function AssociationList() {
   }
 
   const associations = await getAssociations(uuid);
+  console.log(`[AssociationList] Found ${associations.length} associations for UUID: ${uuid}`);
 
   // Fetch profiles for each association
   const items = await Promise.all(
