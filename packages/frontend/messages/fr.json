@@ -141,7 +141,7 @@
     "new_domain_tab": "Ajouter un nouveau domaine",
     "method_oauth": "Vérifier via le domaine du handle",
     "method_file": "Vérifier via un fichier",
-    "oauth_description": "Vérifiez instantanément les domaines qui correspondent à votre handle Bluesky via la connexion @passport.",
+    "oauth_description": "Vérifiez instantanément les domaines qui correspondent à votre handle atproto via la connexion @passport.",
     "file_description": "Prouvez la propriété de n'importe quel domaine en plaçant un fichier à la racine de ses documents.",
     "step_method": "Choisir la méthode",
     "step_verify": "Vérifier",

@@ -200,7 +200,7 @@ export default async function AboutPage({
                   "name": locale === 'ja' ? "セキュリティやプライバシーは安全ですか？" : "Is it secure and private?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": locale === 'ja' ? "はい。@passportは公開情報であるハンドル（例: @alice.bsky.social）のみを保存します。パスワード、秘密鍵、JWTトークンなどの機密情報は一切サーバーに保存されないため、安心してご利用いただけます。" : "Yes. @passport only stores your public handle. Sensitive information such as passwords, private keys, or JWT tokens are never stored on our servers."
+                    "text": locale === 'ja' ? "はい。@passportは公開情報であるハンドル（例: @alice.bsky.social）のみを保存します。パスワード、秘密鍵、JWTトークンなどの機密情報は一切サーバーに保存されないため、安心してご利用いただけます。" : "Yes. @passport only stores your public handle (e.g., @alice.bsky.social). Sensitive information such as passwords, private keys, or JWT tokens are never stored on our servers."
                   }
                 },
                 {
@@ -257,6 +257,14 @@ export default async function AboutPage({
                   "acceptedAnswer": {
                     "@type": "Answer",
                     "text": locale === 'ja' ? "トップページのハンドル一覧から、削除したいハンドルの横にあるメニュー（3点リーダー）をタップし、「削除」を選択することでいつでも削除可能です。" : "You can delete individual handles at any time by tapping the three-dot menu next to the handle on the top page and selecting 'Delete'."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": locale === 'ja' ? "atproto以外のSNSでも使えますか？" : "Does it support other social networks?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": locale === 'ja' ? "atprotoエコシステムをサポートしています。" : "@passport supports the atproto ecosystem."
                   }
                 }
               ]

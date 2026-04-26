@@ -140,7 +140,7 @@
     "new_domain_tab": "Add New Domain",
     "method_oauth": "Verify via handle domain",
     "method_file": "Verify via File",
-    "oauth_description": "Instantly verify domains that match your Bluesky handle via @passport login.",
+    "oauth_description": "Instantly verify domains that match your atproto handle via @passport login.",
     "file_description": "Prove ownership of any domain by placing a file under its document root.",
     "step_method": "Choose Method",
     "step_verify": "Verify",

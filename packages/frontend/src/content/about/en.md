@@ -141,7 +141,7 @@ It is also possible to link handle information directly via HTTP redirect withou
 
    **Callback Example:**
    ```url
-   https://your-app.com/callback?handle=alice.bsky.social&did=did%3Aplc%3Axxx&pdsurl=https%3A%2F%2Fpds.example.com&atpstate=xyz123
+   https://your-app.com/callback?handle=alice.atproto.site&did=did%3Aplc%3Axxx&pdsurl=https%3A%2F%2Fpds.example.com&atpstate=xyz123
    ```
 
 Using these, you can provide a smooth login experience without requiring users to manually input their handles.
@@ -162,14 +162,31 @@ By setting these, the @passport extension will automatically recognize the field
 # Frequently Asked Questions (FAQ)
 
 ### Q: Is it free to use?
-A: Yes, @passport is completely free to use.
+A: Yes, @passport is completely free to use. There are no ads or additional charges.
 
-### Q: Is it secure?
-A: Yes. @passport only stores your public handle (e.g., @alice.bsky.social) and does not store passwords, private keys, JWT tokens, or any other sensitive information.
+### Q: Is it secure and private?
+A: Yes. @passport only stores your public handle (e.g., @alice.bsky.social). Sensitive information such as passwords, private keys, or JWT tokens are never stored on our servers.
 
-### Q: How can I delete my data?
-A: You can delete individual handles from the list on the top page by tapping the menu icon (three dots) next to the handle and selecting "Delete". This will remove the data from your browser's local storage.
+### Q: Is there a limit to the number of handles I can register?
+A: You can register up to 15 handles per session.
+
+### Q: What happens to my data if I don't use the service for a long time?
+A: Based on our Terms of Service, handle information that hasn't been used for 365 days may be deleted without prior notice.
+
+### Q: Can I sync my registered handles across multiple devices?
+A: Yes. By using the 'Device Sharing' feature, you can sync your handle list with other browsers or devices via QR code or URL.
+
+### Q: What are the benefits of registering a domain in the Developer Portal?
+A: By verifying domain ownership through the Developer Portal, you can remove warnings for that specific domain.
+
+### Q: How do the browser extension and integrated sites work together?
+A: @passport is designed as an ecosystem. Once you register your handles on this site, you can log in with a single button on supported sites. On unsupported sites, the browser extension allows you to input those same handles with one tap. In both cases, your registration connects your experience seamlessly across multiple sites.
+
+### Q: What should I do if I change my handle or move to a different PDS?
+A: If your handle string changes or you move to a different PDS (server), you need to perform a 'Metadata Update.' Open the menu next to the handle on the top page and tap 'Update Metadata.' This will reflect the new information in @passport and ensure you can continue to log in correctly.
+
+### Q: How can I delete my registered data?
+A: You can delete individual handles at any time by tapping the three-dot menu next to the handle on the top page and selecting 'Delete'.
 
 ### Q: Does it support other social networks?
-A: Currently, @passport only supports the atproto ecosystem, including Bluesky.
-
+A: @passport supports the atproto ecosystem.

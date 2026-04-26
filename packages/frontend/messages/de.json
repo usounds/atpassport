@@ -141,7 +141,7 @@
     "new_domain_tab": "Neue Domain hinzufügen",
     "method_oauth": "Über Handle-Domain verifizieren",
     "method_file": "Über Datei verifizieren",
-    "oauth_description": "Verifizieren Sie Domains, die Ihrem Bluesky-Handle entsprechen, sofort per @passport-Login.",
+    "oauth_description": "Verifizieren Sie Domains, die Ihrem atproto-Handle entsprechen, sofort per @passport-Login.",
     "file_description": "Beweisen Sie die Inhaberschaft einer beliebigen Domain, indem Sie eine Datei im Stammverzeichnis ablegen.",
     "step_method": "Methode wählen",
     "step_verify": "Verifizieren",
