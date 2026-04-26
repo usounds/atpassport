@@ -28,6 +28,7 @@ export async function generateMetadata(props: {
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await props.params;
+  const isProduction = process.env.NEXT_PUBLIC_URL === 'https://atpassport.net';
   const t = await getTranslations({ locale, namespace: "Home" });
 
   return {
@@ -67,8 +68,8 @@ export async function generateMetadata(props: {
       images: ['/atpassportOgp.png'],
     },
     robots: {
-      index: true,
-      follow: true,
+      index: isProduction,
+      follow: isProduction,
     },
     icons: {
       icon: '/favicon.ico',
