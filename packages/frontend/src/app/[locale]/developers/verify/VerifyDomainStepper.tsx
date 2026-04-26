@@ -151,6 +151,7 @@ export function VerifyDomainStepper({ did, handle, isHandleVerified, onVerifyOAu
 
             <Checkbox
               label={t('list_in_directory')}
+              description={t('list_in_directory_description')}
               checked={isPublic}
               onChange={(e) => setIsPublic(e.currentTarget.checked)}
             />

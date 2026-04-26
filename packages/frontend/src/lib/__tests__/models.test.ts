@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { addAssociation, getAssociations, updateAssociation, deleteAssociation, touchSession } from '../models';
+import { 
+  addAssociation, 
+  getAssociations, 
+  updateAssociation, 
+  deleteAssociation, 
+  touchSession,
+  type IdentityAssociation 
+} from '../models';
 import { db } from '../db';
 import { PutCommand, QueryCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 
@@ -24,33 +31,33 @@ describe('Models Library (IdentityAssociation)', () => {
   describe('getAssociations', () => {
     it('should return sorted associations', async () => {
       const mockItems = [
-        { uuid: mockUuid, did: 'did:1', handle: 'h1', sortOrder: 1, createdAt: '2024-01-01T00:00:00Z' },
-        { uuid: mockUuid, did: 'did:2', handle: 'h2', sortOrder: 0, createdAt: '2024-01-02T00:00:00Z' },
+        { uuid: mockUuid, did: 'did:1', handle: 'h1.test' as any, sortOrder: 1, createdAt: '2024-01-01T00:00:00Z' },
+        { uuid: mockUuid, did: 'did:2', handle: 'h2.test' as any, sortOrder: 0, createdAt: '2024-01-02T00:00:00Z' },
       ];
       vi.mocked(db.send).mockResolvedValue({ Items: mockItems });
 
       const result = await getAssociations(mockUuid);
 
       expect(result).toHaveLength(2);
-      expect(result[0].handle).toBe('h2'); // sortOrder 0 comes first
-      expect(result[1].handle).toBe('h1'); // sortOrder 1 comes second
+      expect(result[0].handle).toBe('h2.test'); // sortOrder 0 comes first
+      expect(result[1].handle).toBe('h1.test'); // sortOrder 1 comes second
       expect(db.send).toHaveBeenCalledWith(expect.any(QueryCommand));
     });
 
     it('should sort items by createdAt if sortOrder is identical or missing', async () => {
       const mockItems = [
-        { uuid: mockUuid, did: 'did:1', handle: 'h1', createdAt: '2024-01-02T00:00:00Z' },
-        { uuid: mockUuid, did: 'did:2', handle: 'h2', sortOrder: 0, createdAt: '2024-01-01T00:00:00Z' },
-        { uuid: mockUuid, did: 'did:3', handle: 'h3', createdAt: '2024-01-03T00:00:00Z' },
+        { uuid: mockUuid, did: 'did:1', handle: 'h1.test' as any, createdAt: '2024-01-02T00:00:00Z' },
+        { uuid: mockUuid, did: 'did:2', handle: 'h2.test' as any, sortOrder: 0, createdAt: '2024-01-01T00:00:00Z' },
+        { uuid: mockUuid, did: 'did:3', handle: 'h3.test' as any, createdAt: '2024-01-03T00:00:00Z' },
       ];
       vi.mocked(db.send).mockResolvedValue({ Items: mockItems });
 
       const result = await getAssociations(mockUuid);
 
       expect(result).toHaveLength(3);
-      expect(result[0].handle).toBe('h2'); // sortOrder 0
-      expect(result[1].handle).toBe('h1'); // sortOrder missing (Infinity), then createdAt
-      expect(result[2].handle).toBe('h3'); // sortOrder missing (Infinity), then createdAt
+      expect(result[0].handle).toBe('h2.test'); // sortOrder 0
+      expect(result[1].handle).toBe('h1.test'); // sortOrder missing (Infinity), then createdAt
+      expect(result[2].handle).toBe('h3.test'); // sortOrder missing (Infinity), then createdAt
     });
 
     it('should return empty array if no items found', async () => {
@@ -65,7 +72,7 @@ describe('Models Library (IdentityAssociation)', () => {
       vi.mocked(db.send).mockResolvedValueOnce({ Items: [] }); // For initial getAssociations call
       vi.mocked(db.send).mockResolvedValueOnce({}); // For PutCommand
 
-      const result = await addAssociation(mockUuid, mockDid, mockHandle, mockPds);
+      const result = await addAssociation(mockUuid, mockDid, mockHandle as any, mockPds);
 
       expect(result.uuid).toBe(mockUuid);
       expect(result.isPrimary).toBe(true);
@@ -81,7 +88,7 @@ describe('Models Library (IdentityAssociation)', () => {
       vi.mocked(db.send).mockResolvedValueOnce({ Items: existingItems });
       vi.mocked(db.send).mockResolvedValueOnce({});
 
-      const result = await addAssociation(mockUuid, 'did:new', 'new.h', 'pds');
+      const result = await addAssociation(mockUuid, 'did:new', 'new.h' as any, 'pds');
 
       expect(result.isPrimary).toBe(false);
       expect(result.sortOrder).toBe(6); // max(5, 0) + 1
@@ -91,7 +98,7 @@ describe('Models Library (IdentityAssociation)', () => {
   describe('updateAssociation', () => {
     it('should call UpdateCommand with correct parameters', async () => {
       vi.mocked(db.send).mockResolvedValue({});
-      await updateAssociation(mockUuid, mockDid, { handle: 'new.handle' });
+      await updateAssociation(mockUuid, mockDid, { handle: 'new.handle' as any });
       expect(db.send).toHaveBeenCalledWith(expect.any(UpdateCommand));
     });
 

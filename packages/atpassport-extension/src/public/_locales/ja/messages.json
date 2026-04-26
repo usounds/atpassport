@@ -18,10 +18,10 @@
     "message": "ハンドルを入力しました"
   },
   "copiedFallback": {
-    "message": "クリップボードにコピーしました（入力先不明）"
+    "message": "クリップボードにコピーしました"
   },
   "copiedIncompatible": {
-    "message": "クリップボードにコピーしました（非対応ページ）"
+    "message": "クリップボードにコピーしました"
   },
   "processing": {
     "message": "読み込み中..."

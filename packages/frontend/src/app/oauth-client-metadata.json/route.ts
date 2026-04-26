@@ -15,6 +15,9 @@ export async function GET() {
     "tos_uri": `${origin}/terms`,
     "policy_uri": `${origin}/privacy`,
     "redirect_uris": [
+      ...routing.locales.map(locale => `${origin}/${locale}/developers/verify/callback`),
+      `${origin}/developers/verify/callback`,
+      // Legacy: keep old URIs for backward compatibility during transition
       ...routing.locales.map(locale => `${origin}/${locale}/developers/verify`),
       `${origin}/developers/verify`
     ],

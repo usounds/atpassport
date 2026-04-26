@@ -45,7 +45,6 @@ describe('XRPC: net.atpassport.verify.withdraw', () => {
     vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
       domain: domain,
       verifiedByDid: mockDid,
-      handle: 'user.test',
       status: 'approved',
       verifiedAt: '2023-01-01',
     });
@@ -67,7 +66,6 @@ describe('XRPC: net.atpassport.verify.withdraw', () => {
     vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
       domain: domain,
       verifiedByDid: 'did:plc:OTHER',
-      handle: 'other.test',
       status: 'approved',
       verifiedAt: '2023-01-01',
     });

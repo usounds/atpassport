@@ -5,7 +5,7 @@ import { IconPlus, IconLayoutDashboard, IconLogin, IconInfoCircle, IconExternalL
 import { useState, useEffect, useCallback, ChangeEvent, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { initOAuth } from '@/lib/oauth';
-import { createAuthorizationUrl, finalizeAuthorization, getSession, listStoredSessions, deleteStoredSession, OAuthUserAgent, Session } from '@atcute/oauth-browser-client';
+import { createAuthorizationUrl, getSession, listStoredSessions, deleteStoredSession, OAuthUserAgent, Session } from '@atcute/oauth-browser-client';
 import { resolveHandle, updateDomainSettings } from '@/lib/actions';
 import { DomainList } from './DomainList';
 import { VerifyDomainStepper } from './VerifyDomainStepper';
@@ -19,11 +19,9 @@ import { isActorIdentifier } from '@atcute/lexicons/syntax';
 import { NetAtpassportVerifyList, NetAtpassportVerifySubmit, NetAtpassportVerifyWithdraw } from '@/lexicons/index';
 
 export function DeveloperPortal({ 
-  locale, 
-  initialResult 
+  locale
 }: { 
-  locale: string; 
-  initialResult?: { handle?: string | null; [key: string]: unknown } 
+  locale: string;
 }) {
   const t = useTranslations('Developers');
   const [session, setSession] = useState<Session | null>(null);
@@ -41,7 +39,6 @@ export function DeveloperPortal({
   const [activeTab, setActiveTab] = useState<string | null>('dashboard');
   const [showManualInput, setShowManualInput] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const attemptedAutoLogin = useRef(false);
 
   // Proxy client setup
   const getProxyClient = useCallback((s?: Session) => {
@@ -104,8 +101,8 @@ export function DeveloperPortal({
     }
   }, [getProxyClient, handleLogout]);
 
-  const handleLogin = useCallback(async (manualHandle?: string) => {
-    const handle = manualHandle || handleInput;
+  const handleLogin = useCallback(async () => {
+    const handle = handleInput;
     if (!handle) return;
 
     if (!isActorIdentifier(handle)) {
@@ -113,14 +110,7 @@ export function DeveloperPortal({
       return;
     }
 
-    setActionLoading(true);
-    
-    // Clear params immediately to prevent re-login loop
-    if (typeof window !== 'undefined' && window.location.search) {
-      const url = new URL(window.location.href);
-      url.search = '';
-      window.history.replaceState(null, '', url.toString());
-    }
+    setLoading(true);
 
     try {
       const scope = 'atproto include:net.atpassport.permissionSet';
@@ -132,11 +122,10 @@ export function DeveloperPortal({
         scope: scope,
         prompt: 'consent'
       });
-      await new Promise(resolve => setTimeout(resolve, 200));
       window.location.assign(authUrl);
     } catch (error: unknown) {
       console.error('OAuth start failed:', error);
-      setActionLoading(false);
+      setLoading(false);
       
       const isFetchError = error instanceof Error && 
         (error.message.includes('fetch') || error.message.includes('NetworkError') || error.message.includes('DID'));
@@ -156,26 +145,12 @@ export function DeveloperPortal({
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 0);
-    initOAuth();
+    const callbackUri = `${window.location.origin}/${locale}/developers/verify/callback`;
+    initOAuth(callbackUri);
 
     const checkState = async () => {
       try {
-        if (typeof window !== 'undefined' && window.location.hash) {
-          const params = new URLSearchParams(window.location.hash.slice(1));
-          if (params.has('state')) {
-            setLoading(true);
-            try {
-              const { session: newSession } = await finalizeAuthorization(params);
-              window.history.replaceState(null, '', window.location.pathname + window.location.search);
-              setSession(newSession);
-              await fetchDataRef.current(newSession);
-              return;
-            } catch (error: unknown) {
-              console.error('OAuth callback failed:', error);
-            }
-          }
-        }
-
+        // セッション復元のみ行う（OAuthコールバックは /callback ページで処理済み）
         const storedDids = listStoredSessions();
         if (storedDids.length > 0) {
           try {
@@ -198,28 +173,16 @@ export function DeveloperPortal({
     checkState();
   }, []); // Only run on mount
 
-  // Handle library callback
-  useEffect(() => {
-    // Session が既に存在する場合は、initialResult による自動ログインを絶対に試みない
-    if (session) {
-      attemptedAutoLogin.current = true;
-      return;
-    }
 
-    // Only start auto-login once when not already loading/in session and handle param exists
-    if (initialResult && initialResult.handle && !loading && !actionLoading && !attemptedAutoLogin.current) {
-      attemptedAutoLogin.current = true;
-      handleLogin(initialResult.handle);
-    }
-  }, [initialResult, session, loading, actionLoading, handleLogin]);
 
   useEffect(() => {
     // Reset action loading when switching tabs to prevent spinners from sticking
     setTimeout(() => setActionLoading(false), 0);
   }, [activeTab]);
   const handlePassportLogin = () => {
+    setActionLoading(true);
     const atp = new AtPassport({
-      callbackUrl: window.location.origin + window.location.pathname,
+      callbackUrl: window.location.origin + `/${locale}/developers/verify/callback`,
       baseUrl: window.location.origin,
       lang: locale as 'en' | 'ja' | 'pt' | 'de' | 'fr' | 'es'
     });
@@ -424,8 +387,8 @@ export function DeveloperPortal({
   // Only apply animation classes once mounted to avoid SSR double animation
   const animationClass = mounted ? 'animate-fade-in' : '';
 
-  // Show full-page loader only during initial loading or explicit action loading
-  const isFullLoading = loading || (actionLoading && !session);
+  // Show full-page loader during initial loading
+  const isFullLoading = loading;
 
   if (isFullLoading) {
     return (
@@ -471,6 +434,7 @@ export function DeveloperPortal({
                   <Button
                     onClick={handlePassportLogin}
                     loading={actionLoading}
+                    disabled={actionLoading}
                     leftSection={<AtPassportIcon size={24} />}
                     color="blue"
                     size="md"
@@ -502,7 +466,7 @@ export function DeveloperPortal({
                   />
                   <Button
                     onClick={() => handleLogin()}
-                    loading={actionLoading}
+                    loading={loading}
                     leftSection={<IconLogin size={20} />}
                     color="blue"
                     size="md"

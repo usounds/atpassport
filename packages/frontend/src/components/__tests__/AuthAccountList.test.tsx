@@ -80,18 +80,20 @@ vi.mock('@/lib/actions', () => ({
 describe('AuthAccountList', () => {
   const mockItems: AssociationWithProfile[] = [
     {
+      uuid: 'u1',
       did: 'did:plc:1',
-      handle: 'user1.test',
+      handle: 'user1.test' as any,
       pdsUrl: 'https://pds1.com',
-      profile: { displayName: 'User One' },
-      verifiedAt: '2023-01-01',
+      profile: { did: 'did:plc:1', handle: 'user1.test' as any, displayName: 'User One' },
+      createdAt: '2023-01-01',
     },
     {
+      uuid: 'u2',
       did: 'did:plc:2',
-      handle: 'user2.test',
+      handle: 'user2.test' as any,
       pdsUrl: 'https://pds2.com',
-      profile: { displayName: 'User Two' },
-      verifiedAt: '2023-01-02',
+      profile: { did: 'did:plc:2', handle: 'user2.test' as any, displayName: 'User Two' },
+      createdAt: '2023-01-02',
     }
   ];
 
@@ -257,10 +259,11 @@ describe('AuthAccountList', () => {
 
   it('uses fallback for missing profile information', () => {
     const itemWithNoProfile: AssociationWithProfile[] = [{
+      uuid: 'u3',
       did: 'did:plc:3',
-      handle: 'noprofile.test',
+      handle: 'noprofile.test' as any,
       pdsUrl: 'https://pds.com',
-      verifiedAt: '2023-01-01',
+      createdAt: '2023-01-01',
     }];
     render(<AuthAccountList initialItems={itemWithNoProfile} domain="example.com" callback="https://callback.com" />);
     

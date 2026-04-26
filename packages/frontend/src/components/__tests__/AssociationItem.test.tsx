@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@/test/utils';
 import { AssociationItem } from '../AssociationItem';
+import { AssociationWithProfile } from '../../lib/models';
 
 // Mock mantine core components to avoid transition issues
 vi.mock('@mantine/core', async (importOriginal) => {
@@ -13,11 +14,15 @@ vi.mock('@mantine/core', async (importOriginal) => {
 });
 
 describe('AssociationItem', () => {
-  const mockItem = {
-    handle: 'user.bsky.social',
+  const mockItem: AssociationWithProfile = {
+    uuid: 'uuid-1',
+    handle: 'user.bsky.social' as any,
     did: 'did:plc:123',
     pdsUrl: 'https://pds.example.com',
+    createdAt: '2024-01-01T00:00:00Z',
     profile: {
+      did: 'did:plc:123',
+      handle: 'user.bsky.social' as any,
       displayName: 'Test User',
       avatar: 'https://example.com/avatar.png'
     }

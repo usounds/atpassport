@@ -18,10 +18,10 @@
     "message": "Handle entered"
   },
   "copiedFallback": {
-    "message": "Copied to clipboard (No input found)"
+    "message": "Copied to clipboard"
   },
   "copiedIncompatible": {
-    "message": "Copied to clipboard (Incompatible tab)"
+    "message": "Copied to clipboard"
   },
   "processing": {
     "message": "Loading..."

@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Loader2, AlertCircle, Copy, User } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Loader2, AlertCircle, Copy, User, CheckCircle } from 'lucide-react';
 import { HandleManager } from '@/lib/HandleManager';
+import './popup.css';
 
 export const Popup = () => {
   const manager = useMemo(() => new HandleManager(), []);
@@ -8,6 +9,10 @@ export const Popup = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
+  const [toastExiting, setToastExiting] = useState(false);
+  const [toastKey, setToastKey] = useState(0);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const exitTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch handles from AtPassport API
   useEffect(() => {
@@ -35,50 +40,61 @@ export const Popup = () => {
     };
 
     fetchHandles();
+
+    // Cleanup timeouts on unmount
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (exitTimeoutRef.current) clearTimeout(exitTimeoutRef.current);
+    };
   }, [manager]);
 
   const handleSelect = async (handle: string) => {
+    // Clear existing timeouts to prevent animation conflicts
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (exitTimeoutRef.current) clearTimeout(exitTimeoutRef.current);
+
     try {
       const statusKey = await manager.applyHandle(handle);
       setCopyStatus(chrome.i18n.getMessage(statusKey));
+      setToastExiting(false);
+      setToastKey(prev => prev + 1);
+
+      // Auto-clear success status with animation
+      timeoutRef.current = setTimeout(() => {
+        setToastExiting(true);
+        exitTimeoutRef.current = setTimeout(() => {
+          setCopyStatus(null);
+          setToastExiting(false);
+          timeoutRef.current = null;
+          exitTimeoutRef.current = null;
+        }, 300); // match animation duration
+      }, 2700);
     } catch {
       setCopyStatus(chrome.i18n.getMessage('copiedIncompatible'));
     }
-
-    // Auto-clear success status
-    setTimeout(() => setCopyStatus(null), 3000);
   };
 
   const openAtPassport = () => {
     chrome.tabs.create({ url: 'https://atpassport.net' });
   };
 
+  const isLoginError = error === chrome.i18n.getMessage('loginRequired');
+
   return (
-    <div style={{ width: '300px', padding: '16px', fontFamily: 'sans-serif' }}>
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .animate-spin {
-          animation: spin 1s linear infinite;
-        }
-      `}</style>
+    <div className="popup-container">
       <div 
-        onClick={() => chrome.tabs.create({ url: 'https://atpassport.net' })}
-        onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
-        onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
-        style={{ display: 'flex', alignItems: 'center', marginBottom: '16px', gap: '8px', cursor: 'pointer', transition: 'opacity 0.2s' }}
+        className="header"
+        onClick={openAtPassport}
         title="Go to atpassport.net"
       >
-        <img src="/icons/icon48.png" alt="icon" style={{ width: '24px', height: '24px' }} />
-        <h2 style={{ fontSize: '18px', margin: 0, color: '#333' }}>@passport</h2>
+        <img src="/icons/icon48.png" alt="icon" />
+        <h2>@passport</h2>
       </div>
 
       {loading && !error && (
-        <div style={{ padding: '20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-          <Loader2 className="animate-spin" color="#666" />
-          <div style={{ fontSize: '14px', color: '#666' }}>
+        <div className="loading-container">
+          <Loader2 className="spinner" size={32} />
+          <div className="loading-text">
             {chrome.i18n.getMessage('processing')}
           </div>
         </div>
@@ -86,102 +102,49 @@ export const Popup = () => {
 
       {error && (
         <div 
-          onClick={() => error.includes(chrome.i18n.getMessage('loginRequired')) ? openAtPassport() : null}
-          style={{ 
-            color: '#d32f2f', background: '#ffebee', padding: '10px', borderRadius: '4px', marginBottom: '12px', fontSize: '14px',
-            cursor: error.includes(chrome.i18n.getMessage('loginRequired')) ? 'pointer' : 'default',
-            transition: 'background 0.2s'
-          }}
-          onMouseOver={(e) => {
-            if (error.includes(chrome.i18n.getMessage('loginRequired'))) {
-              e.currentTarget.style.background = '#ffd8d8';
-            }
-          }}
-          onMouseOut={(e) => {
-            if (error.includes(chrome.i18n.getMessage('loginRequired'))) {
-              e.currentTarget.style.background = '#ffebee';
-            }
-          }}
+          className={`error-box ${isLoginError ? 'clickable' : ''}`}
+          onClick={() => isLoginError ? openAtPassport() : null}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <AlertCircle size={14} />
-            <span style={{ textDecoration: 'none' }}>
-              {error}
-            </span>
-          </div>
+          <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+          <span>{error}</span>
         </div>
       )}
 
       {!loading && !error && handles.length === 0 && (
-        <div style={{ color: '#666', border: '1px dashed #ccc', padding: '16px', borderRadius: '8px', textAlign: 'center', fontSize: '14px' }}>
+        <div className="empty-state">
           {chrome.i18n.getMessage('noHandles')}
         </div>
       )}
 
       {!loading && !error && handles.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {handles.map((handle) => (
+        <div className="handle-list">
+          {handles.map((handle, index) => (
             <button
               key={handle}
+              className={`handle-item stagger-${Math.min(index + 1, 5)}`}
               onClick={() => handleSelect(handle)}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between',
-                padding: '12px', 
-                background: '#f8f9fa', 
-                border: '1px solid #e9ecef', 
-                borderRadius: '8px',
-                textAlign: 'left',
-                cursor: 'pointer',
-                fontSize: '15px',
-                fontWeight: 500,
-                color: '#495057',
-                transition: 'background 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.background = '#e9ecef'}
-              onMouseOut={(e) => e.currentTarget.style.background = '#f8f9fa'}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <User size={16} />
-                {handle}
+              <div className="handle-content">
+                <User className="handle-icon" size={18} />
+                <span className="handle-text">{handle}</span>
               </div>
-              <Copy size={14} color="#adb5bd" />
+              <Copy className="copy-icon" size={16} />
             </button>
           ))}
         </div>
       )}
 
       {!loading && !error && (
-        <div 
-          onClick={openAtPassport}
-          style={{ 
-            marginTop: '12px', 
-            fontSize: '12px', 
-            color: '#888', 
-            textAlign: 'center',
-            cursor: 'pointer'
-          }}
-        >
-          {chrome.i18n.getMessage('footerNote')}
+        <div className="footer">
+          <span className="footer-link" onClick={openAtPassport}>
+            {chrome.i18n.getMessage('footerNote')}
+          </span>
         </div>
       )}
 
       {copyStatus && (
-        <div style={{ 
-          position: 'fixed', bottom: '16px', left: '16px', right: '16px', 
-          padding: '8px', 
-          background: '#4caf50', 
-          color: 'white', 
-          borderRadius: '4px', 
-          textAlign: 'center', 
-          fontSize: '12px', 
-          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px'
-        }}>
+        <div key={toastKey} className={`toast ${toastExiting ? 'exiting' : ''}`}>
+          <CheckCircle size={16} />
           {copyStatus}
         </div>
       )}
@@ -190,3 +153,4 @@ export const Popup = () => {
 };
 
 export default Popup;
+
