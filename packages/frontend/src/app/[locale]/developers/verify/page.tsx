@@ -1,5 +1,6 @@
-import { Container } from '@mantine/core';
+import { Container, Loader, Center } from '@mantine/core';
 import { DeveloperPortal } from './DeveloperPortal';
+import { Suspense } from 'react';
 
 export default async function DeveloperVerifyPage({
   params,
@@ -10,7 +11,9 @@ export default async function DeveloperVerifyPage({
 
   return (
     <Container size="sm" py="xl">
-      <DeveloperPortal locale={locale} />
+      <Suspense fallback={<Center><Loader type="dots" /></Center>}>
+        <DeveloperPortal locale={locale} />
+      </Suspense>
     </Container>
   );
 }

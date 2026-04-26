@@ -3,13 +3,14 @@ import { Container, Title, Text, Stack, Paper, Divider, Table, Alert } from '@ma
 import { getMarkdownContent } from '@/lib/markdown';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Link } from '@/i18n/routing';
+import { Link, routing } from '@/i18n/routing';
 import { IconInfoCircle } from '@tabler/icons-react';
 import Script from 'next/script';
 import { BlueskyEmbedManager } from '@/components/BlueskyEmbedManager';
+import { setRequestLocale } from 'next-intl/server';
 
 export async function generateStaticParams() {
-  return [{ locale: 'en' }, { locale: 'ja' }];
+  return routing.locales.map((locale) => ({ locale }));
 }
 
 export default async function AboutPage({
@@ -18,6 +19,7 @@ export default async function AboutPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const { data, content } = await getMarkdownContent('about', locale);
 
   return (
