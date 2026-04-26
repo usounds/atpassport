@@ -1,0 +1,23 @@
+# @passport
+
+> Handle (user ID) management and authentication assistant for the atproto ecosystem.
+
+## Summary
+
+@passport allows users to register their atproto handles once and use them across multiple supported applications. It provides a seamless login experience and assists with handle input on unsupported sites via a browser extension.
+
+## Core Features
+
+- **Handle Management**: Register and manage multiple atproto handles.
+- **Authentication Assist**: One-tap login for integrated atproto applications.
+- **Browser Extension**: Auto-fill handles on any atproto-related website.
+- **Device Sync**: Share registered handles across multiple devices using QR codes.
+- **Developer Portal**: Verify domain ownership to remove security warnings.
+
+## Key Links
+
+- [About](https://atpassport.net/en/about) - Detailed information and FAQ.
+- [Developer Portal](https://atpassport.net/en/developers) - Domain verification and API docs.
+- [Directory](https://atpassport.net/en/directory) - List of verified domains.
+- [GitHub](https://github.com/usounds/atpassport) - Source code and client libraries.
+- [NPM (@atpassport/client)](https://www.npmjs.com/package/@atpassport/client) - Client library for developers.

@@ -31,31 +31,41 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ['dev.atpassport.net', 'localhost:3001'],
 
   async headers() {
+    const isProduction = process.env.NEXT_PUBLIC_URL === 'https://atpassport.net';
+    const commonHeaders = [
+      {
+        key: "X-Frame-Options",
+        value: "DENY",
+      },
+      {
+        key: "X-Content-Type-Options",
+        value: "nosniff",
+      },
+      {
+        key: "Referrer-Policy",
+        value: "strict-origin-when-cross-origin",
+      },
+      {
+        key: "Permissions-Policy",
+        value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+      },
+      {
+        key: "Content-Security-Policy",
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://embed.bsky.app; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src 'self' https:; frame-src 'self' https://embed.bsky.app; upgrade-insecure-requests;",
+      },
+    ];
+
+    if (!isProduction) {
+      commonHeaders.push({
+        key: "X-Robots-Tag",
+        value: "noindex, nofollow",
+      });
+    }
+
     return [
       {
         source: "/(.*)",
-        headers: [
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
-          },
-          {
-            key: "Content-Security-Policy",
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://embed.bsky.app; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src 'self' https:; frame-src 'self' https://embed.bsky.app; upgrade-insecure-requests;",
-          },
-        ],
+        headers: commonHeaders,
       },
     ];
   },

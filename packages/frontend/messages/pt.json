@@ -1,7 +1,7 @@
 {
   "Home": {
     "title": "@passport",
-    "description": "Gerenciador de handles para o ecossistema atproto",
+    "description": "@passport é um assistente de gestão de handles (ID de usuário) e autenticação para usuarios do protocolo social descentralizado 'atproto'. Ao registar o seu handle uma vez, poderá desfrutar de inícios de sessão integrados em várias aplicações suportadas no ecossistema atproto.",
     "registered_handles": "Handles Registrados",
     "no_session": "Nenhum handle registrado ainda",
     "no_handles": "Nenhum handle registrado",

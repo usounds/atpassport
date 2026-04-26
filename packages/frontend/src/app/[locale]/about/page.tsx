@@ -180,6 +180,89 @@ export default async function AboutPage({
             </div>
           </Stack>
         </Paper>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              "mainEntity": [
+                {
+                  "@type": "Question",
+                  "name": locale === 'ja' ? "利用料金はかかりますか？" : "Is it free to use?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": locale === 'ja' ? "はい、@passportは完全に無料で利用できます。広告表示や追加の課金もありません。" : "Yes, @passport is completely free to use. There are no ads or additional charges."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": locale === 'ja' ? "セキュリティやプライバシーは安全ですか？" : "Is it secure and private?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": locale === 'ja' ? "はい。@passportは公開情報であるハンドル（例: @alice.bsky.social）のみを保存します。パスワード、秘密鍵、JWTトークンなどの機密情報は一切サーバーに保存されないため、安心してご利用いただけます。" : "Yes. @passport only stores your public handle. Sensitive information such as passwords, private keys, or JWT tokens are never stored on our servers."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": locale === 'ja' ? "登録できるハンドルの数に制限はありますか？" : "Is there a limit to the number of handles I can register?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": locale === 'ja' ? "1つのセッションにつき最大15件までハンドルを登録することが可能です。" : "You can register up to 15 handles per session."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": locale === 'ja' ? "長期間利用しないとデータはどうなりますか？" : "What happens to my data if I don't use the service for a long time?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": locale === 'ja' ? "利用規約に基づき、365日間一度も利用がないハンドル情報は、事前の通知なく削除される場合があります。" : "Based on our Terms of Service, handle information that hasn't been used for 365 days may be deleted without prior notice."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": locale === 'ja' ? "複数のデバイスで登録内容を同期できますか？" : "Can I sync my registered handles across multiple devices?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": locale === 'ja' ? "はい。「デバイス間の共有」機能を使用することで、QRコードまたはURLを通じて他のブラウザやデバイスとハンドル一覧を同期できます。" : "Yes. By using the 'Device Sharing' feature, you can sync your handle list with other browsers or devices via QR code or URL."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": locale === 'ja' ? "開発者ですが、自分のサイトで表示される警告を消すにはどうすればいいですか？" : "I'm a developer. How can I remove the warning displayed for my site?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": locale === 'ja' ? "開発者ポータルからドメインの所有権を確認（検証）することで、そのドメインに対する警告を表示しないように設定できます。" : "By verifying domain ownership through the Developer Portal, you can remove warnings for that specific domain."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": locale === 'ja' ? "ブラウザ拡張機能と連携サイトはどのように関係していますか？" : "How do the browser extension and integrated sites work together?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": locale === 'ja' ? "@passportはエコシステムとして設計されています。あらかじめ本サイトでハンドルを登録しておけば、対応サイトではボタン一つでログインでき、未対応サイトでも拡張機能を通じて同じハンドルリストから1タップで入力が可能です。どちらの方法でも、一度の登録で複数のサイトでの体験がシームレスに繋がります。" : "@passport is designed as an ecosystem. Once you register your handles on this site, you can log in with a single button on supported sites. On unsupported sites, the browser extension allows you to input those same handles with one tap. In both cases, your registration connects your experience seamlessly across multiple sites."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": locale === 'ja' ? "ハンドルを変更したり、別のPDSに引っ越した場合はどうすればいいですか？" : "What should I do if I change my handle or move to a different PDS?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": locale === 'ja' ? "ハンドルの文字列そのものが変わった場合や、利用しているPDS（サーバー）を変更した場合は、「メタデータの更新」を行う必要があります。トップページのハンドル一覧から該当するハンドルのメニューを開き、「メタデータを更新」をタップしてください。これにより、新しい情報が@passportに反映され、引き続き正しくログインできるようになります。" : "If your handle string changes or you move to a different PDS (server), you need to perform a 'Metadata Update.' Open the menu next to the handle on the top page and tap 'Update Metadata.' This will reflect the new information in @passport and ensure you can continue to log in correctly."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": locale === 'ja' ? "登録したデータを削除するにはどうすればいいですか？" : "How can I delete my registered data?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": locale === 'ja' ? "トップページのハンドル一覧から、削除したいハンドルの横にあるメニュー（3点リーダー）をタップし、「削除」を選択することでいつでも削除可能です。" : "You can delete individual handles at any time by tapping the three-dot menu next to the handle on the top page and selecting 'Delete'."
+                  }
+                }
+              ]
+            })
+          }}
+        />
       </Stack>
     </Container>
   );

@@ -1,7 +1,7 @@
 {
   "Home": {
     "title": "@passport",
-    "description": "Handle manager for the atproto ecosystem",
+    "description": "@passport is a handle (user ID) management and authentication assistant for users of the decentralized social protocol 'atproto'. By registering your handle once, you can enjoy seamless logins across various supported applications in the atproto ecosystem.",
     "registered_handles": "Registered Handles",
     "no_session": "No handles registered yet",
     "no_handles": "No registered handles",
