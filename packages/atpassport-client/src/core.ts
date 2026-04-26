@@ -14,6 +14,12 @@ export type AtprotoDid = Did<'plc' | 'web'>;
 export type Handle = `${string}.${string}`;
 
 /**
+ * The default production URL of the @passport service.
+ */
+export const AT_PASSPORT_MAINNET = "https://atpassport.net";
+
+
+/**
  * Options for initializing the AtPassport client.
  */
 export interface AtPassportOptions {
@@ -56,7 +62,9 @@ export class AtPassport {
    *                               The keys of this object will be enforced at runtime.
    */
   constructor(options: AtPassportOptions & { requiredParams?: Record<string, string> }) {
-    this.baseUrl = (options.baseUrl || "https://atpassport.net").replace(/\/$/, "");
+    // Priority: options.baseUrl > Environment Variable > Default Constant
+    const defaultUrl = (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_ATP_BASE_URL) || AT_PASSPORT_MAINNET;
+    this.baseUrl = (options.baseUrl || defaultUrl).replace(/\/$/, "");
     this.callbackUrl = options.callbackUrl;
     this.lang = options.lang;
     this.requiredKeys = options.requiredParams ? Object.keys(options.requiredParams) : [];

@@ -1,7 +1,7 @@
 {
   "name": "@atpassport/client",
   "version": "0.1.29",
-  "description": "AtPassport client library for integrating secure handle input assist into applications.",
+  "description": "@passport client library for integrating secure handle input assist into applications.",
   "keywords": [
     "atproto",
     "bluesky",
@@ -9,18 +9,29 @@
   ],
   "author": "usounds.work",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/usounds/atpassport.git",
+    "directory": "packages/atpassport-client"
+  },
+  "homepage": "https://github.com/usounds/atpassport/tree/main/packages/atpassport-client#readme",
+  "bugs": {
+    "url": "https://github.com/usounds/atpassport/issues"
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "README.md"
+    "!dist/__tests__",
+    "README.md",
+    "SECURITY.md"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "tsup src/index.ts src/core.ts src/ui.tsx --format cjs,esm --dts --minify --clean",
+    "build": "tsup src/index.ts src/core.ts src/ui.tsx --format cjs,esm --dts --clean",
     "deploy": "pnpm run test && pnpm build && npm publish --access public",
     "update": "npx ncu -u -x eslint && pnpm install",
     "test": "vitest run",
