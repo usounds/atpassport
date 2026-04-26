@@ -1,6 +1,6 @@
 ---
 title: "About @passport"
-last_updated: "April 5, 2026"
+last_updated: "April 26, 2026"
 ---
 
 @passport is a handle management and authentication assistant for the [atproto](https://atproto.com) ecosystem.

@@ -1,7 +1,7 @@
 {
   "Home": {
     "title": "@passport",
-    "description": "Handle-Manager für das atproto-Ökosystem",
+    "description": "@passport ist ein Assistent für die Verwaltung von Handles (Benutzer-IDs) und die Authentifizierung für Benutzer des dezentralen sozialen Protokolls „atproto“. Wenn Sie Ihr Handle einmal registrieren, können Sie sich nahtlos bei verschiedenen unterstützten Bluesky-bezogenen Anwendungen anmelden.",
     "registered_handles": "Registrierte Handles",
     "no_session": "Noch keine Handles registriert",
     "no_handles": "Keine registrierten Handles",

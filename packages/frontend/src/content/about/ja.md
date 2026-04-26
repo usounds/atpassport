@@ -1,6 +1,6 @@
 ---
 title: "@passport について"
-last_updated: "2026年4月5日"
+last_updated: "2026年4月26日"
 ---
 
 @passportは、[atproto](https://atproto.com)エコシステムのためのハンドル管理・認証アシスタントです。
