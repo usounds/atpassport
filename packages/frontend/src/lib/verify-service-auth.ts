@@ -6,7 +6,7 @@ import { resolveDidDocument } from './atproto-server';
 import type { AtprotoDid } from '@atcute/lexicons/syntax';
 
 /**
- * Parses and verifies the Service Auth JWT (Proxy JWT) from an AT Protocol request.
+ * Parses and verifies the Service Auth JWT (Proxy JWT) from an atproto request.
  * 
  * Returns the originating user's DID (iss) if valid, or null otherwise.
  */

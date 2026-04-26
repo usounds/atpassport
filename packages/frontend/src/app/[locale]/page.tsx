@@ -28,7 +28,9 @@ export default async function HomePage({
       <Stack gap="xl">
         <header style={{ textAlign: 'center' }}>
           <Title order={3} mb="xs">{t('title')}</Title>
-          <Text c="dimmed" size="xs" fw={500}>{t('description')}</Text>
+          <Text size="sm" style={{ lineHeight: 1.6, maxWidth: 460, margin: '0 auto' }}>
+            {t('description')}
+          </Text>
         </header>
 
         <Divider label={t('registered_handles')} labelPosition="center" />

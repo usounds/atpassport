@@ -1,7 +1,7 @@
 {
   "Home": {
     "title": "@passport",
-    "description": "atproto エコシステムのためのハンドル管理アプリ",
+    "description": "@passportは、分散型SNSプロトコル「atproto」を利用するユーザーのための、ハンドル（ユーザーID）管理・認証アシスタントです。一度ハンドルを登録するだけで、対応する様々なBluesky関連アプリへのログインがスムーズになります。",
     "registered_handles": "登録済みハンドル",
     "no_session": "まだハンドルは登録されていません",
     "no_handles": "登録されたハンドルはありません",

@@ -3,7 +3,7 @@ title: "About @passport"
 last_updated: "April 5, 2026"
 ---
 
-@passport is a handle management and authentication assistant for the atproto ecosystem.
+@passport is a handle management and authentication assistant for the [atproto](https://atproto.com) ecosystem.
 
 Because atproto is decentralized, one-button authentication like "Login with Bluesky" is not available, and you have to enter your handle each time you authenticate with a new service. Bluesky handle strings are often long and, unfortunately, prone to input errors. Furthermore, general password managers store credentials per URL. In atproto, where users often use multiple applications, adding each service's URL to a password manager one by one becomes a hassle.
 
@@ -158,3 +158,18 @@ In your web application's login forms, we recommend setting the following attrib
 - **`id="handle"`**: Can be used as a fallback if `name="handle"` does not work as expected.
 
 By setting these, the @passport extension will automatically recognize the field, and values will be accurately reflected even on sites using advanced frameworks like React.
+
+# Frequently Asked Questions (FAQ)
+
+### Q: Is it free to use?
+A: Yes, @passport is completely free to use.
+
+### Q: Is it secure?
+A: Yes. @passport only stores your public handle (e.g., @alice.bsky.social) and does not store passwords, private keys, JWT tokens, or any other sensitive information.
+
+### Q: How can I delete my data?
+A: You can delete individual handles from the list on the top page by tapping the menu icon (three dots) next to the handle and selecting "Delete". This will remove the data from your browser's local storage.
+
+### Q: Does it support other social networks?
+A: Currently, @passport only supports the atproto ecosystem, including Bluesky.
+

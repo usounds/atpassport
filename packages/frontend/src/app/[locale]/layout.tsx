@@ -99,6 +99,30 @@ export default async function RootLayout({
     <html lang={locale} suppressHydrationWarning>
       <head>
         <MantineScript defaultColorScheme={colorScheme} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              "name": "@passport",
+              "url": "https://atpassport.net",
+              "description": "Handle management and authentication assistant for the atproto ecosystem.",
+              "applicationCategory": "Utility",
+              "operatingSystem": "Web, Chrome, Firefox",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+              },
+              "author": {
+                "@type": "Person",
+                "name": "usounds.work",
+                "url": "https://usounds.work"
+              }
+            })
+          }}
+        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <NextIntlClientProvider messages={messages}>
