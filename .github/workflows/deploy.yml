@@ -82,7 +82,10 @@ jobs:
         run: |
           VERSION=$(node -p "require('./packages/frontend/package.json').version")
           TAG="frontend@${VERSION}"
-          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+          # Check if tag exists on remote
+          if git fetch origin "refs/tags/$TAG:refs/tags/$TAG" --dry-run >/dev/null 2>&1 || git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping."
+          else
             git tag "$TAG"
             git push origin "$TAG"
           fi
