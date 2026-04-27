@@ -52,6 +52,7 @@ jobs:
         env:
           SESSION_SECRET: "dummy_secret_for_testing_purposes_only"
           NODE_ENV: development
+          E2E_TEST: "true"
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4

@@ -1,7 +1,7 @@
 'use client';
 
 import { Stack, Title, Text, Button, Group, Box, Paper, Avatar, Loader, Divider, Tabs, TextInput, Center } from '@mantine/core';
-import { IconPlus, IconLayoutDashboard, IconLogin, IconInfoCircle, IconExternalLink, IconLogout } from '@tabler/icons-react';
+import { IconPlus, IconLayoutDashboard, IconLogin, IconInfoCircle, IconExternalLink, IconLogout, IconShieldCheck } from '@tabler/icons-react';
 import { useState, useEffect, useCallback, ChangeEvent, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { initOAuth } from '@/lib/oauth';
@@ -44,6 +44,21 @@ export function DeveloperPortal({
   const getProxyClient = useCallback((s?: Session) => {
     const activeSession = s || session;
     if (!activeSession) return null;
+    
+    // For E2E Mock, we don't need a real agent that might crash
+    if (activeSession.info.sub === 'did:plc:mock') {
+      return new Client({
+        handler: async (req: any) => {
+           // This will be intercepted by Playwright route mocks
+           return await fetch(req);
+        },
+        proxy: {
+          service: 'net.atpassport.verify',
+          id: 'did:plc:mock',
+        },
+      });
+    }
+
     const agent = new OAuthUserAgent(activeSession);
     return new Client({
       handler: agent,
@@ -108,8 +123,8 @@ export function DeveloperPortal({
     }
   }, [getProxyClient, handleLogout]);
 
-  const handleLogin = useCallback(async () => {
-    const handle = handleInput;
+  const handleLogin = useCallback(async (handleOverride?: string) => {
+    const handle = handleOverride || handleInput;
     if (!handle) return;
 
     if (!isActorIdentifier(handle)) {
@@ -144,6 +159,46 @@ export function DeveloperPortal({
       });
     }
   }, [handleInput, t]);
+
+  const handleMockLogin = useCallback(() => {
+    setLoading(true);
+    // Simulate a successful login with mock data
+    const mockSession: Session = {
+      info: {
+        sub: 'did:plc:mock',
+        aud: 'http://localhost:3001',
+      },
+      // Minimal required structure for OAuthUserAgent if it's ever instantiated
+      token: {
+        access_token: 'mock',
+        token_type: 'Bearer',
+        expires_at: Date.now() + 3600000,
+      },
+    } as unknown as Session;
+
+    setSession(mockSession);
+    setProfile({
+      handle: 'test.bsky.social',
+      did: 'did:plc:mock',
+      displayName: 'Test User',
+      avatar: 'https://placehold.jp/150x150.png',
+      pdsUrl: 'http://localhost:3001'
+    });
+
+    // Mock fetch data behavior
+    setDomains([
+      {
+        domain: 'test.bsky.social' as any,
+        status: 'verified' as any,
+        verifiedAt: new Date().toISOString(),
+        isPublic: true,
+        method: 'oauth' as any
+      }
+    ]);
+
+    setLoading(false);
+    setActiveTab('dashboard');
+  }, []);
 
   const fetchDataRef = useRef(fetchData);
   useEffect(() => {
@@ -482,6 +537,33 @@ export function DeveloperPortal({
                   >
                     {t('login_button')}
                   </Button>
+                  
+                  {/* E2E / Development only button */}
+                  {(typeof window !== 'undefined' && (window.location.port === '3001' || window.location.hostname === 'localhost')) && (
+                    <Button
+                      variant="outline"
+                      color="orange"
+                      size="sm"
+                      onClick={() => handleLogin('test.bsky.social')}
+                      leftSection={<IconShieldCheck size={18} />}
+                    >
+                      Mock Login (E2E)
+                    </Button>
+                  )}
+
+                  {/* Even simpler mock for UI testing */}
+                  {(typeof window !== 'undefined' && (window.location.port === '3001' || window.location.hostname === 'localhost')) && (
+                    <Button
+                      variant="light"
+                      color="violet"
+                      size="sm"
+                      onClick={handleMockLogin}
+                      leftSection={<IconShieldCheck size={18} />}
+                    >
+                      Skip Login (E2E Mock)
+                    </Button>
+                  )}
+
                   <Button
                     variant="subtle"
                     color="gray"
