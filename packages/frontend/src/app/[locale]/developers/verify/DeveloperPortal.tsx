@@ -48,13 +48,13 @@ export function DeveloperPortal({
     // For E2E Mock, we don't need a real agent that might crash
     if (activeSession.info.sub === 'did:plc:mock') {
       return new Client({
-        handler: async (req: any) => {
+        handler: async (pathname: string, init?: RequestInit) => {
            // This will be intercepted by Playwright route mocks
-           return await fetch(req);
+           return await fetch(pathname, init);
         },
         proxy: {
-          service: 'net.atpassport.verify',
-          id: 'did:plc:mock',
+          did: 'did:plc:mock',
+          serviceId: '#mock-verify',
         },
       });
     }
@@ -121,7 +121,7 @@ export function DeveloperPortal({
     } finally {
       setLoading(false);
     }
-  }, [getProxyClient, handleLogout]);
+  }, [getProxyClient, handleLogout, t]);
 
   const handleLogin = useCallback(async (handleOverride?: string) => {
     const handle = handleOverride || handleInput;
@@ -188,12 +188,12 @@ export function DeveloperPortal({
     // Mock fetch data behavior
     setDomains([
       {
-        domain: 'test.bsky.social' as any,
-        status: 'verified' as any,
+        domain: 'test.bsky.social',
+        status: 'verified',
         verifiedAt: new Date().toISOString(),
         isPublic: true,
-        method: 'oauth' as any
-      }
+        method: 'oauth'
+      } as NetAtpassportVerifyList.Domain
     ]);
 
     setLoading(false);
@@ -233,7 +233,7 @@ export function DeveloperPortal({
     };
 
     checkState();
-  }, []); // Only run on mount
+  }, [locale]); // Run on mount and locale change
 
 
 
