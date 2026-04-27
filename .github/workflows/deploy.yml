@@ -13,9 +13,29 @@ permissions:
   contents: write
 
 jobs:
-  deploy:
+  check-changes:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    outputs:
+      should_deploy: ${{ steps.filter.outputs.code == 'true' || github.ref_name == 'main' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Check for meaningful changes
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            code:
+              - 'packages/frontend/**'
+              - '!packages/frontend/package.json'
+
+  deploy:
+    needs: check-changes
+    if: needs.check-changes.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:

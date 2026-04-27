@@ -3,6 +3,10 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
+if (!process.env.E2E_TEST) {
+  process.env.E2E_TEST = 'true';
+}
+
 export default defineConfig({
   testDir: './e2e',
   /* Run tests in files in parallel */

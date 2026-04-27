@@ -1,11 +1,12 @@
 import type { Viewport } from 'next';
-import { cookies } from 'next/headers';
+import { Suspense } from 'react';
+
 import { Geist, Geist_Mono } from "next/font/google";
 import { Stack } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import NextTopLoader from 'nextjs-toploader';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, getTranslations } from 'next-intl/server';
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/Header';
 import { MantineScript } from '@/components/MantineScript';
 import { Footer } from '@/components/Footer';
@@ -23,11 +24,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
 export async function generateMetadata(props: {
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await props.params;
+  setRequestLocale(locale);
   const isProduction = process.env.NEXT_PUBLIC_URL === 'https://atpassport.net';
   const t = await getTranslations({ locale, namespace: "Home" });
 
@@ -92,9 +93,9 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const messages = await getMessages();
-  const cookieStore = await cookies();
-  const colorScheme = (cookieStore.get('mantine-color-scheme')?.value as 'light' | 'dark' | 'auto') || 'light';
+  const colorScheme = 'light';
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -131,7 +132,9 @@ export default async function RootLayout({
             <NextTopLoader color="#58A7F6" showSpinner={false} height={3} />
             <Notifications position="top-right" zIndex={1000} />
             <Stack gap={0} style={{ minHeight: '100vh' }}>
-              <Header />
+              <Suspense fallback={<div style={{ height: 60 }} />}>
+                <Header />
+              </Suspense>
               <main style={{ flex: 1 }}>
                 {children}
               </main>

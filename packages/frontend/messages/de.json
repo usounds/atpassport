@@ -187,7 +187,8 @@
     "unauthorized": "Authentifizierung fehlgeschlagen. Bitte melden Sie sich erneut an.",
     "rate_limited": "Zu viele Anfragen. Bitte versuchen Sie es später noch einmal.",
     "invalid_request": "Ungültige Anfrage.",
-    "internal_error": "Ein interner Serverfehler ist aufgetreten."
+    "internal_error": "Ein interner Serverfehler ist aufgetreten.",
+    "list_failed": "Abruf der Domainliste fehlgeschlagen."
   },
   "Directory": {
     "title": "Domains",

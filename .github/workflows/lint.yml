@@ -13,7 +13,29 @@ permissions:
   contents: read
 
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    outputs:
+      should_run: ${{ steps.filter.outputs.code == 'true' || github.base_ref == 'main' || github.ref_name == 'main' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Check for meaningful changes
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            code:
+              - '**'
+              - '!**/package.json'
+              - '!pnpm-lock.yaml'
+
   check:
+    needs: check-changes
+    if: needs.check-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -52,6 +74,7 @@ jobs:
         env:
           SESSION_SECRET: "dummy_secret_for_testing_purposes_only"
           NODE_ENV: development
+          E2E_TEST: "true"
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4

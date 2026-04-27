@@ -187,7 +187,8 @@
     "unauthorized": "認証に失敗しました。再度ログインしてください。",
     "rate_limited": "リクエストが多すぎます。しばらく時間を置いてから再度お試しください。",
     "invalid_request": "不正なリクエストです。",
-    "internal_error": "サーバー内部エラーが発生しました。"
+    "internal_error": "サーバー内部エラーが発生しました。",
+    "list_failed": "ドメイン一覧の取得に失敗しました。"
   },
   "Directory": {
     "title": "ドメイン一覧",

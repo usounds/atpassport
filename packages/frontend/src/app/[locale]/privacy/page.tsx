@@ -3,10 +3,11 @@ import { Container, Title, Text, Stack, Paper } from '@mantine/core';
 import { getMarkdownContent } from '@/lib/markdown';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Link } from '@/i18n/routing';
+import { Link, routing } from '@/i18n/routing';
+import { setRequestLocale } from 'next-intl/server';
 
 export async function generateStaticParams() {
-  return [{ locale: 'en' }, { locale: 'ja' }];
+  return routing.locales.map((locale) => ({ locale }));
 }
 
 export default async function PrivacyPage({
@@ -15,6 +16,7 @@ export default async function PrivacyPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const { data, content } = await getMarkdownContent('privacy', locale);
 
   return (
