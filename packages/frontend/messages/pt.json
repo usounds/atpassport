@@ -187,7 +187,8 @@
     "unauthorized": "Falha na autenticação. Por favor, faça login novamente.",
     "rate_limited": "Muitas solicitações. Por favor, tente novamente mais tarde.",
     "invalid_request": "Solicitação inválida.",
-    "internal_error": "Ocorreu um erro interno no servidor."
+    "internal_error": "Ocorreu um erro interno no servidor.",
+    "list_failed": "Falha ao obter a lista de domínios."
   },
   "Directory": {
     "title": "Domínios",

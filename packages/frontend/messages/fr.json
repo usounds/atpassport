@@ -187,7 +187,8 @@
     "unauthorized": "Échec de l'authentification. Veuillez vous reconnecter.",
     "rate_limited": "Trop de requêtes. Veuillez réessayer plus tard.",
     "invalid_request": "Requête invalide.",
-    "internal_error": "Une erreur interne du serveur s'est produite."
+    "internal_error": "Une erreur interne du serveur s'est produite.",
+    "list_failed": "Échec lors de la récupération de la liste des domaines."
   },
   "Directory": {
     "title": "Domaines",

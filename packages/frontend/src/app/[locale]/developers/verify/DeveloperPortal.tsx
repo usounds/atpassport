@@ -91,6 +91,13 @@ export function DeveloperPortal({
             await handleLogout();
             return;
           }
+
+          // Show error notification for other failures
+          notifications.show({
+            title: t('error_title'),
+            message: t('list_failed'),
+            color: 'red'
+          });
           throw err;
         }
       }

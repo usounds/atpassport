@@ -187,7 +187,8 @@
     "unauthorized": "Authentication failed. Please login again.",
     "rate_limited": "Too many requests. Please try again later.",
     "invalid_request": "Invalid request.",
-    "internal_error": "Internal server error occurred."
+    "internal_error": "Internal server error occurred.",
+    "list_failed": "Failed to fetch domain list."
   },
   "Directory": {
     "title": "Domains",
