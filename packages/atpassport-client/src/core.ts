@@ -63,7 +63,7 @@ export class AtPassport {
    */
   constructor(options: AtPassportOptions & { requiredParams?: Record<string, string> }) {
     // Priority: options.baseUrl > Environment Variable > Default Constant
-    const defaultUrl = (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_ATP_BASE_URL) || AT_PASSPORT_MAINNET;
+    const defaultUrl = AT_PASSPORT_MAINNET;
     this.baseUrl = (options.baseUrl || defaultUrl).replace(/\/$/, "");
     this.callbackUrl = options.callbackUrl;
     this.lang = options.lang;
