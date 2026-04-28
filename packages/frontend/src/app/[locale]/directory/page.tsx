@@ -1,8 +1,7 @@
-import { Container, Title, Text, Stack, Paper, Group, Avatar, Box, SimpleGrid, Card, Anchor, Divider } from '@mantine/core';
+import { Container, Title, Text, Stack } from '@mantine/core';
 import { getTranslations } from 'next-intl/server';
 import { getPublicVerifiedDomains } from '@/lib/security';
-import { getProfile } from '@/lib/atproto';
-import { IconShieldCheck } from '@tabler/icons-react';
+import DirectoryClient from './DirectoryClient';
 
 export default async function DirectoryPage({
   params,
@@ -12,13 +11,6 @@ export default async function DirectoryPage({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Directory' });
   const domains = await getPublicVerifiedDomains();
-
-  const domainsWithProfiles = await Promise.all(
-    domains.map(async (domain) => {
-      const profile = await getProfile(domain.verifiedByDid);
-      return { ...domain, profile };
-    })
-  );
 
   return (
     <Container size="sm" py="xl">
@@ -30,67 +22,12 @@ export default async function DirectoryPage({
           </Text>
         </header>
 
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-          {domainsWithProfiles.map((domain, index) => (
-            <Card 
-              key={domain.domain} 
-              className={`premium-card animate-slide-in stagger-${Math.min((index % 10) + 1, 10)}`}
-              padding="md" 
-              radius="lg"
-              bg="transparent"
-              style={{ overflow: 'visible' }}
-            >
-              <Stack gap="xs">
-                <Group justify="space-between" align="center" wrap="nowrap">
-                  <Box style={{ flex: 1, minWidth: 0 }}>
-                    <Title order={5} style={{ 
-                      wordBreak: 'break-all', 
-                      fontSize: '1rem',
-                      letterSpacing: '0.01em'
-                    }}>
-                      {domain.domain}
-                    </Title>
-                  </Box>
-                  <IconShieldCheck 
-                    size={20} 
-                    color="var(--mantine-color-blue-6)" 
-                    style={{ filter: 'drop-shadow(0 0 6px rgba(34, 139, 230, 0.2))' }}
-                  />
-                </Group>
-
-                <Divider variant="dashed" opacity={0.3} />
-
-                <Group gap="xs" align="center" wrap="nowrap">
-                  <Avatar 
-                    src={domain.profile?.avatar} 
-                    radius="md" 
-                    size="sm" 
-                    style={{ border: '2px solid var(--mantine-color-white)' }}
-                  />
-                  <Box style={{ flex: 1, minWidth: 0 }}>
-                    <Anchor
-                      href={`https://bsky.app/profile/${domain.profile?.handle || domain.verifiedByDid}`}
-                      target="_blank"
-                      size="xs"
-                      fw={700}
-                      truncate="end"
-                      display="block"
-                      c="blue.7"
-                    >
-                      @{domain.profile?.handle || domain.verifiedByDid}
-                    </Anchor>
-                  </Box>
-                </Group>
-              </Stack>
-            </Card>
-          ))}
-        </SimpleGrid>
-
-        {domainsWithProfiles.length === 0 && (
-          <Paper p="xl" withBorder ta="center" radius="lg">
-            <Text c="dimmed" size="sm" >{t('no_domains')}</Text>
-          </Paper>
-        )}
+        <DirectoryClient 
+          initialDomains={domains} 
+          translations={{
+            no_domains: t('no_domains')
+          }} 
+        />
       </Stack>
     </Container>
   );
