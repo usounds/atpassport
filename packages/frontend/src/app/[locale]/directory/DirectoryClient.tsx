@@ -1,6 +1,6 @@
 'use client';
 
-import { SimpleGrid, Card, Stack, Group, Box, Title, IconShieldCheck, Divider, Avatar, Anchor, Paper, Text } from '@mantine/core';
+import { SimpleGrid, Card, Stack, Group, Box, Title, Divider, Avatar, Anchor, Paper, Text } from '@mantine/core';
 import { IconShieldCheck as TablerShieldCheck } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { getProfiles } from '@/lib/atproto';
