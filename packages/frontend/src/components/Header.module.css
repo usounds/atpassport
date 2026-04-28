@@ -1,11 +1,9 @@
 .header {
-  height: 64px;
+  min-height: 56px;
   background-color: light-dark(rgba(255, 255, 255, 0.7), rgba(18, 18, 18, 0.7));
   backdrop-filter: blur(12px) saturate(180%);
   -webkit-backdrop-filter: blur(12px) saturate(180%);
   border-bottom: 1px solid light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.1));
-  position: sticky;
-  top: 0;
   z-index: 1000;
 }
 
@@ -55,7 +53,7 @@
 }
 
 .drawerHeader {
-  height: 64px;
+  min-height: 56px;
   display: flex;
   justify-content: space-between;
   align-items: center;

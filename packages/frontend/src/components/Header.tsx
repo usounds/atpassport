@@ -175,7 +175,7 @@ export function Header() {
           withCloseButton={false}
           styles={{
             content: { 
-              backgroundColor: 'light-dark(rgba(255, 255, 255, 0.8), rgba(20, 20, 20, 0.8))',
+              backgroundColor: 'light-dark(rgba(255, 255, 255, 0.95), rgba(20, 20, 20, 0.8))',
               backdropFilter: 'blur(20px) saturate(180%)',
               WebkitBackdropFilter: 'blur(20px) saturate(180%)',
             },
