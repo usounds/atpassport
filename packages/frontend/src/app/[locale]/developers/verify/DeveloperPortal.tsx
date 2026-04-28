@@ -78,33 +78,37 @@ export function DeveloperPortal({
     }
   }, [session]);
 
-  const fetchData = useCallback(async (s: Session) => {
+  const fetchData = useCallback(async (s: Session, options: { skipProfile?: boolean } = {}) => {
     try {
-      // 1. Resolve identity and fetch profile in parallel
-      const identityPromise = resolveHandle(s.info.sub);
-      const bskyProfilePromise = getProfile(s.info.sub);
+      const { skipProfile = false } = options;
+      
+      if (!skipProfile) {
+        // 1. Resolve identity and fetch profile in parallel
+        const identityPromise = resolveHandle(s.info.sub);
+        const bskyProfilePromise = getProfile(s.info.sub);
 
-      // 2. Wait for identity first (usually faster as it's a server action)
-      const identity = await identityPromise;
-      setProfile({
-        handle: identity?.handle || s.info.sub,
-        did: s.info.sub,
-        displayName: identity?.handle || s.info.sub,
-        avatar: undefined,
-        pdsUrl: identity?.pdsUrl || (s.info.aud as string) || ''
-      });
+        // 2. Wait for identity first (usually faster as it's a server action)
+        const identity = await identityPromise;
+        setProfile({
+          handle: identity?.handle || s.info.sub,
+          did: s.info.sub,
+          displayName: identity?.handle || s.info.sub,
+          avatar: undefined,
+          pdsUrl: identity?.pdsUrl || (s.info.aud as string) || ''
+        });
 
-      // 3. Show the portal once we have the handle/DID
-      setLoading(false);
+        // 3. Show the portal once we have the handle/DID
+        setLoading(false);
 
-      // 4. Update with bsky profile (avatar/displayName) when it arrives
-      const bskyProfile = await bskyProfilePromise;
-      if (bskyProfile) {
-        setProfile(prev => prev ? {
-          ...prev,
-          displayName: bskyProfile.displayName || prev.displayName,
-          avatar: bskyProfile.avatar
-        } : null);
+        // 4. Update with bsky profile (avatar/displayName) when it arrives
+        const bskyProfile = await bskyProfilePromise;
+        if (bskyProfile) {
+          setProfile(prev => prev ? {
+            ...prev,
+            displayName: bskyProfile.displayName || prev.displayName,
+            avatar: bskyProfile.avatar
+          } : null);
+        }
       }
 
       const proxyClient = getProxyClient(s);
@@ -293,7 +297,7 @@ export function DeveloperPortal({
         throw { kind: data.error, message: data.error };
       }
 
-      await fetchData(session);
+      await fetchData(session, { skipProfile: true });
       notifications.update({ id, title: t('success_title'), message: t('success_message', { domain: profile?.handle || '' }), color: 'green', loading: false, autoClose: true, withCloseButton: true });
       setActiveTab('dashboard');
     } catch (error: unknown) {
@@ -364,7 +368,7 @@ export function DeveloperPortal({
         throw { kind: data.error, message: data.error };
       }
 
-      await fetchData(session);
+      await fetchData(session, { skipProfile: true });
       notifications.update({ id, title: t('success_title'), message: t('success_message', { domain }), color: 'green', loading: false, autoClose: true, withCloseButton: true });
       setActiveTab('dashboard');
     } catch (error: unknown) {
@@ -414,7 +418,7 @@ export function DeveloperPortal({
 
       const input: NetAtpassportVerifyWithdraw.Input = { domain };
       await proxyClient.post('net.atpassport.verify.withdraw', { input });
-      await fetchData(session);
+      await fetchData(session, { skipProfile: true });
       notifications.update({ id, title: t('success_title'), message: t('withdraw_success'), color: 'blue', loading: false, autoClose: true, withCloseButton: true });
     } catch (error: unknown) {
       console.error('[Withdraw Proxy] Error:', error);
@@ -452,7 +456,7 @@ export function DeveloperPortal({
     const id = notifications.show({ title: t('processing'), message: '', loading: true, autoClose: false, withCloseButton: false });
     try {
       await updateDomainSettings(domain, session.info.sub, isPublic);
-      await fetchData(session);
+      await fetchData(session, { skipProfile: true });
       notifications.update({ id, title: t('success_title'), message: t('update_success'), color: 'green', loading: false, autoClose: true, withCloseButton: true });
     } catch {
       notifications.update({ id, title: t('error_title'), message: t('failed_to_update_settings'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
