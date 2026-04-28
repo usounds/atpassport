@@ -4,10 +4,14 @@ on:
   push:
     branches:
       - preview
+      - main
   pull_request:
     branches:
       - main
-      - preview
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -70,6 +74,7 @@ jobs:
         run: pnpm --filter frontend exec playwright install chromium --with-deps
 
       - name: Run E2E tests
+        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
         run: pnpm --filter frontend test:e2e --project=chromium
         env:
           SESSION_SECRET: "dummy_secret_for_testing_purposes_only"
