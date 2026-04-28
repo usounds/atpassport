@@ -80,16 +80,32 @@ export function DeveloperPortal({
 
   const fetchData = useCallback(async (s: Session) => {
     try {
-      const identity = await resolveHandle(s.info.sub);
-      const bskyProfile = await getProfile(s.info.sub);
+      // 1. Resolve identity and fetch profile in parallel
+      const identityPromise = resolveHandle(s.info.sub);
+      const bskyProfilePromise = getProfile(s.info.sub);
 
+      // 2. Wait for identity first (usually faster as it's a server action)
+      const identity = await identityPromise;
       setProfile({
         handle: identity?.handle || s.info.sub,
         did: s.info.sub,
-        displayName: bskyProfile?.displayName || identity?.handle || s.info.sub,
-        avatar: bskyProfile?.avatar,
+        displayName: identity?.handle || s.info.sub,
+        avatar: undefined,
         pdsUrl: identity?.pdsUrl || (s.info.aud as string) || ''
       });
+
+      // 3. Show the portal once we have the handle/DID
+      setLoading(false);
+
+      // 4. Update with bsky profile (avatar/displayName) when it arrives
+      const bskyProfile = await bskyProfilePromise;
+      if (bskyProfile) {
+        setProfile(prev => prev ? {
+          ...prev,
+          displayName: bskyProfile.displayName || prev.displayName,
+          avatar: bskyProfile.avatar
+        } : null);
+      }
 
       const proxyClient = getProxyClient(s);
       if (proxyClient) {
@@ -118,7 +134,6 @@ export function DeveloperPortal({
       }
     } catch (error: unknown) {
       console.error('Failed to fetch data:', error);
-    } finally {
       setLoading(false);
     }
   }, [getProxyClient, handleLogout, t]);

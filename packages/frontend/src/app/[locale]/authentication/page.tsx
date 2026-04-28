@@ -3,7 +3,6 @@ import { getTranslations } from 'next-intl/server';
 import { AuthAccountList } from '@/components/AuthAccountList';
 import { getAssociations, type AssociationWithProfile } from '@/lib/models';
 import { getSessionUuid } from '@/lib/session';
-import { getProfile } from '@/lib/atproto';
 import { verifyDomain, getVerifiedDomainFromDb, verifyDomainInDb } from '@/lib/security';
 
 export default async function AuthPage({
