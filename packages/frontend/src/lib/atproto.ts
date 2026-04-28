@@ -17,6 +17,10 @@ export async function getProfiles(dids: string[]): Promise<Record<string, AppBsk
       params: { actors: validDids as AtprotoDid[] },
     }));
 
+    if (!response.profiles || !Array.isArray(response.profiles)) {
+      return {};
+    }
+
     const profiles: Record<string, AppBskyActorDefs.ProfileViewDetailed> = {};
     response.profiles.forEach((p) => {
       profiles[p.did] = p;
