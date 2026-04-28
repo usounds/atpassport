@@ -6,15 +6,15 @@ import { useDisclosure } from '@mantine/hooks';
 import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
-import { Languages, Sun, Moon } from 'lucide-react';
+import { Languages, Sun, Moon, Info, LayoutGrid, Book, Shield } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import classes from './Header.module.css';
 
 const links = [
-  { link: '/about', labelKey: 'about' },
-  { link: '/directory', labelKey: 'directory' },
-  { link: '/terms', labelKey: 'terms' },
-  { link: '/privacy', labelKey: 'privacy' },
+  { link: '/about', labelKey: 'about', icon: Info },
+  { link: '/directory', labelKey: 'directory', icon: LayoutGrid },
+  { link: '/terms', labelKey: 'terms', icon: Book },
+  { link: '/privacy', labelKey: 'privacy', icon: Shield },
 ];
 
 export function Header() {
@@ -116,16 +116,19 @@ export function Header() {
     </Menu>
   );
 
-  const items = links.map((link) => {
+  const renderItems = (isDrawer = false) => links.map((link, index) => {
     const isActive = pathname === link.link;
+    const Icon = link.icon;
     return (
       <Link
         key={link.labelKey}
         href={link.link}
-        className={`${classes.link} ${isActive ? classes.linkActive : ''}`}
+        className={`${isDrawer ? classes.drawerLink : classes.link} ${isActive ? (isDrawer ? classes.drawerLinkActive : classes.linkActive) : ''}`}
         onClick={close}
         data-active={isActive || undefined}
+        style={{ '--index': index } as React.CSSProperties}
       >
+        {isDrawer && <Icon size={20} className={classes.drawerIcon} />}
         {tNav(link.labelKey)}
       </Link>
     );
@@ -142,7 +145,7 @@ export function Header() {
 
         <Group gap="md" visibleFrom="sm">
           <Group gap={5}>
-            {items}
+            {renderItems()}
           </Group>
           <Group gap="xs">
             {colorSchemeToggle}
@@ -164,18 +167,37 @@ export function Header() {
         <Drawer
           opened={opened}
           onClose={close}
-          size="70%"
-          padding="md"
-          title={t('title')}
+          size="75%"
+          padding="xl"
           position="right"
           hiddenFrom="sm"
           zIndex={1000}
+          withCloseButton={false}
           styles={{
-            content: { backgroundColor: 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-7))' }
+            content: { 
+              backgroundColor: 'light-dark(rgba(255, 255, 255, 0.8), rgba(20, 20, 20, 0.8))',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            },
+            body: {
+              padding: 0
+            }
           }}
         >
-          <Stack gap="md">
-            {items}
+          <div className={classes.drawerHeader}>
+            <div className={classes.logo}>
+              <Image src="/icon128.svg" alt="logo" width={24} height={24} style={{ position: 'relative', top: '2px' }} />
+              <Title order={3} fw={700} m={0} style={{ lineHeight: 1 }}>{t('title')}</Title>
+            </div>
+            <Burger
+              opened={opened}
+              onClick={close}
+              size="sm"
+              aria-label="Close navigation"
+            />
+          </div>
+          <Stack gap={0} px="xl" py="md">
+            {renderItems(true)}
           </Stack>
         </Drawer>
       </Container>
