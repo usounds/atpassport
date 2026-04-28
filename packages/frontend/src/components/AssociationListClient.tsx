@@ -1,13 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Stack } from '@mantine/core';
 import { AssociationItem } from './AssociationItem';
 import { moveAssociation, removeAssociation, refreshAssociation } from '@/lib/actions';
 import { type AssociationWithProfile } from '@/lib/models';
+import { getProfiles } from '@/lib/atproto';
 
 export function AssociationListClient({ initialItems }: { initialItems: AssociationWithProfile[] }) {
   const [items, setItems] = useState(initialItems);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      const dids = initialItems.map(item => item.did);
+      if (dids.length === 0) return;
+
+      setLoading(true);
+      try {
+        console.log(`[AssociationListClient] Fetching profiles for ${dids.length} items...`);
+        const profilesMap = await getProfiles(dids);
+        
+        setItems(prev => prev.map(item => ({
+          ...item,
+          profile: profilesMap[item.did] || item.profile
+        })));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfiles();
+  }, [initialItems]);
 
   // Props sync with render-phase state update
   const [prevInitialItems, setPrevInitialItems] = useState(initialItems);

@@ -59,12 +59,10 @@ export default async function AuthPage({
   let items: AssociationWithProfile[] = [];
   if (uuid) {
     const associations = await getAssociations(uuid);
-    items = await Promise.all(
-      associations.map(async (assoc) => {
-        const profile = await getProfile(assoc.did);
-        return { ...assoc, profile };
-      })
-    );
+    items = associations.map((assoc) => ({
+      ...assoc,
+      profile: null, // Initial state, profiles will be fetched on the client
+    }));
   }
 
   // 1. Check if domain is already verified in DB (including parent domains)

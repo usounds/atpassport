@@ -1,5 +1,5 @@
 import { getAssociations } from "@/lib/models";
-import { getProfile } from "@/lib/atproto";
+import { getProfiles } from "@/lib/atproto";
 import { getSessionUuid } from "@/lib/session";
 import { Text } from '@mantine/core';
 import { AssociationListClient } from "./AssociationListClient";
@@ -20,13 +20,10 @@ export async function AssociationList() {
   const associations = await getAssociations(uuid);
   console.log(`[AssociationList] Found ${associations.length} associations for UUID: ${uuid}`);
 
-  // Fetch profiles for each association
-  const items = await Promise.all(
-    associations.map(async (assoc) => {
-      const profile = await getProfile(assoc.did);
-      return { ...assoc, profile };
-    })
-  );
+  const items = associations.map((assoc) => ({
+    ...assoc,
+    profile: null, // Initial state, profiles will be fetched on the client
+  }));
 
   if (items.length === 0) {
     return (

@@ -8,14 +8,27 @@ export const publicAgent = new Client({
 });
 
 
-export async function getProfile(did: string): Promise<AppBskyActorDefs.ProfileViewDetailed | null> {
+export async function getProfiles(dids: string[]): Promise<Record<string, AppBskyActorDefs.ProfileViewDetailed>> {
   try {
-    if (!isDid(did)) return null;
-    const profile = await ok(publicAgent.get('app.bsky.actor.getProfile', {
-      params: { actor: did as AtprotoDid },
+    const validDids = dids.filter(isDid);
+    if (validDids.length === 0) return {};
+
+    const response = await ok(publicAgent.get('app.bsky.actor.getProfiles', {
+      params: { actors: validDids as AtprotoDid[] },
     }));
-    return profile;
-  } catch {
-    return null;
+
+    const profiles: Record<string, AppBskyActorDefs.ProfileViewDetailed> = {};
+    response.profiles.forEach((p) => {
+      profiles[p.did] = p;
+    });
+    return profiles;
+  } catch (e) {
+    console.warn('[ATProto] getProfiles failed:', e);
+    return {};
   }
+}
+
+export async function getProfile(did: string): Promise<AppBskyActorDefs.ProfileViewDetailed | null> {
+  const profiles = await getProfiles([did]);
+  return profiles[did] || null;
 }

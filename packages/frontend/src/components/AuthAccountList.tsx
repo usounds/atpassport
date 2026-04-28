@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { refreshAssociation, removeAssociation, moveAssociation } from '@/lib/actions';
 import { type AssociationWithProfile } from '@/lib/models';
 import { IconAlertTriangle } from '@tabler/icons-react';
+import { getProfiles } from '@/lib/atproto';
 
 export function AuthAccountList({ 
   initialItems, 
@@ -31,6 +32,23 @@ export function AuthAccountList({
 
   useEffect(() => {
     setTimeout(() => setItems(initialItems), 0);
+  }, [initialItems]);
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      const dids = initialItems.map(item => item.did);
+      if (dids.length === 0) return;
+
+      console.log(`[AuthAccountList] Fetching profiles for ${dids.length} items...`);
+      const profilesMap = await getProfiles(dids);
+      
+      setItems(prev => prev.map(item => ({
+        ...item,
+        profile: profilesMap[item.did] || item.profile
+      })));
+    };
+
+    fetchProfiles();
   }, [initialItems]);
 
   const normalizePds = (url: string) => {
