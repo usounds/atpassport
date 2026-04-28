@@ -39,6 +39,7 @@ export function DeveloperPortal({
   const [activeTab, setActiveTab] = useState<string | null>('dashboard');
   const [showManualInput, setShowManualInput] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
 
   // Proxy client setup
   const getProxyClient = useCallback((s?: Session) => {
@@ -120,6 +121,7 @@ export function DeveloperPortal({
 
       // 3. ドメインリスト（list）の処理
       if (listPromise) {
+        setListLoading(true);
         try {
           const res = await listPromise;
           if (res && res.data) {
@@ -142,6 +144,8 @@ export function DeveloperPortal({
             message: t('list_failed'),
             color: 'red'
           });
+        } finally {
+          setListLoading(false);
         }
       }
     } catch (error: unknown) {
@@ -676,6 +680,7 @@ export function DeveloperPortal({
               onWithdraw={handleWithdraw}
               onUpdatePublic={handleUpdatePublic}
               loading={actionLoading}
+              listLoading={listLoading}
             />
           </Tabs.Panel>
 
