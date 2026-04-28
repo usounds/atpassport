@@ -22,18 +22,36 @@ test.describe('Developer Portal E2E', () => {
       });
     });
 
-    // Mock XRPC for profile
-    await page.route('**/xrpc/app.bsky.actor.getProfile**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          did: 'did:plc:mock',
-          handle: 'test.bsky.social',
-          displayName: 'Test User',
-          avatar: 'https://placehold.jp/150x150.png'
-        }),
-      });
+    // Consolidated Mock for Profile(s)
+    await page.route(/\/xrpc\/app\.bsky\.actor\.getProfile(s)?/, async (route) => {
+      const url = route.request().url();
+      if (url.includes('getProfiles')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            profiles: [
+              {
+                did: 'did:plc:mock',
+                handle: 'test.bsky.social',
+                displayName: 'Test User',
+                avatar: 'https://placehold.jp/150x150.png'
+              }
+            ]
+          }),
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            did: 'did:plc:mock',
+            handle: 'test.bsky.social',
+            displayName: 'Test User',
+            avatar: 'https://placehold.jp/150x150.png'
+          }),
+        });
+      }
     });
   });
 
