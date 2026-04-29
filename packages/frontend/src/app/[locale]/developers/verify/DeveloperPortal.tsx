@@ -39,6 +39,7 @@ export function DeveloperPortal({
   const [activeTab, setActiveTab] = useState<string | null>('dashboard');
   const [showManualInput, setShowManualInput] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
 
   // Proxy client setup
   const getProxyClient = useCallback((s?: Session) => {
@@ -82,12 +83,18 @@ export function DeveloperPortal({
     try {
       const { skipProfile = false } = options;
       
-      if (!skipProfile) {
-        // 1. Resolve identity and fetch profile in parallel
-        const identityPromise = resolveHandle(s.info.sub);
-        const bskyProfilePromise = getProfile(s.info.sub);
+      // 1. すべてのリクエストを並列で開始
+      const proxyClient = getProxyClient(s);
+      const listPromise = proxyClient 
+        ? proxyClient.get('net.atpassport.verify.list', { params: {} }) 
+        : Promise.resolve(null);
+      
+      const identityPromise = !skipProfile ? resolveHandle(s.info.sub) : Promise.resolve(null);
+      const bskyProfilePromise = !skipProfile ? getProfile(s.info.sub) : Promise.resolve(null);
 
-        // 2. Wait for identity first (usually faster as it's a server action)
+      // 2. プロフィールの処理
+      if (!skipProfile) {
+        // identity (handle解決) を優先的に待機して表示を更新（通常これが一番早い）
         const identity = await identityPromise;
         setProfile({
           handle: identity?.handle || s.info.sub,
@@ -97,43 +104,48 @@ export function DeveloperPortal({
           pdsUrl: identity?.pdsUrl || (s.info.aud as string) || ''
         });
 
-        // 3. Show the portal once we have the handle/DID
+        // ユーザーにコンテンツを表示開始
         setLoading(false);
 
-        // 4. Update with bsky profile (avatar/displayName) when it arrives
-        const bskyProfile = await bskyProfilePromise;
-        if (bskyProfile) {
-          setProfile(prev => prev ? {
-            ...prev,
-            displayName: bskyProfile.displayName || prev.displayName,
-            avatar: bskyProfile.avatar
-          } : null);
-        }
+        // bskyProfile (アバターなど) は準備ができ次第、背景で更新
+        bskyProfilePromise.then(bskyProfile => {
+          if (bskyProfile) {
+            setProfile(prev => prev ? {
+              ...prev,
+              displayName: bskyProfile.displayName || prev.displayName,
+              avatar: bskyProfile.avatar
+            } : null);
+          }
+        });
       }
 
-      const proxyClient = getProxyClient(s);
-      if (proxyClient) {
+      // 3. ドメインリスト（list）の処理
+      if (listPromise) {
+        setListLoading(true);
         try {
-          const { data } = await proxyClient.get('net.atpassport.verify.list', { params: {} }) as { data: NetAtpassportVerifyList.Output };
-          if (data && data.domains) {
-            setDomains(data.domains);
+          const res = await listPromise;
+          if (res && res.data) {
+            const data = res.data as NetAtpassportVerifyList.Output;
+            if (data && data.domains) {
+              setDomains(data.domains);
+            }
           }
         } catch (err: unknown) {
           const error = err as { status?: number; name?: string; message?: string };
-          // If the proxy call fails with an auth error, the session might be expired
+          // セッション切れのチェック
           if (error?.status === 401 || error?.name === 'TokenRefreshError' || error?.message?.includes('expired')) {
             console.warn('Session expired or unauthorized, logging out...');
             await handleLogout();
             return;
           }
 
-          // Show error notification for other failures
           notifications.show({
             title: t('error_title'),
             message: t('list_failed'),
             color: 'red'
           });
-          throw err;
+        } finally {
+          setListLoading(false);
         }
       }
     } catch (error: unknown) {
@@ -668,6 +680,7 @@ export function DeveloperPortal({
               onWithdraw={handleWithdraw}
               onUpdatePublic={handleUpdatePublic}
               loading={actionLoading}
+              listLoading={listLoading}
             />
           </Tabs.Panel>
 

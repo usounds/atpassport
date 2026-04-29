@@ -13,18 +13,33 @@ export async function getProfiles(dids: string[]): Promise<Record<string, AppBsk
     const validDids = dids.filter(isDid);
     if (validDids.length === 0) return {};
 
-    const response = await ok(publicAgent.get('app.bsky.actor.getProfiles', {
-      params: { actors: validDids as AtprotoDid[] },
-    }));
-
-    if (!response.profiles || !Array.isArray(response.profiles)) {
-      return {};
+    const CHUNK_SIZE = 25;
+    const chunks: string[][] = [];
+    for (let i = 0; i < validDids.length; i += CHUNK_SIZE) {
+      chunks.push(validDids.slice(i, i + CHUNK_SIZE));
     }
 
     const profiles: Record<string, AppBskyActorDefs.ProfileViewDetailed> = {};
-    response.profiles.forEach((p) => {
+    
+    // Execute chunks in parallel
+    const results = await Promise.all(
+      chunks.map(async (chunk) => {
+        try {
+          const response = await ok(publicAgent.get('app.bsky.actor.getProfiles', {
+            params: { actors: chunk as AtprotoDid[] },
+          }));
+          return response.profiles || [];
+        } catch (e) {
+          console.warn('[ATProto] getProfiles chunk failed:', e);
+          return [];
+        }
+      })
+    );
+
+    results.flat().forEach((p) => {
       profiles[p.did] = p;
     });
+
     return profiles;
   } catch (e) {
     console.warn('[ATProto] getProfiles failed:', e);

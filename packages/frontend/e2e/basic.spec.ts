@@ -88,7 +88,7 @@ test.describe('Basic UI Flow', () => {
     }
 
     // 5. Submit the form
-    await handleInput.press('Enter');
+    await page.getByRole('button', { name: '追加する' }).click();
 
     // Wait for the modal and backdrop to completely disappear
     await expect(page.getByRole('dialog', { name: 'ハンドルを追加' })).not.toBeVisible({ timeout: 15000 });
@@ -126,6 +126,30 @@ test.describe('Basic UI Flow', () => {
     await expect(page.locator('body')).toContainText('bsky.app');
     await expect(page.locator('body')).toContainText('did:plc:'); // DID format
     await expect(page.locator('body')).toContainText('https://'); // PDS URL format
+
+    // 13. Verify device sharing button appears on home page
+    await page.goto('/ja');
+    await page.waitForTimeout(2000);
+    const shareBtn = page.getByRole('button', { name: 'デバイス間で共有' }).first();
+    await expect(shareBtn).toBeVisible();
+
+    // 14. Verify sharing modal and link generation
+    await page.route('**/api/share/create', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ token: 'e2e-mock-token' }),
+      });
+    });
+    await shareBtn.click();
+    await expect(page.getByRole('heading', { name: 'デバイス間で共有', exact: true })).toBeVisible();
+    await expect(page.getByText(/e2e-mock-token/)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: 'URLをコピー' })).toBeVisible();
+    
+    // 15. Close modal
+    const modal = page.getByRole('dialog', { name: 'デバイス間で共有', exact: true });
+    await page.keyboard.press('Escape');
+    await expect(modal).not.toBeVisible();
   });
 
   test('should manage handles (move up/down, delete)', async ({ page }) => {
@@ -145,7 +169,7 @@ test.describe('Basic UI Flow', () => {
     if (await checkbox.isVisible()) {
       await checkbox.check();
     }
-    await handleInput.press('Enter');
+    await page.getByRole('button', { name: '追加する' }).click();
     await expect(page.getByRole('dialog', { name: 'ハンドルを追加' })).not.toBeVisible({ timeout: 15000 });
     await page.reload();
     await expect(page.locator('.picker-item').getByText('@jay.bsky.social', { exact: true }).first()).toBeVisible({ timeout: 20000 });
@@ -157,7 +181,7 @@ test.describe('Basic UI Flow', () => {
     if (await checkbox.isVisible()) {
       await checkbox.check();
     }
-    await page.getByPlaceholder('example.bsky.social').press('Enter');
+    await page.getByRole('button', { name: '追加する' }).click();
     await expect(page.getByRole('dialog', { name: 'ハンドルを追加' })).not.toBeVisible({ timeout: 15000 });
     await page.reload();
     await expect(page.locator('.picker-item').getByText('@paul.bsky.social', { exact: true }).first()).toBeVisible({ timeout: 20000 });
@@ -183,7 +207,20 @@ test.describe('Basic UI Flow', () => {
     await expect(items.nth(0)).toContainText('jay.bsky.social', { timeout: 15000 });
     await expect(items.nth(1)).toContainText('paul.bsky.social', { timeout: 15000 });
 
-    // 9. Delete "jay.bsky.social"
+    // 9. Verify order persistence after reload
+    await page.reload();
+    await expect(items.nth(0)).toContainText('jay.bsky.social', { timeout: 15000 });
+    await expect(items.nth(1)).toContainText('paul.bsky.social', { timeout: 15000 });
+
+    // 10. Refresh metadata
+    await items.nth(0).getByRole('button').click();
+    const refreshItem = page.getByRole('menuitem', { name: 'メタデータを更新' });
+    await expect(refreshItem).toBeVisible();
+    await refreshItem.click();
+    // Wait for the update process to finish (loading state on the action icon disappears)
+    await expect(items.nth(0).getByRole('button')).toBeEnabled();
+
+    // 11. Delete "jay.bsky.social"
     await items.nth(0).getByRole('button').click();
     await page.getByRole('menuitem', { name: '削除' }).click();
 
@@ -191,7 +228,7 @@ test.describe('Basic UI Flow', () => {
     await expect(page.getByRole('heading', { name: '削除の確認' })).toBeVisible();
     await page.getByRole('button', { name: '削除', exact: true }).click();
 
-    // 10. Verify "jay.bsky.social" is gone
+    // 12. Verify "jay.bsky.social" is gone
     await expect(page.getByText('jay.bsky.social', { exact: true })).not.toBeVisible({ timeout: 15000 });
     await expect(items.nth(0)).toContainText('paul.bsky.social');
   });

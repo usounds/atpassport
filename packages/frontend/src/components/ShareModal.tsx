@@ -144,6 +144,7 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
                     onClick={handleCopy} 
                     size="lg"
                     radius={0}
+                    aria-label={t('copyUrl')}
                     style={{ height: '36px', width: '44px' }}
                   >
                     {copied ? <IconCheck size={18} /> : <IconCopy size={18} />}
