@@ -147,8 +147,9 @@ test.describe('Basic UI Flow', () => {
     await expect(page.getByRole('button', { name: 'URLをコピー' })).toBeVisible();
     
     // 15. Close modal
-    await page.getByTestId('close-share-modal').click();
-    await expect(page.getByRole('heading', { name: 'デバイス間で共有', exact: true })).not.toBeVisible();
+    const modal = page.getByRole('dialog', { name: 'デバイス間で共有', exact: true });
+    await page.keyboard.press('Escape');
+    await expect(modal).not.toBeVisible();
   });
 
   test('should manage handles (move up/down, delete)', async ({ page }) => {
