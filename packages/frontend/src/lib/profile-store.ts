@@ -6,6 +6,8 @@ import { getProfiles } from './atproto';
 interface ProfileState {
   profiles: Record<string, AppBskyActorDefs.ProfileViewDetailed>;
   timestamps: Record<string, number>;
+  _hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
   fetchProfiles: (dids: string[], force?: boolean) => Promise<Record<string, AppBskyActorDefs.ProfileViewDetailed>>;
   clear: () => void;
 }
@@ -18,7 +20,18 @@ export const useProfileStore = create<ProfileState>()(
     (set, get) => ({
       profiles: {},
       timestamps: {},
+      _hasHydrated: false,
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
       fetchProfiles: async (dids, force = false) => {
+        // Wait for hydration if not yet done (up to 2 seconds)
+        if (!get()._hasHydrated) {
+          console.log('[ProfileStore] Waiting for hydration...');
+          for (let i = 0; i < 20; i++) {
+            if (get()._hasHydrated) break;
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+        }
+
         const { profiles, timestamps } = get();
         const now = Date.now();
         
@@ -35,7 +48,14 @@ export const useProfileStore = create<ProfileState>()(
           }
         }
 
+        const cachedCount = dids.length - toFetchFromApi.length;
+        if (cachedCount > 0) {
+          console.log(`[ProfileStore] Cache hit: ${cachedCount}/${dids.length} profiles`);
+        }
+
         if (toFetchFromApi.length === 0) return results;
+
+        console.log(`[ProfileStore] Fetching ${toFetchFromApi.length} profiles from API...`);
 
         // Deduplicate concurrent requests
         const toCall: string[] = [];
@@ -89,6 +109,9 @@ export const useProfileStore = create<ProfileState>()(
     {
       name: 'atpassport-profile-cache',
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: (state) => {
+        return () => state?.setHasHydrated(true);
+      }
     }
   )
 );

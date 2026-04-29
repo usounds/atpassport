@@ -31,25 +31,38 @@ export function AuthAccountList({
   const [selectedItem, setSelectedItem] = useState<AssociationWithProfile | null>(null);
 
   useEffect(() => {
-    setTimeout(() => setItems(initialItems), 0);
+    setItems(prev => initialItems.map(initialItem => {
+      const existing = prev.find(p => p.did === initialItem.did);
+      return {
+        ...initialItem,
+        profile: existing?.profile || initialItem.profile
+      };
+    }));
   }, [initialItems]);
 
   useEffect(() => {
     const fetchProfiles = async () => {
-      const dids = initialItems.map(item => item.did);
-      if (dids.length === 0) return;
-
-      console.log(`[AuthAccountList] Fetching profiles for ${dids.length} items...`);
-      const profilesMap = await useProfileStore.getState().fetchProfiles(dids);
+      // Find DIDs that don't have a profile in the current items
+      const didsToFetch = items
+        .filter(item => !item.profile)
+        .map(item => item.did);
       
-      setItems(prev => prev.map(item => ({
-        ...item,
-        profile: profilesMap[item.did] || item.profile
-      })));
+      if (didsToFetch.length === 0) return;
+
+      console.log(`[AuthAccountList] Fetching profiles for ${didsToFetch.length} missing items...`);
+      const profilesMap = await useProfileStore.getState().fetchProfiles(didsToFetch);
+      
+      setItems(prev => prev.map(item => {
+        const fetchedProfile = profilesMap[item.did];
+        if (fetchedProfile) {
+          return { ...item, profile: fetchedProfile };
+        }
+        return item;
+      }));
     };
 
     fetchProfiles();
-  }, [initialItems]);
+  }, [initialItems]); // Only re-run when the base list from server changes
 
   const normalizePds = (url: string) => {
     try {
