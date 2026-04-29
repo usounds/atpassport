@@ -3,7 +3,7 @@
 import { SimpleGrid, Card, Stack, Group, Box, Title, Divider, Avatar, Anchor, Paper, Text } from '@mantine/core';
 import { IconShieldCheck as TablerShieldCheck } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
-import { getProfiles } from '@/lib/atproto';
+import { useProfileStore } from '@/lib/profile-store';
 import type { AppBskyActorDefs } from '@atcute/bluesky';
 import type { VerifiedDomain } from '@/lib/security';
 
@@ -15,19 +15,14 @@ interface DirectoryClientProps {
 }
 
 export default function DirectoryClient({ initialDomains, translations }: DirectoryClientProps) {
-  const [profiles, setProfiles] = useState<Record<string, AppBskyActorDefs.ProfileViewDetailed>>({});
+  const profiles = useProfileStore(state => state.profiles);
+  const fetchProfiles = useProfileStore(state => state.fetchProfiles);
 
   useEffect(() => {
-    const fetchProfiles = async () => {
-      const dids = initialDomains.map(d => d.verifiedByDid);
-      if (dids.length === 0) return;
-      
-      const fetchedProfiles = await getProfiles(dids);
-      setProfiles(fetchedProfiles);
-    };
-
-    fetchProfiles();
-  }, [initialDomains]);
+    const dids = initialDomains.map(d => d.verifiedByDid);
+    if (dids.length === 0) return;
+    fetchProfiles(dids);
+  }, [initialDomains, fetchProfiles]);
 
   return (
     <Stack gap="xl">
