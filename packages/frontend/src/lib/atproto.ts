@@ -13,14 +13,13 @@ export async function getProfiles(dids: string[]): Promise<Record<string, AppBsk
     const validDids = dids.filter(isDid);
     if (validDids.length === 0) return {};
 
+    const profiles: Record<string, AppBskyActorDefs.ProfileViewDetailed> = {};
     const CHUNK_SIZE = 25;
     const chunks: string[][] = [];
     for (let i = 0; i < validDids.length; i += CHUNK_SIZE) {
       chunks.push(validDids.slice(i, i + CHUNK_SIZE));
     }
 
-    const profiles: Record<string, AppBskyActorDefs.ProfileViewDetailed> = {};
-    
     // Execute chunks in parallel
     const results = await Promise.all(
       chunks.map(async (chunk) => {

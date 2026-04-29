@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 import { refreshAssociation, removeAssociation, moveAssociation } from '@/lib/actions';
 import { type AssociationWithProfile } from '@/lib/models';
 import { IconAlertTriangle } from '@tabler/icons-react';
-import { getProfiles } from '@/lib/atproto';
+import { useProfileStore } from '@/lib/profile-store';
 
 export function AuthAccountList({ 
   initialItems, 
@@ -40,7 +40,7 @@ export function AuthAccountList({
       if (dids.length === 0) return;
 
       console.log(`[AuthAccountList] Fetching profiles for ${dids.length} items...`);
-      const profilesMap = await getProfiles(dids);
+      const profilesMap = await useProfileStore.getState().fetchProfiles(dids);
       
       setItems(prev => prev.map(item => ({
         ...item,

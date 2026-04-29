@@ -5,7 +5,7 @@ import { Stack } from '@mantine/core';
 import { AssociationItem } from './AssociationItem';
 import { moveAssociation, removeAssociation, refreshAssociation } from '@/lib/actions';
 import { type AssociationWithProfile } from '@/lib/models';
-import { getProfiles } from '@/lib/atproto';
+import { useProfileStore } from '@/lib/profile-store';
 
 export function AssociationListClient({ initialItems }: { initialItems: AssociationWithProfile[] }) {
   const [items, setItems] = useState(initialItems);
@@ -19,7 +19,7 @@ export function AssociationListClient({ initialItems }: { initialItems: Associat
       setLoading(true);
       try {
         console.log(`[AssociationListClient] Fetching profiles for ${dids.length} items...`);
-        const profilesMap = await getProfiles(dids);
+        const profilesMap = await useProfileStore.getState().fetchProfiles(dids);
         
         setItems(prev => prev.map(item => ({
           ...item,
