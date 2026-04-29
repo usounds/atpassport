@@ -1,19 +1,22 @@
+'use client';
+
 import { version } from '../../package.json';
 import { Text, Anchor, Group, Divider, Stack } from '@mantine/core';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { FaGithub } from "react-icons/fa6";
 import { FaBluesky } from "react-icons/fa6";
 
+import { Link } from '@/i18n/routing';
+
 export function Footer() {
   const t = useTranslations('Nav');
-  const locale = useLocale();
 
   return (
     <footer style={{ marginTop: 'auto', paddingTop: '2rem' }}>
       <Divider mb="sm" />
       <Stack align="center" gap="xs" pb="xl">
         <Group justify="center" align="center" gap="md" wrap="wrap">
-          <Anchor size="xs" c="dimmed" href={`/${locale}/developers/verify`}>
+          <Anchor component={Link} size="xs" c="dimmed" href="/developers/verify">
             {t('developers')}
           </Anchor>
           <Group gap={14} align="center">

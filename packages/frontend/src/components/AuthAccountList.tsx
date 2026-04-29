@@ -27,29 +27,46 @@ export function AuthAccountList({
 }) {
   const t = useTranslations('Auth');
   const [items, setItems] = useState(initialItems);
+  const [prevInitialItems, setPrevInitialItems] = useState(initialItems);
+
+  // Sync state with prop if initialItems changes during render
+  if (initialItems !== prevInitialItems) {
+    setPrevInitialItems(initialItems);
+    setItems(initialItems.map(initialItem => {
+      const existing = items.find(p => p.did === initialItem.did);
+      return {
+        ...initialItem,
+        profile: existing?.profile || initialItem.profile
+      };
+    }));
+  }
+
   const [authenticating, setAuthenticating] = useState(false);
   const [selectedItem, setSelectedItem] = useState<AssociationWithProfile | null>(null);
 
   useEffect(() => {
-    setTimeout(() => setItems(initialItems), 0);
-  }, [initialItems]);
-
-  useEffect(() => {
     const fetchProfiles = async () => {
-      const dids = initialItems.map(item => item.did);
-      if (dids.length === 0) return;
-
-      console.log(`[AuthAccountList] Fetching profiles for ${dids.length} items...`);
-      const profilesMap = await useProfileStore.getState().fetchProfiles(dids);
+      // Find DIDs that don't have a profile in the current items
+      const didsToFetch = items
+        .filter(item => !item.profile)
+        .map(item => item.did);
       
-      setItems(prev => prev.map(item => ({
-        ...item,
-        profile: profilesMap[item.did] || item.profile
-      })));
+      if (didsToFetch.length === 0) return;
+
+      console.log(`[AuthAccountList] Fetching profiles for ${didsToFetch.length} missing items...`);
+      const profilesMap = await useProfileStore.getState().fetchProfiles(didsToFetch);
+      
+      setItems(prev => prev.map(item => {
+        const fetchedProfile = profilesMap[item.did];
+        if (fetchedProfile) {
+          return { ...item, profile: fetchedProfile };
+        }
+        return item;
+      }));
     };
 
     fetchProfiles();
-  }, [initialItems]);
+  }, [items]); // Run whenever items change to catch missing profiles
 
   const normalizePds = (url: string) => {
     try {

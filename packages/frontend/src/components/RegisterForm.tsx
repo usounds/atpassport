@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Autocomplete, Avatar, Group, Text, Button, Modal, Stack, Checkbox, Box, type ComboboxItem } from '@mantine/core';
 import { useTranslations } from 'next-intl';
 import { useDebouncedCallback, useDisclosure } from '@mantine/hooks';
@@ -24,11 +24,6 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const [agreed, setAgreed] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setTimeout(() => setIsMounted(true), 0);
-  }, []);
   const t = useTranslations('Home');
   const isLimitReached = handleCount >= MAX_HANDLES;
   const needsConsent = handleCount === 0;
@@ -111,10 +106,7 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
 
   return (
     <>
-      <Box
-        className={isMounted ? "animate-slide-in" : ""}
-        style={{ opacity: isMounted ? 1 : 0 }}
-      >
+      <Box>
         {isLimitReached ? (
           <Group
             gap="xs"

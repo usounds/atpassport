@@ -1,5 +1,4 @@
 import { getAssociations } from "@/lib/models";
-import { getProfiles } from "@/lib/atproto";
 import { getSessionUuid } from "@/lib/session";
 import { Text } from '@mantine/core';
 import { AssociationListClient } from "./AssociationListClient";
