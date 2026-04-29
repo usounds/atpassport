@@ -22,7 +22,7 @@ test.describe('Basic UI Flow', () => {
     await page.waitForTimeout(2000);
 
     // Find and click language picker
-    const langBtn = page.getByRole('button', { name: 'change_language' }).first();
+    const langBtn = page.getByRole('button', { name: 'change_language' }).filter({ visible: true }).first();
     await expect(langBtn).toBeVisible();
     await langBtn.click();
 
@@ -44,7 +44,7 @@ test.describe('Basic UI Flow', () => {
     const html = page.locator('html');
 
     // Initial scheme. The label is "Toggle color scheme" from Nav.toggle_color_scheme
-    const themeToggle = page.getByRole('button', { name: 'Toggle color scheme' }).first();
+    const themeToggle = page.getByRole('button', { name: 'Toggle color scheme' }).filter({ visible: true }).first();
     await expect(themeToggle).toBeVisible();
     await themeToggle.click();
 
@@ -56,9 +56,18 @@ test.describe('Basic UI Flow', () => {
     await page.goto('/en');
     await page.waitForTimeout(2000);
 
-    // Click About link in header. Label is "About" from Nav.about
-    const aboutLink = page.getByRole('banner').getByRole('link', { name: 'About' });
-    await expect(aboutLink).toBeVisible();
+    // Click About link. Label is "About" from Nav.about
+    
+    // Check if any About link is visible globally (Drawer content is in a Portal outside <header>)
+    if (!(await page.getByRole('link', { name: 'About' }).filter({ visible: true }).isVisible())) {
+      // If not, open the burger menu
+      await page.getByRole('button', { name: 'Toggle navigation' }).click();
+      // Wait for drawer animation
+      await page.waitForTimeout(1000);
+    }
+    
+    const aboutLink = page.getByRole('link', { name: 'About' }).filter({ visible: true }).first();
+    await expect(aboutLink).toBeVisible({ timeout: 10000 });
     await aboutLink.click();
 
     await expect(page).toHaveURL(/\/about/);
