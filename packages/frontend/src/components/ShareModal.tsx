@@ -81,6 +81,7 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
       title={t('title')} 
       size="sm"
       closeOnClickOutside={false}
+      closeButtonProps={{ 'data-testid': 'close-share-modal' }}
     >
       <Stack align="center" py="md">
         {loading ? (
@@ -144,6 +145,7 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
                     onClick={handleCopy} 
                     size="lg"
                     radius={0}
+                    aria-label={t('copyUrl')}
                     style={{ height: '36px', width: '44px' }}
                   >
                     {copied ? <IconCheck size={18} /> : <IconCopy size={18} />}
