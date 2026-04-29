@@ -27,18 +27,22 @@ export function AuthAccountList({
 }) {
   const t = useTranslations('Auth');
   const [items, setItems] = useState(initialItems);
-  const [authenticating, setAuthenticating] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<AssociationWithProfile | null>(null);
+  const [prevInitialItems, setPrevInitialItems] = useState(initialItems);
 
-  useEffect(() => {
-    setItems(prev => initialItems.map(initialItem => {
-      const existing = prev.find(p => p.did === initialItem.did);
+  // Sync state with prop if initialItems changes during render
+  if (initialItems !== prevInitialItems) {
+    setPrevInitialItems(initialItems);
+    setItems(initialItems.map(initialItem => {
+      const existing = items.find(p => p.did === initialItem.did);
       return {
         ...initialItem,
         profile: existing?.profile || initialItem.profile
       };
     }));
-  }, [initialItems]);
+  }
+
+  const [authenticating, setAuthenticating] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<AssociationWithProfile | null>(null);
 
   useEffect(() => {
     const fetchProfiles = async () => {
@@ -62,7 +66,7 @@ export function AuthAccountList({
     };
 
     fetchProfiles();
-  }, [initialItems]); // Only re-run when the base list from server changes
+  }, [items]); // Run whenever items change to catch missing profiles
 
   const normalizePds = (url: string) => {
     try {

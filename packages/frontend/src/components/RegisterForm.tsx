@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Autocomplete, Avatar, Group, Text, Button, Modal, Stack, Checkbox, Box, type ComboboxItem } from '@mantine/core';
 import { useTranslations } from 'next-intl';
 import { useDebouncedCallback, useDisclosure } from '@mantine/hooks';

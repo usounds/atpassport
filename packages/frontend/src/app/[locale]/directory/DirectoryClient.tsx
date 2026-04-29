@@ -2,9 +2,8 @@
 
 import { SimpleGrid, Card, Stack, Group, Box, Title, Divider, Avatar, Anchor, Paper, Text } from '@mantine/core';
 import { IconShieldCheck as TablerShieldCheck } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useProfileStore } from '@/lib/profile-store';
-import type { AppBskyActorDefs } from '@atcute/bluesky';
 import type { VerifiedDomain } from '@/lib/security';
 
 interface DirectoryClientProps {
