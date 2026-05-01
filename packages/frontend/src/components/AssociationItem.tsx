@@ -12,6 +12,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
 import { type AssociationWithProfile } from '@/lib/models';
+import { touchSessionAction } from '@/lib/actions';
 
 export function AssociationItem({
   item,
@@ -74,6 +75,16 @@ export function AssociationItem({
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // ボタンやメニュー、モーダル内の要素をクリックした場合は、Server Action 側で更新されるか、
+    // あるいはセッション延長が不要な操作なのでここでは何もしない。
+    // これにより、重複したリクエストや E2E テストでの競合を防ぐ。
+    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('.mantine-Menu-item')) {
+      return;
+    }
+    touchSessionAction();
+  };
+
   const [menuOpened, setMenuOpened] = useState(false);
   const displayName = item.profile?.displayName || item.handle;
   const avatar = item.profile?.avatar;
@@ -96,10 +107,12 @@ export function AssociationItem({
             <Card
               padding="sm"
               radius={0}
+              onClick={handleCardClick}
               className={`picker-item ${!menuOpened ? 'picker-item-hoverable picker-item-scale' : ''}`}
               style={{
                 backgroundColor: 'transparent',
                 border: 'none',
+                cursor: 'pointer'
               }}
             >
               <Group wrap="nowrap" justify="space-between" align="center" style={{ minWidth: 0 }}>

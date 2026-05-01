@@ -1,14 +1,20 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getSessionUuid } from './session';
+import { getSessionUuid, createSessionToken, SESSION_COOKIE_NAME, refreshSession } from './session';
 import { getAssociations, updateAssociation, deleteAssociation, addAssociation } from './models';
 import { resolveIdentity, resolveDidDocument } from './atproto-server';
 import { getUuidByShareToken } from './share';
-import { createSessionToken, SESSION_COOKIE_NAME } from './session';
 import { cookies, headers } from 'next/headers';
 import { isRateLimited } from './rate-limit';
 import { verifyDomainInDb, getVerifiedDomainFromDb, getVerifiedDomainsByDid, VerifiedDomain, deleteVerifiedDomainFromDb } from './security';
+
+/**
+ * 手動でセッションの有効期限を延長します。
+ */
+export async function touchSessionAction() {
+  await refreshSession();
+}
 
 /**
  * DID からハンドル名を解決します。
@@ -77,6 +83,7 @@ export async function withdrawDomain(domain: string, did: string) {
     revalidatePath('/[locale]/directory');
     revalidatePath('/[locale]/developers/verify');
     
+    await refreshSession();
     return { success: true };
   } catch (error) {
     console.error('[ServerAction:withdrawDomain] ERROR:', error);
@@ -110,6 +117,7 @@ export async function updateDomainSettings(domain: string, did: string, isPublic
     revalidatePath('/[locale]/directory');
     revalidatePath('/[locale]/developers/verify');
     
+    await refreshSession();
     return { success: true };
   } catch (error) {
     console.error('[ServerAction:updateDomainSettings] ERROR:', error);
@@ -165,6 +173,7 @@ export async function registerHandle(handle: string): Promise<{ success: boolean
     }
     
     revalidatePath('/[locale]', 'page');
+    await refreshSession();
     return { success: true };
   } catch (error: unknown) {
     console.error('[ServerAction:registerHandle] ERROR:', error);
@@ -187,6 +196,8 @@ export async function setPrimaryAssociation(did: string) {
       await updateAssociation(uuid, assoc.did, { isPrimary: false });
     }
   }
+
+  await refreshSession();
 }
 
 export async function refreshAssociation(did: string) {
@@ -209,6 +220,8 @@ export async function refreshAssociation(did: string) {
     });
     revalidatePath('/[locale]', 'page');
   }
+
+  await refreshSession();
 }
 
 export async function removeAssociation(did: string) {
@@ -217,6 +230,7 @@ export async function removeAssociation(did: string) {
 
   await deleteAssociation(uuid, did);
   revalidatePath('/[locale]', 'page');
+  await refreshSession();
 }
 
 export async function moveAssociation(did: string, direction: 'up' | 'down') {
@@ -246,6 +260,7 @@ export async function moveAssociation(did: string, direction: 'up' | 'down') {
   }
 
   revalidatePath('/[locale]', 'page');
+  await refreshSession();
 }
 
 export async function syncWithToken(token: string): Promise<{ success: boolean; error?: string }> {
@@ -274,6 +289,7 @@ export async function syncWithToken(token: string): Promise<{ success: boolean; 
     maxAge: 60 * 60 * 24 * 365,
   });
 
+  await refreshSession();
   return { success: true };
 }
 
@@ -310,6 +326,8 @@ export async function initializeSession() {
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
   });
+
+  await refreshSession();
 }
 
 /**
