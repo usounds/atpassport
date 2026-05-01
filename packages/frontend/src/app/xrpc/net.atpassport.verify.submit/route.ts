@@ -4,6 +4,8 @@ import { NetAtpassportVerifySubmit } from '@/lexicons/index';
 import { verifyDomainInDb } from '@/lib/security';
 import { resolveIdentity } from '@/lib/atproto-server';
 import { isRateLimited } from '@/lib/rate-limit';
+
+export const dynamic = 'force-dynamic';
 import net from 'node:net';
 
 export async function POST(request: Request) {
@@ -12,13 +14,15 @@ export async function POST(request: Request) {
     const did = await verifyServiceAuth(request);
     
     if (!did) {
-      return NextResponse.json({ success: false, error: 'unauthorized', message: 'Invalid Service Auth token' }, { status: 401 });
+      const response = NextResponse.json({ success: false, error: 'unauthorized', message: 'Invalid Service Auth token' }, { status: 401 });
+      return response;
     }
 
     // 2. DIDによるレート制限
     // 1つのDIDにつき、1分間に5リクエストまで許可
     if (isRateLimited(did, 5, 60000)) {
-      return NextResponse.json({ success: false, error: 'rate_limited', message: 'Too many requests. Please try again later.' }, { status: 429 });
+      const response = NextResponse.json({ success: false, error: 'rate_limited', message: 'Too many requests. Please try again later.' }, { status: 429 });
+      return response;
     }
 
     // 3. リクエストボディのパース
@@ -27,7 +31,8 @@ export async function POST(request: Request) {
     const isPublic = body.isPublic;
 
     if (!domain) {
-      return NextResponse.json({ success: false, error: 'invalid_request', message: 'Domain is required' }, { status: 400 });
+      const response = NextResponse.json({ success: false, error: 'invalid_request', message: 'Domain is required' }, { status: 400 });
+      return response;
     }
 
     const lowerDomain = domain.toLowerCase().trim();
@@ -37,7 +42,8 @@ export async function POST(request: Request) {
     if (identity && (identity.handle === lowerDomain || lowerDomain.endsWith('.' + identity.handle))) {
       await verifyDomainInDb(lowerDomain, did, isPublic, 'oauth');
       const output: NetAtpassportVerifySubmit.Output = { success: true };
-      return NextResponse.json(output);
+      const response = NextResponse.json(output);
+      return response;
     }
     
     // 厳格なドメインバリデーション (SSRF対策)
@@ -45,7 +51,8 @@ export async function POST(request: Request) {
     // - IPアドレス（IPv4/IPv6）不可
     // - TLDを含むドメイン形式であること
     if (net.isIP(lowerDomain)) {
-      return NextResponse.json({ success: false, error: 'invalid_request', message: 'Invalid domain format. IP addresses are not allowed.' }, { status: 400 });
+      const response = NextResponse.json({ success: false, error: 'invalid_request', message: 'Invalid domain format. IP addresses are not allowed.' }, { status: 400 });
+      return response;
     }
 
     // Relaxed regex for local testing
@@ -55,12 +62,14 @@ export async function POST(request: Request) {
       : /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*\.[a-z]{2,}$/;
     
     if (!domainRegex.test(lowerDomain)) {
-      return NextResponse.json({ success: false, error: 'invalid_request', message: `Invalid domain format (server): ${lowerDomain}` }, { status: 400 });
+      const response = NextResponse.json({ success: false, error: 'invalid_request', message: `Invalid domain format (server): ${lowerDomain}` }, { status: 400 });
+      return response;
     }
 
     // Block localhost in production for security (SSRF prevention)
     if (!isDev && (lowerDomain === 'localhost' || lowerDomain.endsWith('.localhost'))) {
-      return NextResponse.json({ success: false, error: 'invalid_request', message: 'Localhost is not allowed in production.' }, { status: 400 });
+      const response = NextResponse.json({ success: false, error: 'invalid_request', message: 'Localhost is not allowed in production.' }, { status: 400 });
+      return response;
     }
 
     const protocol = (isDev && (lowerDomain.startsWith('localhost') || lowerDomain.includes('127.0.0.1'))) ? 'http' : 'https';
@@ -70,47 +79,52 @@ export async function POST(request: Request) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const response = await fetch(url, { 
+      const fetchRes = await fetch(url, { 
         cache: 'no-store',
         signal: controller.signal
       });
       
       clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        return NextResponse.json({ 
+      if (!fetchRes.ok) {
+        const res = NextResponse.json({ 
           success: false, 
           error: 'unreachable_url',
-          message: `Could not reach ${url}: ${response.statusText}`
+          message: `Could not reach ${url}: ${fetchRes.statusText}`
         }, { status: 400 });
+        return res;
       }
 
-      const content = await response.text();
+      const content = await fetchRes.text();
       const expectedPrefix = 'atpassport-verification:';
       if (!content.includes(expectedPrefix) || !content.includes(did)) {
-        return NextResponse.json({ 
+        const res = NextResponse.json({ 
           success: false, 
           error: 'verification_mismatch',
           message: 'The file content does not match the expected verification string.'
         }, { status: 400 });
+        return res;
       }
 
       // 3. Register verified domain
       await verifyDomainInDb(lowerDomain, did, isPublic, 'file');
 
       const output: NetAtpassportVerifySubmit.Output = { success: true };
-      return NextResponse.json(output);
+      const res = NextResponse.json(output);
+      return res;
     } catch (fetchError: unknown) {
       const error = fetchError as Error;
       console.warn('[xrpc/net.atpassport.verify.submit] Fetch failed for %s:', url, error.message);
-      return NextResponse.json({ 
+      const res = NextResponse.json({ 
         success: false, 
         error: "connection_failed",
         message: error.message || 'Connection failed'
       }, { status: 400 });
+      return res;
     }
   } catch (error: unknown) {
     console.error('[xrpc/net.atpassport.verify.submit] Error:', error);
-    return NextResponse.json({ success: false, error: 'internal_error', message: 'Internal server error' }, { status: 500 });
+    const response = NextResponse.json({ success: false, error: 'internal_error', message: 'Internal server error' }, { status: 500 });
+    return response;
   }
 }

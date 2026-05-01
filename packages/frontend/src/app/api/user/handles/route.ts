@@ -3,6 +3,8 @@ import { getSessionUuid } from "@/lib/session";
 import { getAssociations } from "@/lib/models";
 import { isRateLimited } from "@/lib/rate-limit";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for") || "anonymous";
@@ -48,7 +50,8 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (e) {
     console.error("Handles API error:", e);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    const response = NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return response;
   }
 }
 

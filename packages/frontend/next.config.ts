@@ -66,10 +66,29 @@ const nextConfig: NextConfig = {
       });
     }
 
+    const noCacheHeaders = [
+      {
+        key: "Cache-Control",
+        value: "private, no-store, max-age=0, must-revalidate",
+      },
+      {
+        key: "Pragma",
+        value: "no-cache",
+      },
+      {
+        key: "Vary",
+        value: "Cookie",
+      },
+    ];
+
     return [
       {
-        source: "/(.*)",
+        source: "/:path*",
         headers: commonHeaders,
+      },
+      {
+        source: "/:path*",
+        headers: noCacheHeaders,
       },
     ];
   },

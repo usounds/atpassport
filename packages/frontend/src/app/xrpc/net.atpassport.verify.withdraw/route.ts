@@ -4,6 +4,8 @@ import { getVerifiedDomainFromDb, deleteVerifiedDomainFromDb } from '@/lib/secur
 import { NetAtpassportVerifyWithdraw } from '@/lexicons/index';
 import { isRateLimited } from '@/lib/rate-limit';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   try {
     // 1. JWTの検証とDIDの取得
@@ -11,14 +13,16 @@ export async function POST(request: Request) {
     
     if (!did) {
       const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Unauthorized: Invalid Service Auth token' };
-      return NextResponse.json(output, { status: 401 });
+      const response = NextResponse.json(output, { status: 401 });
+      return response;
     }
 
     // 2. DIDによるレート制限
     // 1つのDIDにつき、1分間に10リクエストまで許可（submitより緩和）
     if (isRateLimited(did, 10, 60000)) {
       const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Too many requests. Please try again later.' };
-      return NextResponse.json(output, { status: 429 });
+      const response = NextResponse.json(output, { status: 429 });
+      return response;
     }
 
     // 3. リクエストボディから検証取り消し対象を取得
@@ -27,23 +31,27 @@ export async function POST(request: Request) {
 
     if (!domain) {
       const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Missing domain to withdraw' };
-      return NextResponse.json(output, { status: 400 });
+      const response = NextResponse.json(output, { status: 400 });
+      return response;
     }
 
     // 3. 所有権の確認と削除
     const existing = await getVerifiedDomainFromDb(domain);
     if (!existing || existing.verifiedByDid !== did) {
       const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: "Unauthorized or domain not found" };
-      return NextResponse.json(output, { status: 403 });
+      const response = NextResponse.json(output, { status: 403 });
+      return response;
     }
 
     await deleteVerifiedDomainFromDb(domain);
 
     const output: NetAtpassportVerifyWithdraw.Output = { success: true };
-    return NextResponse.json(output);
+    const response = NextResponse.json(output);
+    return response;
   } catch (error: unknown) {
     console.error('[xrpc/net.atpassport.verify.withdraw] Error:', error);
     const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Internal server error' };
-    return NextResponse.json(output, { status: 500 });
+    const response = NextResponse.json(output, { status: 500 });
+    return response;
   }
 }

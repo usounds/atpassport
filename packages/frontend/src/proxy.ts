@@ -3,17 +3,7 @@ import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
 import { SignJWT, jwtVerify } from 'jose';
 import { touchSession } from './lib/models';
-
-const SESSION_COOKIE_NAME = process.env.NODE_ENV === 'production' 
-  ? "__Host-atpassport_session" 
-  : "atpassport_session";
-const SESSION_SECRET = process.env.SESSION_SECRET;
-
-if (!SESSION_SECRET && process.env.NODE_ENV === "production") {
-  throw new Error("SESSION_SECRET environment variable is not set. Please set it in your environment variables.");
-}
-
-const SECRET_KEY = new TextEncoder().encode(SESSION_SECRET || "dev-only-insecure-secret-key-at-least-32-chars-long");
+import { SESSION_COOKIE_NAME, SECRET_KEY } from './lib/session';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -53,7 +43,9 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  const response = intlMiddleware(request);
+  const response = (pathname.startsWith('/api') || pathname.startsWith('/xrpc'))
+    ? NextResponse.next()
+    : intlMiddleware(request);
 
   // Set cookie only if it's not valid AND we have an existing uuid
   if (!isValid && uuid) {
@@ -73,9 +65,20 @@ export default async function middleware(request: NextRequest) {
     });
   }
 
+  // Ensure responses that might contain user-specific data are NEVER cached by CDNs
+  // We apply this to all requests handled by this middleware (non-static)
+  const cacheControl = 'private, no-store, max-age=0, must-revalidate';
+  response.headers.set('Cache-Control', cacheControl);
+  response.headers.set('CDN-Cache-Control', 'no-store');
+  response.headers.set('Cloudflare-CDN-Cache-Control', 'no-store');
+  response.headers.append('Vary', 'Cookie');
+  
+  // Debug header to confirm middleware execution
+  response.headers.set('X-Proxy-Status', 'active');
+
   return response;
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)']
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)']
 };
