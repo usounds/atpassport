@@ -1,9 +1,12 @@
-import { Container, Text, Center } from '@mantine/core';
+import { Container, Text, Center, Stack, Alert } from '@mantine/core';
 import { getTranslations } from 'next-intl/server';
 import { AuthAccountList } from '@/components/AuthAccountList';
 import { getAssociations, type AssociationWithProfile } from '@/lib/models';
 import { getSessionUuid } from '@/lib/session';
 import { verifyDomain, getVerifiedDomainFromDb, verifyDomainInDb } from '@/lib/security';
+import { IconInfoCircle } from '@tabler/icons-react';
+
+export const dynamic = 'force-dynamic';
 
 export default async function AuthPage({
   params,
@@ -15,6 +18,7 @@ export default async function AuthPage({
   const { locale } = await params;
   const { callback, atpstate } = await searchParams;
   const t = await getTranslations({ locale, namespace: 'Auth' });
+  const tHome = await getTranslations({ locale, namespace: 'Home' });
 
   if (!callback) {
     return (
@@ -122,14 +126,21 @@ export default async function AuthPage({
 
   return (
     <Container size="sm" py="xl" style={{ maxWidth: 500 }}>
-      <AuthAccountList
-        initialItems={items}
-        callback={callback}
-        atpstate={atpstate}
-        domain={domain}
-        isVerified={verified}
-        isLoopback={isLoopback}
-      />
+      <Stack gap="xl">
+        {items.length === 0 && (
+          <Alert variant="light" color="blue" title="Notice" icon={<IconInfoCircle />} mb="md">
+            {tHome('reset_notice')}
+          </Alert>
+        )}
+        <AuthAccountList
+          initialItems={items}
+          callback={callback}
+          atpstate={atpstate}
+          domain={domain}
+          isVerified={verified}
+          isLoopback={isLoopback}
+        />
+      </Stack>
     </Container>
   );
 }

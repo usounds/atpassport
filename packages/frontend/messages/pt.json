@@ -25,8 +25,9 @@
     "manage_handle": "Gerenciar Handle",
     "agree_to_terms": "Eu concordo com os <terms>Termos de Serviço</terms> e a <privacy>Política de Privacidade</privacy>",
     "share_title": "Compartilhar com Outros Dispositivos",
-    "share_description": "Sincronize seus handles com outros dispositivos (PC ou smartphone) usando um código QR ou URL.",
-    "handle_limit_reached": "Máximo de 15 handles permitido."
+    "share_description": "Sincronize seus handles com outros dispositivos (PC o smartphone) usando um código QR ou URL.",
+    "handle_limit_reached": "Máximo de 15 handles permitido.",
+    "reset_notice": "Como parte de eine atualização do sistema para melhorar a segurança e proteger a privacidade, redefinimos a lista de handles registrados em 1 de maio. Pedimos desculpas pelo inconveniente e solicitamos que você registre seus handles novamente."
   },
   "Auth": {
     "title": "Selecione um handle",

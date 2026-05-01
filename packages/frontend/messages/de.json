@@ -26,7 +26,8 @@
     "agree_to_terms": "Ich stimme den <terms>Nutzungsbedingungen</terms> und der <privacy>Datenschutzerklärung</privacy> zu",
     "share_title": "Mit anderen Geräten teilen",
     "share_description": "Synchronisieren Sie Ihre Handles mit anderen Geräten (PC oder smartphone) über einen QR-Code oder eine URL.",
-    "handle_limit_reached": "Maximal 15 Handles erlaubt."
+    "handle_limit_reached": "Maximal 15 Handles erlaubt.",
+    "reset_notice": "Als Teil eines System-Updates zur Verbesserung der Sicherheit und zum Schutz der Privatsphäre haben wir die Liste der registrierten Handles am 1. Mai zurückgesetzt. Wir entschuldigen uns für die Unannehmlichkeiten und bitten Sie, Ihre Handles neu zu registrieren."
   },
   "Auth": {
     "title": "Handle auswählen",

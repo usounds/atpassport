@@ -26,7 +26,8 @@
     "agree_to_terms": "Acepto los <terms>Términos de Servicio</terms> y la <privacy>Política de Privacidad</privacy>",
     "share_title": "Compartir con Otros Dispositivos",
     "share_description": "Sincroniza tus handles con otros dispositivos (PC o smartphone) mediante un código QR o URL.",
-    "handle_limit_reached": "Se permite un máximo de 15 handles."
+    "handle_limit_reached": "Se permite un máximo de 15 handles.",
+    "reset_notice": "Como parte de una actualización del sistema para mejorar la seguridad y proteger la privacidad, hemos restablecido la lista de identificadores registrados el 1 de mayo. Pedimos disculpas por las molestias y le solicitamos que vuelva a registrar sus identificadores."
   },
   "Auth": {
     "title": "Selecciona un handle",

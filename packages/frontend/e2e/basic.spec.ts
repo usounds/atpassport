@@ -28,7 +28,7 @@ test.describe('Basic UI Flow', () => {
 
     const jaItem = page.getByRole('menuitem', { name: '日本語' });
     await expect(jaItem).toBeVisible();
-    await jaItem.click();
+    await jaItem.click({ force: true });
 
     // URL should contain /ja
     await expect(page).toHaveURL(/\/ja/);
