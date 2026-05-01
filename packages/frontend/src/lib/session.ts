@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { jwtVerify, SignJWT } from "jose";
+import { jwtVerify, SignJWT, type JWTPayload } from "jose";
 
 export const SESSION_COOKIE_NAME = process.env.NODE_ENV === 'production' 
   ? "__Host-atpassport_session_v2" 
@@ -28,9 +28,33 @@ export async function getSessionUuid(): Promise<string | null> {
 
 export async function createSessionToken(uuid: string): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
-  return await new SignJWT({ uuid, lastTouched: now })
+  const payload: JWTPayload = { uuid, lastTouched: now };
+  
+  return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt(now)
     .setExpirationTime("365d")
     .sign(SECRET_KEY);
+}
+
+/**
+ * セッションの有効期限を延長します。
+ * この関数は Server Actions (POSTリクエスト) 内からのみ呼び出されるべきです。
+ */
+export async function refreshSession() {
+  const uuid = await getSessionUuid();
+  if (!uuid) return;
+
+  const sessionToken = await createSessionToken(uuid);
+  const cookieStore = await cookies();
+
+  // Next.js 16 では Server Actions 内であれば cookieStore.set が提供されています。
+  // 万が一型推論が Readonly になっている場合は、適切なキャスト（ResponseCookies）を検討します。
+  cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
 }

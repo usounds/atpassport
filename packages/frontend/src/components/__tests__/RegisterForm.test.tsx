@@ -5,7 +5,11 @@ import { RegisterForm } from '../RegisterForm';
 import * as actions from '@/lib/actions';
 import { publicAgent } from '@/lib/atproto';
 
-vi.mock('@/lib/actions');
+vi.mock('@/lib/actions', () => ({
+  registerHandle: vi.fn(),
+  touchSessionAction: vi.fn(),
+  initializeSession: vi.fn(),
+}));
 vi.mock('@/lib/atproto', () => ({
   publicAgent: {
     get: vi.fn(),

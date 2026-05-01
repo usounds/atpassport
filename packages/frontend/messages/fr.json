@@ -26,7 +26,8 @@
     "agree_to_terms": "J'accepte les <terms>Conditions d'utilisation</terms> et la <privacy>Politique de confidentialité</privacy>",
     "share_title": "Partager avec d'autres appareils",
     "share_description": "Synchronisez vos handles with d'autres appareils (PC ou smartphone) à l'aide d'un code QR ou d'une URL.",
-    "handle_limit_reached": "Maximum 15 handles autorisés."
+    "handle_limit_reached": "Maximum 15 handles autorisés.",
+    "reset_notice": "Dans le cadre d'une mise à jour du système visant à renforcer la sécurité et à protéger la confidentialité, nous avons réinitialisé la liste des pseudos enregistrés le 1er mai. Nous nous excusons pour la gêne occasionnée et vous demandons de bien vouloir enregistrer à nouveau vos pseudos."
   },
   "Auth": {
     "title": "Sélectionner un handle",

@@ -8,6 +8,7 @@ vi.mock('@/lib/actions', () => ({
   moveAssociation: vi.fn(),
   removeAssociation: vi.fn(),
   refreshAssociation: vi.fn(),
+  touchSessionAction: vi.fn(),
 }));
 
 // Mock mantine core components to avoid transition issues

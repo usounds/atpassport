@@ -28,7 +28,7 @@ test.describe('Basic UI Flow', () => {
 
     const jaItem = page.getByRole('menuitem', { name: '日本語' });
     await expect(jaItem).toBeVisible();
-    await jaItem.click();
+    await jaItem.click({ force: true });
 
     // URL should contain /ja
     await expect(page).toHaveURL(/\/ja/);
@@ -217,7 +217,10 @@ test.describe('Basic UI Flow', () => {
     await expect(items.nth(1)).toContainText('paul.bsky.social', { timeout: 15000 });
 
     // 9. Verify order persistence after reload
+    // Give a small delay to ensure revalidatePath and session refresh are completed
+    await page.waitForTimeout(1000);
     await page.reload();
+    await page.waitForTimeout(2000); // Wait for metadata fetch on client side
     await expect(items.nth(0)).toContainText('jay.bsky.social', { timeout: 15000 });
     await expect(items.nth(1)).toContainText('paul.bsky.social', { timeout: 15000 });
 

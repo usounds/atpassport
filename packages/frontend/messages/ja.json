@@ -26,7 +26,8 @@
     "agree_to_terms": "<terms>利用規約</terms>および<privacy>プライバシーポリシー</privacy>に同意します",
     "share_title": "デバイス間で共有する",
     "share_description": "QRコードまたはURLを使用して、他のデバイス（PCやスマートフォン）にハンドル情報を同期できます。",
-    "handle_limit_reached": "ハンドルの登録は15個までです"
+    "handle_limit_reached": "ハンドルの登録は15個までです",
+    "reset_notice": "セキュリティ強化およびプライバシー保護のためのシステム更新に伴い、5月1日にハンドル一覧をリセットいたしました。お手数ですが、再度登録をお願いいたします。"
   },
   "Auth": {
     "title": "ハンドルを選択してください",
