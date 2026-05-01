@@ -75,6 +75,10 @@ const nextConfig: NextConfig = {
         key: "Pragma",
         value: "no-cache",
       },
+      {
+        key: "Vary",
+        value: "Cookie",
+      },
     ];
 
     return [

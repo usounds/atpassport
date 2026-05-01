@@ -15,7 +15,6 @@ export async function POST(request: Request) {
     
     if (!did) {
       const response = NextResponse.json({ success: false, error: 'unauthorized', message: 'Invalid Service Auth token' }, { status: 401 });
-      response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return response;
     }
 
@@ -23,7 +22,6 @@ export async function POST(request: Request) {
     // 1つのDIDにつき、1分間に5リクエストまで許可
     if (isRateLimited(did, 5, 60000)) {
       const response = NextResponse.json({ success: false, error: 'rate_limited', message: 'Too many requests. Please try again later.' }, { status: 429 });
-      response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return response;
     }
 
@@ -34,7 +32,6 @@ export async function POST(request: Request) {
 
     if (!domain) {
       const response = NextResponse.json({ success: false, error: 'invalid_request', message: 'Domain is required' }, { status: 400 });
-      response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return response;
     }
 
@@ -46,7 +43,6 @@ export async function POST(request: Request) {
       await verifyDomainInDb(lowerDomain, did, isPublic, 'oauth');
       const output: NetAtpassportVerifySubmit.Output = { success: true };
       const response = NextResponse.json(output);
-      response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return response;
     }
     
@@ -56,7 +52,6 @@ export async function POST(request: Request) {
     // - TLDを含むドメイン形式であること
     if (net.isIP(lowerDomain)) {
       const response = NextResponse.json({ success: false, error: 'invalid_request', message: 'Invalid domain format. IP addresses are not allowed.' }, { status: 400 });
-      response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return response;
     }
 
@@ -68,14 +63,12 @@ export async function POST(request: Request) {
     
     if (!domainRegex.test(lowerDomain)) {
       const response = NextResponse.json({ success: false, error: 'invalid_request', message: `Invalid domain format (server): ${lowerDomain}` }, { status: 400 });
-      response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return response;
     }
 
     // Block localhost in production for security (SSRF prevention)
     if (!isDev && (lowerDomain === 'localhost' || lowerDomain.endsWith('.localhost'))) {
       const response = NextResponse.json({ success: false, error: 'invalid_request', message: 'Localhost is not allowed in production.' }, { status: 400 });
-      response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return response;
     }
 
@@ -99,7 +92,6 @@ export async function POST(request: Request) {
           error: 'unreachable_url',
           message: `Could not reach ${url}: ${fetchRes.statusText}`
         }, { status: 400 });
-        res.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
         return res;
       }
 
@@ -111,7 +103,6 @@ export async function POST(request: Request) {
           error: 'verification_mismatch',
           message: 'The file content does not match the expected verification string.'
         }, { status: 400 });
-        res.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
         return res;
       }
 
@@ -120,7 +111,6 @@ export async function POST(request: Request) {
 
       const output: NetAtpassportVerifySubmit.Output = { success: true };
       const res = NextResponse.json(output);
-      res.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return res;
     } catch (fetchError: unknown) {
       const error = fetchError as Error;
@@ -130,13 +120,11 @@ export async function POST(request: Request) {
         error: "connection_failed",
         message: error.message || 'Connection failed'
       }, { status: 400 });
-      res.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return res;
     }
   } catch (error: unknown) {
     console.error('[xrpc/net.atpassport.verify.submit] Error:', error);
     const response = NextResponse.json({ success: false, error: 'internal_error', message: 'Internal server error' }, { status: 500 });
-    response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
     return response;
   }
 }

@@ -53,7 +53,9 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  const response = intlMiddleware(request);
+  const response = (pathname.startsWith('/api') || pathname.startsWith('/xrpc'))
+    ? NextResponse.next()
+    : intlMiddleware(request);
 
   // Set cookie only if it's not valid AND we have an existing uuid
   if (!isValid && uuid) {
@@ -75,11 +77,18 @@ export default async function middleware(request: NextRequest) {
 
   // Ensure responses that might contain user-specific data are NEVER cached by CDNs
   // We apply this to all requests handled by this middleware (non-static)
-  response.headers.set('Cache-Control', 'private, no-store, max-age=0, must-revalidate');
+  const cacheControl = 'private, no-store, max-age=0, must-revalidate';
+  response.headers.set('Cache-Control', cacheControl);
+  response.headers.set('CDN-Cache-Control', 'no-store');
+  response.headers.set('Cloudflare-CDN-Cache-Control', 'no-store');
+  response.headers.append('Vary', 'Cookie');
+  
+  // Debug header to confirm middleware execution
+  response.headers.set('X-Proxy-Status', 'active');
 
   return response;
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)']
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)']
 };

@@ -2,23 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../route';
 import { verifyServiceAuth } from '@/lib/verify-service-auth';
 import { getVerifiedDomainsByDid } from '@/lib/security';
-import { NextResponse } from 'next/server';
 
 vi.mock('@/lib/verify-service-auth');
 vi.mock('@/lib/security');
-vi.mock('next/server', async () => {
-  const actual = await vi.importActual('next/server') as any;
-  const mockNextResponse = vi.fn((body, init) => {
-    return new actual.NextResponse(body, init);
-  });
-  (mockNextResponse as any).json = vi.fn((data, init) => {
-    return actual.NextResponse.json(data, init);
-  });
-  return {
-    ...actual,
-    NextResponse: mockNextResponse,
-  };
-});
 
 describe('XRPC: net.atpassport.verify.list', () => {
   beforeEach(() => {
@@ -30,10 +16,8 @@ describe('XRPC: net.atpassport.verify.list', () => {
     const request = new Request('http://localhost');
     const response = await GET(request);
     
-    expect(NextResponse.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: 'Unauthorized' }),
-      { status: 401 }
-    );
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual(expect.objectContaining({ error: 'Unauthorized' }));
   });
 
   it('should return list of domains if authorized', async () => {
@@ -43,9 +27,10 @@ describe('XRPC: net.atpassport.verify.list', () => {
     ]);
 
     const request = new Request('http://localhost');
-    await GET(request);
+    const response = await GET(request);
 
-    expect(NextResponse.json).toHaveBeenCalledWith(
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(
       expect.objectContaining({
         success: true,
         domains: expect.arrayContaining([
@@ -58,11 +43,9 @@ describe('XRPC: net.atpassport.verify.list', () => {
   it('should return 500 if error occurs', async () => {
     vi.mocked(verifyServiceAuth).mockRejectedValue(new Error('Fatal'));
     const request = new Request('http://localhost');
-    await GET(request);
+    const response = await GET(request);
 
-    expect(NextResponse.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: 'Internal server error' }),
-      { status: 500 }
-    );
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual(expect.objectContaining({ error: 'Internal server error' }));
   });
 });

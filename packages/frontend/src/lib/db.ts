@@ -162,18 +162,15 @@ const createStub = (originalClient: DynamoDBDocumentClient) => {
       const isLocalDev = process.env.NODE_ENV === "development" && !process.env.USE_AWS_REAL_DB;
 
       if (!isLocalDev) {
-        // AWS SDK v3 の send メソッドはオーバーロードされているため、
-        // 型定義を合わせるのが難しければ unknown を介してキャストします
-        const result = await (originalClient as { send: (cmd: unknown) => Promise<T> }).send(command);
-        return result;
+        // In production, never fall back to stub to prevent data leaking between users
+        return await (originalClient as { send: (cmd: unknown) => Promise<T> }).send(command);
       }
 
       try {
         if (!process.env.AWS_ACCESS_KEY_ID && !process.env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI) {
            throw { name: "CredentialsError" };
         }
-        const result = await (originalClient as { send: (cmd: unknown) => Promise<T> }).send(command);
-        return result;
+        return await (originalClient as { send: (cmd: unknown) => Promise<T> }).send(command);
       } catch (e: unknown) {
         const error = e as { name?: string; code?: string; __type?: string };
         const errorName = error.name || error.code || error.__type || "";

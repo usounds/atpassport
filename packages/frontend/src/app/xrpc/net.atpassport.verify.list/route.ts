@@ -12,7 +12,6 @@ export async function GET(request: Request) {
     
     if (!did) {
       const response = NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-      response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return response;
     }
 
@@ -32,14 +31,10 @@ export async function GET(request: Request) {
     
     const response = NextResponse.json(output);
 
-    // キャッシュ無効化ヘッダー
-    response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
-
     return response;
   } catch (error: unknown) {
     console.error('[xrpc/net.atpassport.verify.list] Error:', error);
     const response = NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-    response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
     return response;
   }
 }

@@ -14,7 +14,6 @@ export async function POST(request: Request) {
     if (!did) {
       const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Unauthorized: Invalid Service Auth token' };
       const response = NextResponse.json(output, { status: 401 });
-      response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return response;
     }
 
@@ -23,7 +22,6 @@ export async function POST(request: Request) {
     if (isRateLimited(did, 10, 60000)) {
       const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Too many requests. Please try again later.' };
       const response = NextResponse.json(output, { status: 429 });
-      response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return response;
     }
 
@@ -34,7 +32,6 @@ export async function POST(request: Request) {
     if (!domain) {
       const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Missing domain to withdraw' };
       const response = NextResponse.json(output, { status: 400 });
-      response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return response;
     }
 
@@ -43,7 +40,6 @@ export async function POST(request: Request) {
     if (!existing || existing.verifiedByDid !== did) {
       const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: "Unauthorized or domain not found" };
       const response = NextResponse.json(output, { status: 403 });
-      response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
       return response;
     }
 
@@ -51,15 +47,11 @@ export async function POST(request: Request) {
 
     const output: NetAtpassportVerifyWithdraw.Output = { success: true };
     const response = NextResponse.json(output);
-    response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
-    response.headers.set("Pragma", "no-cache");
     return response;
   } catch (error: unknown) {
     console.error('[xrpc/net.atpassport.verify.withdraw] Error:', error);
     const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Internal server error' };
     const response = NextResponse.json(output, { status: 500 });
-    response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
-    response.headers.set("Pragma", "no-cache");
     return response;
   }
 }

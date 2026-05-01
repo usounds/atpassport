@@ -28,9 +28,6 @@ export async function GET(request: NextRequest) {
 
     const response = NextResponse.json({ handles });
 
-    // キャッシュ無効化ヘッダー
-    response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
-
     // CORSの処理
     const origin = request.headers.get("origin");
     if (origin) {
@@ -54,7 +51,6 @@ export async function GET(request: NextRequest) {
   } catch (e) {
     console.error("Handles API error:", e);
     const response = NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-    response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
     return response;
   }
 }
