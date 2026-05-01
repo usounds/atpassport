@@ -3,13 +3,17 @@ import { getVerifiedDomainsByDid } from '@/lib/security';
 import { verifyServiceAuth } from '@/lib/verify-service-auth';
 import { NetAtpassportVerifyList } from '@/lexicons/index';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     // 1. JWT validation (Service Auth)
     const did = await verifyServiceAuth(request);
     
     if (!did) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      const response = NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
+      return response;
     }
 
     // 2. Fetch domains for this specific DID
@@ -26,9 +30,16 @@ export async function GET(request: Request) {
       }))
     };
     
-    return NextResponse.json(output);
+    const response = NextResponse.json(output);
+
+    // キャッシュ無効化ヘッダー
+    response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
+
+    return response;
   } catch (error: unknown) {
     console.error('[xrpc/net.atpassport.verify.list] Error:', error);
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+    const response = NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+    response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
+    return response;
   }
 }

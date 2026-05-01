@@ -73,6 +73,10 @@ export default async function middleware(request: NextRequest) {
     });
   }
 
+  // Ensure responses that might contain user-specific data are NEVER cached by CDNs
+  // We apply this to all requests handled by this middleware (non-static)
+  response.headers.set('Cache-Control', 'private, no-store, max-age=0, must-revalidate');
+
   return response;
 }
 

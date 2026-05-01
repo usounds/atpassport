@@ -3,6 +3,8 @@ import { getSessionUuid } from "@/lib/session";
 import { getAssociations } from "@/lib/models";
 import { isRateLimited } from "@/lib/rate-limit";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for") || "anonymous";
@@ -26,6 +28,9 @@ export async function GET(request: NextRequest) {
 
     const response = NextResponse.json({ handles });
 
+    // キャッシュ無効化ヘッダー
+    response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
+
     // CORSの処理
     const origin = request.headers.get("origin");
     if (origin) {
@@ -48,7 +53,9 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (e) {
     console.error("Handles API error:", e);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    const response = NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    response.headers.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
+    return response;
   }
 }
 

@@ -88,7 +88,7 @@ export async function getVerifiedDomainsByDid(did: string): Promise<VerifiedDoma
 export async function verifyDomainInDb(
   domain: string, 
   did: string, 
-  isPublic: boolean = true,
+  isPublic: boolean = false,
   method: 'oauth' | 'file' = 'oauth'
 ): Promise<void> {
   await db.send(new PutCommand({

@@ -8,6 +8,17 @@ import { NextRequest } from 'next/server';
 vi.mock('@/lib/session');
 vi.mock('@/lib/models');
 vi.mock('@/lib/rate-limit');
+vi.mock('next/server', async () => {
+  const actual = await vi.importActual('next/server') as any;
+  const mockNextResponse = class extends actual.NextResponse {};
+  (mockNextResponse as any).json = vi.fn((data, init) => {
+    return actual.NextResponse.json(data, init);
+  });
+  return {
+    ...actual,
+    NextResponse: mockNextResponse,
+  };
+});
 
 describe('API: user/handles', () => {
   beforeEach(() => {

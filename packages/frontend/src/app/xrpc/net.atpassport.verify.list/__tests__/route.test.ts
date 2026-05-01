@@ -6,11 +6,19 @@ import { NextResponse } from 'next/server';
 
 vi.mock('@/lib/verify-service-auth');
 vi.mock('@/lib/security');
-vi.mock('next/server', () => ({
-  NextResponse: {
-    json: vi.fn((data, init) => ({ data, init })),
-  },
-}));
+vi.mock('next/server', async () => {
+  const actual = await vi.importActual('next/server') as any;
+  const mockNextResponse = vi.fn((body, init) => {
+    return new actual.NextResponse(body, init);
+  });
+  (mockNextResponse as any).json = vi.fn((data, init) => {
+    return actual.NextResponse.json(data, init);
+  });
+  return {
+    ...actual,
+    NextResponse: mockNextResponse,
+  };
+});
 
 describe('XRPC: net.atpassport.verify.list', () => {
   beforeEach(() => {

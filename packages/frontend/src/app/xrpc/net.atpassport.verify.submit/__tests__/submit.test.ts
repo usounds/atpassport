@@ -8,6 +8,20 @@ import { resetRateLimit } from '@/lib/rate-limit';
 vi.mock('@/lib/verify-service-auth');
 vi.mock('@/lib/security');
 vi.mock('@/lib/atproto-server');
+vi.mock('next/server', () => ({
+  NextResponse: {
+    json: vi.fn((data, init) => ({
+      data,
+      init,
+      status: init?.status || 200,
+      headers: {
+        set: vi.fn(),
+        get: vi.fn(),
+      },
+      json: async () => data,
+    })),
+  },
+}));
 
 describe('XRPC: net.atpassport.verify.submit', () => {
   const mockDid = 'did:plc:user123';
