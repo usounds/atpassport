@@ -2,8 +2,8 @@ import { cookies } from "next/headers";
 import { jwtVerify, SignJWT } from "jose";
 
 export const SESSION_COOKIE_NAME = process.env.NODE_ENV === 'production' 
-  ? "__Host-atpassport_session" 
-  : "atpassport_session";
+  ? "__Host-atpassport_session_v2" 
+  : "atpassport_session_v2";
 const SESSION_SECRET = process.env.SESSION_SECRET;
 
 if (!SESSION_SECRET && process.env.NODE_ENV === "production") {

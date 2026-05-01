@@ -3,17 +3,7 @@ import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
 import { SignJWT, jwtVerify } from 'jose';
 import { touchSession } from './lib/models';
-
-const SESSION_COOKIE_NAME = process.env.NODE_ENV === 'production' 
-  ? "__Host-atpassport_session" 
-  : "atpassport_session";
-const SESSION_SECRET = process.env.SESSION_SECRET;
-
-if (!SESSION_SECRET && process.env.NODE_ENV === "production") {
-  throw new Error("SESSION_SECRET environment variable is not set. Please set it in your environment variables.");
-}
-
-const SECRET_KEY = new TextEncoder().encode(SESSION_SECRET || "dev-only-insecure-secret-key-at-least-32-chars-long");
+import { SESSION_COOKIE_NAME, SECRET_KEY } from './lib/session';
 
 const intlMiddleware = createMiddleware(routing);
 
