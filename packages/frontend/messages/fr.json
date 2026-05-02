@@ -197,23 +197,5 @@
     "description": "Liste des domaines enregistrés avec propriété vérifiée.",
     "verified_by": "Vérifié par",
     "no_domains": "Aucun domaine vérifié pour le moment."
-  },
-  "Passkeys": {
-    "title": "Passkeys (Biométrie)",
-    "description": "Enregistrez une clé d'accès (passkey) pour récupérer facilement votre compte à l'aide de votre empreinte digitale ou de votre visage (Touch ID / Face ID, etc.), même si vos cookies sont effacés.",
-    "registerButton": "Enregistrer cet appareil",
-    "loginButton": "Récupérer avec une clé d'accès",
-    "noPasskeys": "Aucune clé d'accès enregistrée pour le moment.",
-    "activeBadge": "Actif",
-    "passkeyLabel": "Clé d'accès ({id})",
-    "registrationSuccessTitle": "Enregistrement réussi",
-    "registrationSuccessMessage": "Vous pouvez maintenant vous connecter à l'aide de cet appareil.",
-    "registrationErrorTitle": "Échec de l'enregistrement",
-    "registrationErrorMessage": "Une erreur s'est produite lors de l'enregistrement de la clé d'accès.",
-    "loginSuccessTitle": "Connexion réussie",
-    "loginSuccessMessage": "Votre compte a été récupéré avec succès.",
-    "loginErrorTitle": "Échec de la connexion",
-    "loginErrorMessage": "L'authentification par clé d'accès a échoué.",
-    "titleShort": "Passkeys"
   }
 }

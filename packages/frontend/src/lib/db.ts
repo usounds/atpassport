@@ -33,12 +33,6 @@ export const VERIFIED_DOMAINS_TABLE_NAME =
     ? Resource.AtPassportVerifiedDomains.name
     : "AtPassportVerifiedDomains");
 
-export const PASSKEYS_TABLE_NAME =
-  process.env.PASSKEYS_TABLE_NAME ||
-  (typeof Resource !== "undefined" && "AtPassportPasskeys" in Resource
-    ? Resource.AtPassportPasskeys.name
-    : "AtPassportPasskeys");
-
 // --- Database Stub Implementation ---
 // Next.js のホットリロード間でデータを保持するために global を使用
 const globalForDb = globalThis as unknown as {
@@ -50,7 +44,6 @@ if (!globalForDb.memoryTables) {
     [SESSION_TABLE_NAME]: [],
     [SHARE_TOKENS_TABLE_NAME]: [],
     [VERIFIED_DOMAINS_TABLE_NAME]: [],
-    [PASSKEYS_TABLE_NAME]: [],
   };
 }
 
@@ -73,7 +66,7 @@ async function handleStubCommand(command: StubCommand) {
     if (!input.Item) return {};
     const itemToPut = input.Item;
     // 重複チェック用のキーを特定
-    const keyFields = ["uuid", "did", "token", "domain", "credentialID"];
+    const keyFields = ["uuid", "did", "token", "domain"];
     const existingIdx = table.findIndex(item => 
       keyFields.filter(k => itemToPut[k]).every(k => item[k] === itemToPut[k])
     );

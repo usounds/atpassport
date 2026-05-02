@@ -197,23 +197,5 @@
     "description": "所有権の確認が完了し、@passport に登録されているドメインのリストです。",
     "verified_by": "確認者",
     "no_domains": "ドメインはまだありません。"
-  },
-  "Passkeys": {
-    "title": "パスキー (生体認証)",
-    "description": "パスキーを登録すると、指紋や顔認証（Touch ID / Face ID等）を使って、クッキーが消えてもこのアカウントを簡単に復元できるようになります。",
-    "registerButton": "このデバイスを登録",
-    "loginButton": "パスキーで復元する",
-    "noPasskeys": "登録されたパスキーはありません。",
-    "activeBadge": "有効",
-    "passkeyLabel": "パスキー ({id})",
-    "registrationSuccessTitle": "登録完了",
-    "registrationSuccessMessage": "このデバイスでログインできるようになりました。",
-    "registrationErrorTitle": "登録失敗",
-    "registrationErrorMessage": "パスキーの登録中にエラーが発生しました。",
-    "loginSuccessTitle": "ログイン完了",
-    "loginSuccessMessage": "アカウントを復元しました。",
-    "loginErrorTitle": "ログイン失敗",
-    "loginErrorMessage": "パスキーによる認証に失敗しました。",
-    "titleShort": "パスキー"
   }
 }
