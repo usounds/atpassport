@@ -3,6 +3,7 @@ import { verifyServiceAuth } from '@/lib/verify-service-auth';
 import { getVerifiedDomainFromDb, deleteVerifiedDomainFromDb } from '@/lib/security';
 import { NetAtpassportVerifyWithdraw } from '@/lexicons/index';
 import { isRateLimited } from '@/lib/rate-limit';
+import { domainSchema } from '@/lib/schemas';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,8 +36,15 @@ export async function POST(request: Request) {
       return response;
     }
 
+    const lowerDomain = domain.toLowerCase().trim();
+    const validation = domainSchema.safeParse(lowerDomain);
+    if (!validation.success) {
+      const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Invalid domain format' };
+      return NextResponse.json(output, { status: 400 });
+    }
+
     // 3. 所有権の確認と削除
-    const existing = await getVerifiedDomainFromDb(domain);
+    const existing = await getVerifiedDomainFromDb(lowerDomain);
     if (!existing || existing.verifiedByDid !== did) {
       const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: "Unauthorized or domain not found" };
       const response = NextResponse.json(output, { status: 403 });

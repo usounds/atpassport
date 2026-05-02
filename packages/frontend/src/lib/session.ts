@@ -6,11 +6,23 @@ export const SESSION_COOKIE_NAME = process.env.NODE_ENV === 'production'
   : "atpassport_session_v2";
 const SESSION_SECRET = process.env.SESSION_SECRET;
 
-if (!SESSION_SECRET && process.env.NODE_ENV === "production") {
-  throw new Error("SESSION_SECRET environment variable is not set. Please set it in your environment variables.");
+if (!SESSION_SECRET) {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET environment variable is not set.");
+  } else {
+    console.warn("⚠️ SESSION_SECRET is not set. Using an insecure default key for development.");
+  }
+} else if (SESSION_SECRET.length < 32) {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET must be at least 32 characters long for security.");
+  } else {
+    console.warn("⚠️ SESSION_SECRET is too short. It should be at least 32 characters.");
+  }
 }
 
-export const SECRET_KEY = new TextEncoder().encode(SESSION_SECRET || "dev-only-insecure-secret-key-at-least-32-chars-long");
+export const SECRET_KEY = new TextEncoder().encode(
+  SESSION_SECRET || "dev-only-insecure-secret-key-at-least-32-chars-long"
+);
 
 export async function getSessionUuid(): Promise<string | null> {
   try {

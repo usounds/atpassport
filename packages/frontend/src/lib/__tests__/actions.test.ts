@@ -450,17 +450,19 @@ describe('Actions Library', () => {
 
   describe('Utility Functions', () => {
     it('resolveHandle should call resolveIdentity', async () => {
-      vi.mocked(resolveIdentity).mockResolvedValue({ did: 'd', handle: 'h', pdsUrl: 'p' } as any);
-      const result = await resolveHandle('d');
-      expect(result).toEqual({ did: 'd', handle: 'h', pdsUrl: 'p' });
-      expect(resolveIdentity).toHaveBeenCalledWith('d');
+      const mockDid = 'did:plc:mock';
+      vi.mocked(resolveIdentity).mockResolvedValue({ did: mockDid, handle: 'h', pdsUrl: 'p' } as any);
+      const result = await resolveHandle(mockDid);
+      expect(result).toEqual({ did: mockDid, handle: 'h', pdsUrl: 'p' });
+      expect(resolveIdentity).toHaveBeenCalledWith(mockDid);
     });
 
     it('resolveDidDoc should call resolveDidDocument', async () => {
-      vi.mocked(resolveDidDocument).mockResolvedValue({ id: 'd' } as any);
-      const result = await resolveDidDoc('d');
-      expect(result).toEqual({ id: 'd' });
-      expect(resolveDidDocument).toHaveBeenCalledWith('d');
+      const mockDid = 'did:plc:mock';
+      vi.mocked(resolveDidDocument).mockResolvedValue({ id: mockDid } as any);
+      const result = await resolveDidDoc(mockDid);
+      expect(result).toEqual({ id: mockDid });
+      expect(resolveDidDocument).toHaveBeenCalledWith(mockDid);
     });
 
     it('withdrawDomainViaOAuth should withdraw using resolved handle', async () => {

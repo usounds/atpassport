@@ -4,9 +4,39 @@ import { NetAtpassportVerifySubmit } from '@/lexicons/index';
 import { verifyDomainInDb } from '@/lib/security';
 import { resolveIdentity } from '@/lib/atproto-server';
 import { isRateLimited } from '@/lib/rate-limit';
+import { domainSchema } from '@/lib/schemas';
 
 export const dynamic = 'force-dynamic';
 import net from 'node:net';
+import dns from 'node:dns/promises';
+
+/**
+ * Checks if an IP address belongs to a private, loopback, or link-local range.
+ * This is used to prevent SSRF attacks.
+ */
+function isPrivateIp(ip: string): boolean {
+  if (net.isIPv4(ip)) {
+    const parts = ip.split('.').map(Number);
+    return (
+      parts[0] === 10 ||
+      (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
+      (parts[0] === 192 && parts[1] === 168) ||
+      parts[0] === 127 ||
+      (parts[0] === 169 && parts[1] === 254) ||
+      parts[0] === 0
+    );
+  }
+  if (net.isIPv6(ip)) {
+    const lowerIp = ip.toLowerCase();
+    return (
+      lowerIp === '::1' ||
+      lowerIp.startsWith('fe80:') ||
+      lowerIp.startsWith('fc00:') ||
+      lowerIp.startsWith('fd00:')
+    );
+  }
+  return true; // Reject unknown formats for safety
+}
 
 export async function POST(request: Request) {
   try {
@@ -37,6 +67,12 @@ export async function POST(request: Request) {
 
     const lowerDomain = domain.toLowerCase().trim();
     
+    // 入力バリデーション
+    const validation = domainSchema.safeParse(lowerDomain);
+    if (!validation.success) {
+      return NextResponse.json({ success: false, error: 'invalid_request', message: 'Invalid domain format' }, { status: 400 });
+    }
+
     // Resolve identity to check if it's the user's own handle for OAuth verification
     const identity = await resolveIdentity(did);
     if (identity && (identity.handle === lowerDomain || lowerDomain.endsWith('.' + identity.handle))) {
@@ -70,6 +106,29 @@ export async function POST(request: Request) {
     if (!isDev && (lowerDomain === 'localhost' || lowerDomain.endsWith('.localhost'))) {
       const response = NextResponse.json({ success: false, error: 'invalid_request', message: 'Localhost is not allowed in production.' }, { status: 400 });
       return response;
+    }
+
+    // SSRF protection: Resolve domain and check for private IP addresses
+    if (!isDev) {
+      try {
+        const lookup = await dns.lookup(lowerDomain, { all: true });
+        const isUnsafe = lookup.some(addr => isPrivateIp(addr.address));
+        if (isUnsafe) {
+          console.warn(`[xrpc/net.atpassport.verify.submit] SSRF Attempt blocked: ${lowerDomain} resolved to private IP`);
+          return NextResponse.json({ 
+            success: false, 
+            error: 'invalid_request', 
+            message: 'Access to private network addresses is not allowed.' 
+          }, { status: 400 });
+        }
+      } catch (dnsError) {
+        console.warn(`[xrpc/net.atpassport.verify.submit] DNS Lookup failed for ${lowerDomain}:`, dnsError);
+        return NextResponse.json({ 
+          success: false, 
+          error: 'invalid_request', 
+          message: 'Could not resolve domain name.' 
+        }, { status: 400 });
+      }
     }
 
     const protocol = (isDev && (lowerDomain.startsWith('localhost') || lowerDomain.includes('127.0.0.1'))) ? 'http' : 'https';

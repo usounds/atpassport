@@ -78,7 +78,7 @@ export async function verifyServiceAuth(request: Request): Promise<AtprotoDid | 
       return null;
     }
 
-    const isValid = await verifySig(publicKey, signature, message, { allowMalleableSig: true });
+    const isValid = await verifySig(publicKey, signature, message, { allowMalleableSig: false });
     if (!isValid) {
        console.warn('[verifyServiceAuth] Invalid JWT signature');
        return null;
