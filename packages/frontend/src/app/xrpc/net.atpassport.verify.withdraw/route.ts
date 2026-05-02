@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   try {
     // 1. JWTの検証とDIDの取得
-    const did = await verifyServiceAuth(request);
+    const did = await verifyServiceAuth(request, 'net.atpassport.verify.withdraw');
     
     if (!did) {
       const output: NetAtpassportVerifyWithdraw.Output = { success: false, error: 'Unauthorized: Invalid Service Auth token' };

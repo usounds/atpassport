@@ -5,12 +5,15 @@ import { encodeUtf8 } from '@atcute/uint8array';
 import { resolveDidDocument } from './atproto-server';
 import type { AtprotoDid } from '@atcute/lexicons/syntax';
 
+const MAX_TOKEN_TTL_SECONDS = 5 * 60;
+const CLOCK_SKEW_SECONDS = 60;
+
 /**
  * Parses and verifies the Service Auth JWT (Proxy JWT) from an atproto request.
  * 
  * Returns the originating user's DID (iss) if valid, or null otherwise.
  */
-export async function verifyServiceAuth(request: Request): Promise<AtprotoDid | null> {
+export async function verifyServiceAuth(request: Request, expectedLxm?: string): Promise<AtprotoDid | null> {
   try {
     const authHeader = request.headers.get('authorization');
 
@@ -38,6 +41,7 @@ export async function verifyServiceAuth(request: Request): Promise<AtprotoDid | 
 
     const iss = payload.iss; // Issuer: Typically the user's DID directly in Service Auth JWT.
     const aud = payload.aud; // Audience: The destination DID (did:web:yourhost)
+    const lxm = payload.lxm;
 
 
     if (!iss || typeof iss !== 'string' || !iss.startsWith('did:')) {
@@ -53,6 +57,48 @@ export async function verifyServiceAuth(request: Request): Promise<AtprotoDid | 
       const allowedAuds = [expectedAud, `did:web:atpassport.net`, `did:web:dev.atpassport.net`];
       if (!allowedAuds.includes(aud as string)) {
         console.warn(`[verifyServiceAuth] Audience mismatch. Expected one of: ${allowedAuds.join(', ')}, Got: ${aud}`);
+        return null;
+      }
+    }
+
+    if (expectedLxm && lxm !== expectedLxm) {
+      console.warn(`[verifyServiceAuth] Method mismatch. Expected: ${expectedLxm}, Got: ${lxm}`);
+      return null;
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    if (typeof payload.exp !== 'number' || !Number.isFinite(payload.exp)) {
+      console.warn('[verifyServiceAuth] Missing or invalid expiration');
+      return null;
+    }
+
+    if (typeof payload.iat !== 'number' || !Number.isFinite(payload.iat)) {
+      console.warn('[verifyServiceAuth] Missing or invalid issued-at time');
+      return null;
+    }
+
+    if (payload.exp <= now - CLOCK_SKEW_SECONDS) {
+      console.warn('[verifyServiceAuth] Token expired');
+      return null;
+    }
+
+    if (payload.iat > now + CLOCK_SKEW_SECONDS) {
+      console.warn('[verifyServiceAuth] Token issued in the future');
+      return null;
+    }
+
+    if (payload.exp - payload.iat > MAX_TOKEN_TTL_SECONDS + CLOCK_SKEW_SECONDS) {
+      console.warn('[verifyServiceAuth] Token TTL is too long');
+      return null;
+    }
+
+    if (payload.nbf !== undefined) {
+      if (typeof payload.nbf !== 'number' || !Number.isFinite(payload.nbf)) {
+        console.warn('[verifyServiceAuth] Invalid not-before time');
+        return null;
+      }
+      if (payload.nbf > now + CLOCK_SKEW_SECONDS) {
+        console.warn('[verifyServiceAuth] Token is not active yet');
         return null;
       }
     }
@@ -81,13 +127,6 @@ export async function verifyServiceAuth(request: Request): Promise<AtprotoDid | 
     const isValid = await verifySig(publicKey, signature, message, { allowMalleableSig: false });
     if (!isValid) {
        console.warn('[verifyServiceAuth] Invalid JWT signature');
-       return null;
-    }
-
-    // Check expiration
-    const now = Math.floor(Date.now() / 1000);
-    if (payload.exp && payload.exp < now) {
-       console.warn('[verifyServiceAuth] Token expired');
        return null;
     }
 

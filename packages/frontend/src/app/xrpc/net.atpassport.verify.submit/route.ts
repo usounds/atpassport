@@ -5,43 +5,15 @@ import { verifyDomainInDb } from '@/lib/security';
 import { resolveIdentity } from '@/lib/atproto-server';
 import { isRateLimited } from '@/lib/rate-limit';
 import { domainSchema } from '@/lib/schemas';
+import { fetchVerificationFile } from '@/lib/verification-fetch';
 
 export const dynamic = 'force-dynamic';
 import net from 'node:net';
-import dns from 'node:dns/promises';
-
-/**
- * Checks if an IP address belongs to a private, loopback, or link-local range.
- * This is used to prevent SSRF attacks.
- */
-function isPrivateIp(ip: string): boolean {
-  if (net.isIPv4(ip)) {
-    const parts = ip.split('.').map(Number);
-    return (
-      parts[0] === 10 ||
-      (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
-      (parts[0] === 192 && parts[1] === 168) ||
-      parts[0] === 127 ||
-      (parts[0] === 169 && parts[1] === 254) ||
-      parts[0] === 0
-    );
-  }
-  if (net.isIPv6(ip)) {
-    const lowerIp = ip.toLowerCase();
-    return (
-      lowerIp === '::1' ||
-      lowerIp.startsWith('fe80:') ||
-      lowerIp.startsWith('fc00:') ||
-      lowerIp.startsWith('fd00:')
-    );
-  }
-  return true; // Reject unknown formats for safety
-}
 
 export async function POST(request: Request) {
   try {
     // 1. JWTの取得と検証 (Service Auth)
-    const did = await verifyServiceAuth(request);
+    const did = await verifyServiceAuth(request, 'net.atpassport.verify.submit');
     
     if (!did) {
       const response = NextResponse.json({ success: false, error: 'unauthorized', message: 'Invalid Service Auth token' }, { status: 401 });
@@ -108,53 +80,22 @@ export async function POST(request: Request) {
       return response;
     }
 
-    // SSRF protection: Resolve domain and check for private IP addresses
-    if (!isDev) {
-      try {
-        const lookup = await dns.lookup(lowerDomain, { all: true });
-        const isUnsafe = lookup.some(addr => isPrivateIp(addr.address));
-        if (isUnsafe) {
-          console.warn(`[xrpc/net.atpassport.verify.submit] SSRF Attempt blocked: ${lowerDomain} resolved to private IP`);
-          return NextResponse.json({ 
-            success: false, 
-            error: 'invalid_request', 
-            message: 'Access to private network addresses is not allowed.' 
-          }, { status: 400 });
-        }
-      } catch (dnsError) {
-        console.warn(`[xrpc/net.atpassport.verify.submit] DNS Lookup failed for ${lowerDomain}:`, dnsError);
-        return NextResponse.json({ 
-          success: false, 
-          error: 'invalid_request', 
-          message: 'Could not resolve domain name.' 
-        }, { status: 400 });
-      }
-    }
-
     const protocol = (isDev && (lowerDomain.startsWith('localhost') || lowerDomain.includes('127.0.0.1'))) ? 'http' : 'https';
     const url = `${protocol}://${lowerDomain}/.well-known/atpassport`;
     
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      const fetchRes = await fetch(url, { 
-        cache: 'no-store',
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
+      const fetchRes = await fetchVerificationFile(lowerDomain, protocol);
 
       if (!fetchRes.ok) {
         const res = NextResponse.json({ 
           success: false, 
-          error: 'unreachable_url',
-          message: `Could not reach ${url}: ${fetchRes.statusText}`
+          error: fetchRes.error === 'private_ip' ? 'invalid_request' : fetchRes.error,
+          message: `Could not verify ${url}: ${fetchRes.message}`
         }, { status: 400 });
         return res;
       }
 
-      const content = await fetchRes.text();
+      const content = fetchRes.content;
       const expectedPrefix = 'atpassport-verification:';
       if (!content.includes(expectedPrefix) || !content.includes(did)) {
         const res = NextResponse.json({ 

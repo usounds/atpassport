@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   try {
     // 1. JWT validation (Service Auth)
-    const did = await verifyServiceAuth(request);
+    const did = await verifyServiceAuth(request, 'net.atpassport.verify.list');
     
     if (!did) {
       const response = NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
