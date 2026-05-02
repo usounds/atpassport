@@ -4,6 +4,8 @@ import { getTranslations } from 'next-intl/server';
 import { AssociationList } from '@/components/AssociationList';
 import { RegisterForm } from '@/components/RegisterForm';
 import { ShareSection } from '@/components/ShareSection';
+import { PasskeyManager } from '@/components/PasskeyManager';
+import { PasskeyLogin } from '@/components/PasskeyLogin';
 import { getAssociations } from '@/lib/models';
 import { getSessionUuid } from '@/lib/session';
 import { IconInfoCircle } from '@tabler/icons-react';
@@ -49,6 +51,17 @@ export default async function HomePage({
         </Suspense>
 
         <RegisterForm handleCount={handleCount} />
+
+        {handleCount === 0 && (
+          <Stack gap="xs">
+             <Divider label={t.rich('Passkeys.titleShort', { namespace: 'Passkeys' })} labelPosition="center" />
+             <PasskeyLogin />
+          </Stack>
+        )}
+
+        {handleCount > 0 && (
+          <PasskeyManager />
+        )}
 
         <ShareSection handleCount={handleCount} />
       </Stack>

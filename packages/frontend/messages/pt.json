@@ -197,5 +197,23 @@
     "description": "Lista de domínios registrados com propriedade verificada.",
     "verified_by": "Verificado por",
     "no_domains": "Nenhum domínio verificado ainda."
+  },
+  "Passkeys": {
+    "title": "Passkeys (Biometria)",
+    "description": "Registre uma passkey para recuperar facilmente a sua conta utilizando a sua impressão digital ou rosto (Touch ID / Face ID, etc.), mesmo que os seus cookies sejam apagados.",
+    "registerButton": "Registrar este dispositivo",
+    "loginButton": "Recuperar com Passkey",
+    "noPasskeys": "Nenhuma passkey registrada ainda.",
+    "activeBadge": "Ativo",
+    "passkeyLabel": "Passkey ({id})",
+    "registrationSuccessTitle": "Registro com sucesso",
+    "registrationSuccessMessage": "Pode agora iniciar sessão utilizando este dispositivo.",
+    "registrationErrorTitle": "Falha no registro",
+    "registrationErrorMessage": "Ocorreu um erro durante o registro da passkey.",
+    "loginSuccessTitle": "Início de sessão com sucesso",
+    "loginSuccessMessage": "Conta recuperada com sucesso.",
+    "loginErrorTitle": "Falha no início de sessão",
+    "loginErrorMessage": "A autenticação por passkey falhou.",
+    "titleShort": "Passkeys"
   }
 }

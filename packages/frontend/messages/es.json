@@ -197,5 +197,23 @@
     "description": "Lista de dominios registrados con propiedad verificada.",
     "verified_by": "Verificado por",
     "no_domains": "Aún no hay dominios verificados."
+  },
+  "Passkeys": {
+    "title": "Passkeys (Biometría)",
+    "description": "Registra una llave de acceso (passkey) para recuperar fácilmente tu cuenta usando tu huella dactilar o rostro (Touch ID / Face ID, etc.), incluso si se borran las cookies.",
+    "registerButton": "Registrar este dispositivo",
+    "loginButton": "Recuperar con llave de acceso",
+    "noPasskeys": "Aún no hay llaves de acceso registradas.",
+    "activeBadge": "Activo",
+    "passkeyLabel": "Llave de acceso ({id})",
+    "registrationSuccessTitle": "Registro exitoso",
+    "registrationSuccessMessage": "Ahora puedes iniciar sesión con este dispositivo.",
+    "registrationErrorTitle": "Error de registro",
+    "registrationErrorMessage": "Ocurrió un error durante el registro de la llave de acceso.",
+    "loginSuccessTitle": "Inicio de sesión exitoso",
+    "loginSuccessMessage": "Cuenta recuperada correctamente.",
+    "loginErrorTitle": "Error de inicio de sesión",
+    "loginErrorMessage": "La autenticación con llave de acceso falló.",
+    "titleShort": "Passkeys"
   }
 }

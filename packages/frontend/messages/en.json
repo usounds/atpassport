@@ -197,5 +197,23 @@
     "description": "List of domains registered and verified for ownership.",
     "verified_by": "Verified by",
     "no_domains": "No domains yet."
+  },
+  "Passkeys": {
+    "title": "Passkeys (Biometrics)",
+    "description": "Register a passkey to easily recover your account using your fingerprint or face (Touch ID / Face ID, etc.), even if your cookies are cleared.",
+    "registerButton": "Register This Device",
+    "loginButton": "Recover with Passkey",
+    "noPasskeys": "No passkeys registered yet.",
+    "activeBadge": "Active",
+    "passkeyLabel": "Passkey ({id})",
+    "registrationSuccessTitle": "Registration Success",
+    "registrationSuccessMessage": "You can now login using this device.",
+    "registrationErrorTitle": "Registration Failed",
+    "registrationErrorMessage": "An error occurred during passkey registration.",
+    "loginSuccessTitle": "Login Success",
+    "loginSuccessMessage": "Successfully recovered your account.",
+    "loginErrorTitle": "Login Failed",
+    "loginErrorMessage": "Passkey authentication failed.",
+    "titleShort": "Passkeys"
   }
 }

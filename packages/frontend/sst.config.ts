@@ -53,9 +53,23 @@ export default $config({
       },
     });
 
+    const passkeysTable = new sst.aws.Dynamo("AtPassportPasskeys", {
+      fields: {
+        credentialID: "string",
+        uuid: "string",
+      },
+      primaryIndex: { hashKey: "credentialID" },
+      globalIndexes: {
+        UuidIndex: {
+          hashKey: "uuid",
+          projection: "all",
+        },
+      },
+    });
+
     new sst.aws.Nextjs("AtPassportApp", {
       path: ".",
-      link: [table, shareTokensTable, verifiedDomainsTable, sessionSecret],
+      link: [table, shareTokensTable, verifiedDomainsTable, passkeysTable, sessionSecret],
       permissions: [
         {
           actions: ["dynamodb:Query", "dynamodb:Scan", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"],
@@ -65,7 +79,9 @@ export default $config({
             shareTokensTable.arn,
             $util.interpolate`${shareTokensTable.arn}/index/*`,
             verifiedDomainsTable.arn,
-            $util.interpolate`${verifiedDomainsTable.arn}/index/*`
+            $util.interpolate`${verifiedDomainsTable.arn}/index/*`,
+            passkeysTable.arn,
+            $util.interpolate`${passkeysTable.arn}/index/*`
           ],
         },
       ],

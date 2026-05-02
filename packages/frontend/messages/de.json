@@ -197,5 +197,23 @@
     "description": "Liste der registrierten Domains mit bestätigter Inhaberschaft.",
     "verified_by": "Verifiziert von",
     "no_domains": "Noch keine verifizierten Domains."
+  },
+  "Passkeys": {
+    "title": "Passkeys (Biometrie)",
+    "description": "Registrieren Sie einen Passkey, um Ihr Konto ganz einfach mit Ihrem Fingerabdruck oder Gesicht (Touch ID / Face ID usw.) wiederherzustellen, selbst wenn Ihre Cookies gelöscht wurden.",
+    "registerButton": "Dieses Gerät registrieren",
+    "loginButton": "Mit Passkey wiederherstellen",
+    "noPasskeys": "Noch keine Passkeys registriert.",
+    "activeBadge": "Aktiv",
+    "passkeyLabel": "Passkey ({id})",
+    "registrationSuccessTitle": "Registrierung erfolgreich",
+    "registrationSuccessMessage": "Sie können sich jetzt mit diesem Gerät anmelden.",
+    "registrationErrorTitle": "Registrierung fehlgeschlagen",
+    "registrationErrorMessage": "Bei der Passkey-Registrierung ist ein Fehler aufgetreten.",
+    "loginSuccessTitle": "Anmeldung erfolgreich",
+    "loginSuccessMessage": "Ihr Konto wurde erfolgreich wiederhergestellt.",
+    "loginErrorTitle": "Anmeldung fehlgeschlagen",
+    "loginErrorMessage": "Passkey-Authentifizierung fehlgeschlagen.",
+    "titleShort": "Passkeys"
   }
 }

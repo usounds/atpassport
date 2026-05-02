@@ -1,5 +1,5 @@
-import { db, SESSION_TABLE_NAME } from "./db";
-import { PutCommand, QueryCommand, DeleteCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { db, SESSION_TABLE_NAME, PASSKEYS_TABLE_NAME } from "./db";
+import { PutCommand, QueryCommand, DeleteCommand, UpdateCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { type AppBskyActorDefs } from "@atcute/bluesky";
 import type { Handle } from "@atcute/lexicons/syntax";
 
@@ -12,6 +12,67 @@ export interface IdentityAssociation {
   expiresAt?: number; // DynamoDB TTL (Unix timestamp)
   isPrimary?: boolean;
   sortOrder?: number;
+}
+
+export interface PasskeyDevice {
+  credentialID: string; // Base64URL
+  publicKey: string; // Base64URL
+  counter: number;
+  transports?: string[]; // JSON stringified array or actual array if handled by library
+  uuid: string; // The AtPassport session UUID this passkey belongs to
+  createdAt: string;
+}
+
+export async function addPasskey(passkey: PasskeyDevice) {
+  await db.send(
+    new PutCommand({
+      TableName: PASSKEYS_TABLE_NAME,
+      Item: passkey,
+    })
+  );
+}
+
+export async function getPasskey(credentialID: string): Promise<PasskeyDevice | null> {
+  const result = (await db.send(
+    new GetCommand({
+      TableName: PASSKEYS_TABLE_NAME,
+      Key: { credentialID },
+    })
+  )) as { Item: PasskeyDevice };
+  return result.Item || null;
+}
+
+export async function getPasskeysByUuid(uuid: string): Promise<PasskeyDevice[]> {
+  const result = (await db.send(
+    new QueryCommand({
+      TableName: PASSKEYS_TABLE_NAME,
+      IndexName: "UuidIndex",
+      KeyConditionExpression: "#uuid = :uuid",
+      ExpressionAttributeNames: {
+        "#uuid": "uuid",
+      },
+      ExpressionAttributeValues: {
+        ":uuid": uuid,
+      },
+    })
+  )) as { Items: PasskeyDevice[] };
+  return result.Items || [];
+}
+
+export async function updatePasskeyCounter(credentialID: string, newCounter: number) {
+  await db.send(
+    new UpdateCommand({
+      TableName: PASSKEYS_TABLE_NAME,
+      Key: { credentialID },
+      UpdateExpression: "SET #counter = :counter",
+      ExpressionAttributeNames: {
+        "#counter": "counter",
+      },
+      ExpressionAttributeValues: {
+        ":counter": newCounter,
+      },
+    })
+  );
 }
 
 export type AssociationWithProfile = IdentityAssociation & {
