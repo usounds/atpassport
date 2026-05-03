@@ -47,7 +47,7 @@ export async function resolveHandle(did: string) {
       pdsUrl: result?.pdsUrl || null
     };
   } catch (error) {
-    console.error(`[resolveHandle] Failed to resolve DID ${did}:`, error);
+    console.error('[resolveHandle] Failed to resolve DID %s:', did, error);
     return { did: null, handle: null, pdsUrl: null };
   }
 }
@@ -72,7 +72,7 @@ export async function resolveActorDid(actorIdentifier: string) {
     const result = await resolveIdentity(actorIdentifier);
     return { did: result?.did || null };
   } catch (error) {
-    console.error(`[resolveActorDid] Failed to resolve actor ${actorIdentifier}:`, error);
+    console.error('[resolveActorDid] Failed to resolve actor %s:', actorIdentifier, error);
     return { did: null };
   }
 }
@@ -102,7 +102,7 @@ export async function resolveDidDoc(did: string) {
   try {
     return await resolveDidDocument(did);
   } catch (error) {
-    console.error(`[resolveDidDoc] Failed to resolve DID document for ${did}:`, error);
+    console.error('[resolveDidDoc] Failed to resolve DID document for %s:', did, error);
     return null;
   }
 }
@@ -169,7 +169,7 @@ export async function registerHandle(handle: string): Promise<{ success: boolean
     const ip = headerList.get("x-forwarded-for") || "anonymous";
     const limit = process.env.E2E_TEST === "true" ? 100 : 15;
     if (isRateLimited(`action:register:${ip}`, limit, 60000)) {
-      console.warn(`[ServerAction:registerHandle] Rate limited for IP: ${ip}`);
+      console.warn('[ServerAction:registerHandle] Rate limited for IP: %s', ip);
       return { success: false, error: "Too many requests. Please try again later." };
     }
 
@@ -184,7 +184,7 @@ export async function registerHandle(handle: string): Promise<{ success: boolean
     const { did, pdsUrl, handle: resolvedHandle } = result;
     const associations = await getAssociations(uuid);
     
-    console.log(`[registerHandle] Registering handle: ${resolvedHandle} (DID: ${did}) for UUID: ${uuid}`);
+    console.log('[registerHandle] Registering handle: %s (DID: %s) for UUID: %s', resolvedHandle, did, uuid);
 
     // DIDベースで既存の登録を確認
     const existing = associations.find(a => a.did === did);
@@ -233,7 +233,7 @@ export async function refreshAssociation(did: string) {
   const ip = headerList.get("x-forwarded-for") || "anonymous";
   const limit = process.env.E2E_TEST === "true" ? 100 : 15;
   if (isRateLimited(`action:refresh:${ip}`, limit, 60000)) {
-    console.warn(`[ServerAction:refreshAssociation] Rate limited for IP: ${ip}`);
+    console.warn('[ServerAction:refreshAssociation] Rate limited for IP: %s', ip);
     return;
   }
 
@@ -335,7 +335,7 @@ export async function initializeSession() {
   const ip = headerList.get("x-forwarded-for") || "anonymous";
   const limit = process.env.E2E_TEST === "true" ? 100 : 15;
   if (isRateLimited(`action:init:${ip}`, limit, 60000)) {
-    console.warn(`[ServerAction:initializeSession] Rate limited for IP: ${ip}`);
+    console.warn('[ServerAction:initializeSession] Rate limited for IP: %s', ip);
     return;
   }
 

@@ -17,7 +17,7 @@ export async function AssociationList() {
   }
 
   const associations = await getAssociations(uuid);
-  console.log(`[AssociationList] Found ${associations.length} associations for UUID: ${uuid}`);
+  console.log('[AssociationList] Found %s associations for UUID: %s', associations.length, uuid);
 
   const items = associations.map((assoc) => ({
     ...assoc,

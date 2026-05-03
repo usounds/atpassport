@@ -117,12 +117,12 @@ export async function fetchVerificationFile(domain: string, protocol: "http" | "
   try {
     addresses = await dns.lookup(domain, { all: true, verbatim: true });
   } catch (error) {
-    console.warn(`[verification-fetch] DNS lookup failed for ${domain}:`, error);
+    console.warn('[verification-fetch] DNS lookup failed for %s:', domain, error);
     return { ok: false, error: "dns_failed", message: "Could not resolve domain name." };
   }
 
   if (addresses.length === 0 || addresses.some((addr) => isUnsafeIp(addr.address))) {
-    console.warn(`[verification-fetch] Unsafe address blocked for ${domain}:`, addresses.map((addr) => addr.address).join(", "));
+    console.warn('[verification-fetch] Unsafe address blocked for %s:', domain, addresses.map((addr) => addr.address).join(", "));
     return { ok: false, error: "private_ip", message: "Access to private or reserved network addresses is not allowed." };
   }
 

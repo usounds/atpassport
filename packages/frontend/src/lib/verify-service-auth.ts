@@ -56,13 +56,13 @@ export async function verifyServiceAuth(request: Request, expectedLxm?: string):
     if (aud !== expectedAud) {
       const allowedAuds = [expectedAud, `did:web:atpassport.net`, `did:web:dev.atpassport.net`];
       if (!allowedAuds.includes(aud as string)) {
-        console.warn(`[verifyServiceAuth] Audience mismatch. Expected one of: ${allowedAuds.join(', ')}, Got: ${aud}`);
+        console.warn('[verifyServiceAuth] Audience mismatch. Expected one of: %s, Got: %s', allowedAuds.join(', '), aud);
         return null;
       }
     }
 
     if (expectedLxm && lxm !== expectedLxm) {
-      console.warn(`[verifyServiceAuth] Method mismatch. Expected: ${expectedLxm}, Got: ${lxm}`);
+      console.warn('[verifyServiceAuth] Method mismatch. Expected: %s, Got: %s', expectedLxm, lxm);
       return null;
     }
 
@@ -120,7 +120,7 @@ export async function verifyServiceAuth(request: Request, expectedLxm?: string):
     const publicKey = getPublicKeyFromDidController(material);
     
     if (publicKey.jwtAlg !== header.alg) {
-      console.warn(`[verifyServiceAuth] Algorithm mismatch. Expected: ${publicKey.jwtAlg}, Got: ${header.alg}`);
+      console.warn('[verifyServiceAuth] Algorithm mismatch. Expected: %s, Got: %s', publicKey.jwtAlg, header.alg);
       return null;
     }
 

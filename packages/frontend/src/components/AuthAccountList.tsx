@@ -53,7 +53,7 @@ export function AuthAccountList({
       
       if (didsToFetch.length === 0) return;
 
-      console.log(`[AuthAccountList] Fetching profiles for ${didsToFetch.length} missing items...`);
+      console.log('[AuthAccountList] Fetching profiles for %s missing items...', didsToFetch.length);
       const profilesMap = await useProfileStore.getState().fetchProfiles(didsToFetch);
       
       setItems(prev => prev.map(item => {

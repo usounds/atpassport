@@ -183,7 +183,7 @@ const createStub = (originalClient: DynamoDBDocumentClient) => {
           errorName.includes("UnrecognizedClientException");
         
         if (isLocalDev && isResourceError) {
-          console.warn(`⚠️ [DynamoDB Stub] Falling back to memory for command: ${command.constructor.name}`);
+          console.warn('⚠️ [DynamoDB Stub] Falling back to memory for command: %s', command.constructor.name);
           return handleStubCommand(command) as unknown as T;
         }
         throw e;
