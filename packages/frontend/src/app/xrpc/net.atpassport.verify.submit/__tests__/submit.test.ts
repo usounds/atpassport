@@ -4,18 +4,24 @@ import { verifyServiceAuth } from '@/lib/verify-service-auth';
 import { verifyDomainInDb } from '@/lib/security';
 import { resolveIdentity } from '@/lib/atproto-server';
 import { resetRateLimit } from '@/lib/rate-limit';
+import { fetchVerificationFile } from '@/lib/verification-fetch';
 
 vi.mock('@/lib/verify-service-auth');
 vi.mock('@/lib/security');
 vi.mock('@/lib/atproto-server');
+vi.mock('@/lib/verification-fetch');
 
 describe('XRPC: net.atpassport.verify.submit', () => {
   const mockDid = 'did:plc:user123';
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubGlobal('fetch', vi.fn());
     resetRateLimit();
+    vi.mocked(fetchVerificationFile).mockResolvedValue({
+      ok: false,
+      error: 'connection_failed',
+      message: 'Connection failed.',
+    });
   });
 
   it('should verify domain via OAuth (domain matches handle)', async () => {
@@ -64,11 +70,10 @@ describe('XRPC: net.atpassport.verify.submit', () => {
       pdsUrl: 'https://pds.com'
     });
 
-    // Mock successful fetch of .well-known/atpassport
-    vi.mocked(fetch).mockResolvedValue({
+    vi.mocked(fetchVerificationFile).mockResolvedValue({
       ok: true,
-      text: async () => `atpassport-verification: ${mockDid}`,
-    } as Response);
+      content: `atpassport-verification: ${mockDid}`,
+    });
 
     const request = new Request('https://example.com/xrpc/net.atpassport.verify.submit', {
       method: 'POST',
@@ -80,17 +85,17 @@ describe('XRPC: net.atpassport.verify.submit', () => {
 
     expect(data.success).toBe(true);
     expect(verifyDomainInDb).toHaveBeenCalledWith(domain, mockDid, true, 'file');
-    expect(fetch).toHaveBeenCalledWith(`https://${domain}/.well-known/atpassport`, expect.any(Object));
+    expect(fetchVerificationFile).toHaveBeenCalledWith(domain, 'https');
   });
 
   it('should fail if file content does not match', async () => {
     const domain = 'wrong-domain.com';
     vi.mocked(verifyServiceAuth).mockResolvedValue(mockDid);
 
-    vi.mocked(fetch).mockResolvedValue({
+    vi.mocked(fetchVerificationFile).mockResolvedValue({
       ok: true,
-      text: async () => `atpassport-verification: did:plc:WRONG`,
-    } as Response);
+      content: `atpassport-verification: did:plc:WRONG`,
+    });
 
     const request = new Request('https://example.com/xrpc/net.atpassport.verify.submit', {
       method: 'POST',
@@ -134,7 +139,11 @@ describe('XRPC: net.atpassport.verify.submit', () => {
 
   it('should fail if fetch throws error', async () => {
     vi.mocked(verifyServiceAuth).mockResolvedValue(mockDid);
-    vi.mocked(fetch).mockRejectedValue(new Error('Network Error'));
+    vi.mocked(fetchVerificationFile).mockResolvedValue({
+      ok: false,
+      error: 'connection_failed',
+      message: 'Network Error',
+    });
     const request = new Request('https://example.com/xrpc/net.atpassport.verify.submit', {
       method: 'POST',
       body: JSON.stringify({ domain: 'fail.com' }),
@@ -208,10 +217,11 @@ describe('XRPC: net.atpassport.verify.submit', () => {
 
   it('should fail if fetch response is not ok', async () => {
     vi.mocked(verifyServiceAuth).mockResolvedValue(mockDid);
-    vi.mocked(fetch).mockResolvedValue({
+    vi.mocked(fetchVerificationFile).mockResolvedValue({
       ok: false,
-      status: 404,
-    } as Response);
+      error: 'unreachable_url',
+      message: 'Verification file returned HTTP 404.',
+    });
 
     const request = new Request('https://example.com/xrpc/net.atpassport.verify.submit', {
       method: 'POST',

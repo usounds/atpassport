@@ -1,6 +1,6 @@
 {
   "name": "atpassport-extension",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "author": "usounds.work",
   "type": "module",
   "description": "@passport handle auto-filler and clipboard copier.",
@@ -17,7 +17,8 @@
     "postinstall": "wxt prepare",
     "compile": "tsc --noEmit",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "wxt build && playwright test"
   },
   "dependencies": {
     "lucide-react": "^1.11.0",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/chrome": "^0.1.40",

@@ -124,7 +124,17 @@ export function AuthAccountItem({
         <Group wrap="nowrap" gap={0} align="center">
           <UnstyledButton
             component="div"
+            role="button"
+            tabIndex={0}
+            data-testid="auth-account-select"
+            aria-label={`Select ${item.handle}`}
             onClick={handleSelect}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                handleSelect();
+              }
+            }}
             style={{
               flex: 1,
               cursor: (disabled || isUpdating) ? 'not-allowed' : 'pointer',
@@ -139,6 +149,7 @@ export function AuthAccountItem({
               style={{
                 backgroundColor: 'transparent',
                 border: 'none',
+                pointerEvents: 'none',
               }}
             >
               <Group wrap="nowrap" gap="md" align="center" style={{ minWidth: 0 }}>
@@ -172,6 +183,7 @@ export function AuthAccountItem({
                     color="gray" 
                     size="lg" 
                     radius="md" 
+                    aria-label={t('manage_account')}
                     loading={isUpdating}
                     onClick={(e) => e.stopPropagation()}
                   >

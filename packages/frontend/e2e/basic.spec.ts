@@ -123,8 +123,9 @@ test.describe('Basic UI Flow', () => {
     await expect(page.getByRole('heading', { name: 'ハンドルを選択してください' })).toBeVisible();
 
     // 10. Select the handle we just registered (bsky.app)
-    const accountItem = page.getByText(/@bsky\.app/).first();
+    const accountItem = page.getByTestId('auth-account-select').filter({ hasText: /@bsky\.app/ }).first();
     await expect(accountItem).toBeVisible({ timeout: 10000 });
+    await expect(accountItem).toContainText('Bluesky', { timeout: 10000 });
     await accountItem.click();
 
     // 11. Verify we are back on the Example page and it shows results

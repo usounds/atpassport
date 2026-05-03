@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
 import { jwtVerify } from 'jose';
-import { SESSION_COOKIE_NAME, SECRET_KEY } from './lib/session';
+import { getSecretKey, SESSION_COOKIE_NAME } from './lib/session';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -21,9 +21,11 @@ export default async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
 
   if (sessionCookie) {
+    const secretKey = getSecretKey();
+
     try {
       // Just verify the session, do not update it here to avoid Cache-Control/Set-Cookie issues on GET
-      await jwtVerify(sessionCookie.value, SECRET_KEY);
+      await jwtVerify(sessionCookie.value, secretKey);
     } catch (e) {
       console.warn('[Middleware] Invalid session cookie:', e);
     }

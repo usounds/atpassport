@@ -4,21 +4,56 @@ import { jwtVerify, SignJWT, type JWTPayload } from "jose";
 export const SESSION_COOKIE_NAME = process.env.NODE_ENV === 'production' 
   ? "__Host-atpassport_session_v2" 
   : "atpassport_session_v2";
-const SESSION_SECRET = process.env.SESSION_SECRET;
+const DEVELOPMENT_SECRET =
+  "dev-only-insecure-secret-key-at-least-32-chars-long";
+let hasWarnedAboutDevelopmentSecret = false;
 
-if (!SESSION_SECRET && process.env.NODE_ENV === "production") {
-  throw new Error("SESSION_SECRET environment variable is not set. Please set it in your environment variables.");
+function warnAboutDevelopmentSecret(message: string) {
+  if (!hasWarnedAboutDevelopmentSecret) {
+    console.warn(message);
+    hasWarnedAboutDevelopmentSecret = true;
+  }
 }
 
-export const SECRET_KEY = new TextEncoder().encode(SESSION_SECRET || "dev-only-insecure-secret-key-at-least-32-chars-long");
+export function getSecretKey() {
+  const sessionSecret = process.env.SESSION_SECRET;
+
+  if (!sessionSecret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("SESSION_SECRET environment variable is not set.");
+    }
+
+    warnAboutDevelopmentSecret(
+      "SESSION_SECRET is not set. Using an insecure default key for development."
+    );
+    return new TextEncoder().encode(DEVELOPMENT_SECRET);
+  }
+
+  if (sessionSecret.length < 32) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "SESSION_SECRET must be at least 32 characters long for security."
+      );
+    }
+
+    warnAboutDevelopmentSecret(
+      "SESSION_SECRET is too short. Using an insecure default key for development."
+    );
+    return new TextEncoder().encode(DEVELOPMENT_SECRET);
+  }
+
+  return new TextEncoder().encode(sessionSecret);
+}
 
 export async function getSessionUuid(): Promise<string | null> {
+  const secretKey = getSecretKey();
+
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
     if (!sessionCookie) return null;
 
-    const { payload } = await jwtVerify(sessionCookie.value, SECRET_KEY);
+    const { payload } = await jwtVerify(sessionCookie.value, secretKey);
     return payload.uuid as string;
   } catch (e) {
     console.warn('[Session] jwtVerify failed:', e);
@@ -34,7 +69,7 @@ export async function createSessionToken(uuid: string): Promise<string> {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt(now)
     .setExpirationTime("365d")
-    .sign(SECRET_KEY);
+    .sign(getSecretKey());
 }
 
 /**

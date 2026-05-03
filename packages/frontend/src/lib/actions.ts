@@ -8,6 +8,8 @@ import { getUuidByShareToken } from './share';
 import { cookies, headers } from 'next/headers';
 import { isRateLimited } from './rate-limit';
 import { verifyDomainInDb, getVerifiedDomainFromDb, getVerifiedDomainsByDid, VerifiedDomain, deleteVerifiedDomainFromDb } from './security';
+import { didSchema, handleSchema, domainSchema } from './schemas';
+import { isActorIdentifier } from '@atcute/lexicons/syntax';
 
 /**
  * 手動でセッションの有効期限を延長します。
@@ -20,6 +22,11 @@ export async function touchSessionAction() {
  * DID からハンドル名を解決します。
  */
 export async function resolveHandle(did: string) {
+  const validation = didSchema.safeParse(did);
+  if (!validation.success) {
+    return { did: null, handle: null, pdsUrl: null };
+  }
+
   const headerList = await headers();
   const host = headerList.get('host') || '';
   const isE2E = process.env.E2E_TEST === "true" || host.includes(':3001');
@@ -28,10 +35,46 @@ export async function resolveHandle(did: string) {
     return {
       did: "did:plc:mock",
       handle: "test.bsky.social",
-      pdsUrl: "http://localhost:3001"
+      pdsUrl: "https://bsky.social"
     };
   }
-  return await resolveIdentity(did);
+
+  try {
+    const result = await resolveIdentity(did);
+    return {
+      did: result?.did || null,
+      handle: result?.handle || null,
+      pdsUrl: result?.pdsUrl || null
+    };
+  } catch (error) {
+    console.error('[resolveHandle] Failed to resolve DID %s:', did, error);
+    return { did: null, handle: null, pdsUrl: null };
+  }
+}
+
+/**
+ * OAuth のアカウント指定（handle/DID）から DID を解決します。
+ */
+export async function resolveActorDid(actorIdentifier: string) {
+  if (!isActorIdentifier(actorIdentifier)) {
+    return { did: null };
+  }
+
+  const headerList = await headers();
+  const host = headerList.get('host') || '';
+  const isE2E = process.env.E2E_TEST === "true" || host.includes(':3001');
+
+  if (isE2E && (actorIdentifier === "test.bsky.social" || actorIdentifier === "did:plc:mock")) {
+    return { did: "did:plc:mock" };
+  }
+
+  try {
+    const result = await resolveIdentity(actorIdentifier);
+    return { did: result?.did || null };
+  } catch (error) {
+    console.error('[resolveActorDid] Failed to resolve actor %s:', actorIdentifier, error);
+    return { did: null };
+  }
 }
 
 /**
@@ -49,19 +92,33 @@ export async function resolveDidDoc(did: string) {
         {
           id: "#atproto_pds",
           type: "AtprotoPersonalDataServer",
-          serviceEndpoint: "http://localhost:3001"
+          serviceEndpoint: "https://bsky.social"
         }
-      ]
+      ],
+      alsoKnownAs: ["at://test.bsky.social"]
     };
   }
-  return await resolveDidDocument(did);
+
+  try {
+    return await resolveDidDocument(did);
+  } catch (error) {
+    console.error('[resolveDidDoc] Failed to resolve DID document for %s:', did, error);
+    return null;
+  }
 }
 
 /**
- * ドメイン検証を取り消します。
+ * ドメインの所有権確認を解除します。
  */
 export async function withdrawDomain(domain: string, did: string) {
   try {
+    const domainValidation = domainSchema.safeParse(domain);
+    const didValidation = didSchema.safeParse(did);
+    
+    if (!domainValidation.success || !didValidation.success) {
+      return { success: false, error: "Invalid input format" };
+    }
+
     const uuid = await getSessionUuid();
     if (!uuid) return { success: false, error: "No session found" };
 
@@ -92,41 +149,7 @@ export async function withdrawDomain(domain: string, did: string) {
 }
 
 /**
- * ドメインの設定（公開状態など）を更新します。
- */
-export async function updateDomainSettings(domain: string, did: string, isPublic: boolean) {
-  try {
-    const uuid = await getSessionUuid();
-    if (!uuid) return { success: false, error: "No session found" };
-
-    // 権限チェック:
-    // 1. セッションにそのDIDが紐付いていること
-    const associations = await getAssociations(uuid);
-    if (!associations.some(a => a.did === did)) {
-      return { success: false, error: "DID not associated with your account" };
-    }
-
-    // 2. DB上の登録者がそのDIDであること
-    const existing = await getVerifiedDomainFromDb(domain);
-    if (!existing || existing.verifiedByDid !== did) {
-      return { success: false, error: "Unauthorized or domain not found" };
-    }
-
-    await verifyDomainInDb(domain, did, isPublic, existing.method || 'oauth');
-    
-    revalidatePath('/[locale]/directory');
-    revalidatePath('/[locale]/developers/verify');
-    
-    await refreshSession();
-    return { success: true };
-  } catch (error) {
-    console.error('[ServerAction:updateDomainSettings] ERROR:', error);
-    return { success: false, error: "Internal server error" };
-  }
-}
-
-/**
- * 基幹互換性のためのエイリアス
+ * OAuth 経由でドメインの所有権確認を解除します。
  */
 export async function withdrawDomainViaOAuth(did: string) {
   const identity = await resolveIdentity(did);
@@ -136,12 +159,17 @@ export async function withdrawDomainViaOAuth(did: string) {
 
 export async function registerHandle(handle: string): Promise<{ success: boolean; error?: string }> {
   try {
+    const validation = handleSchema.safeParse(handle);
+    if (!validation.success) {
+      return { success: false, error: "Invalid handle format" };
+    }
+
     // Rate limiting based on IP
     const headerList = await headers();
     const ip = headerList.get("x-forwarded-for") || "anonymous";
     const limit = process.env.E2E_TEST === "true" ? 100 : 15;
     if (isRateLimited(`action:register:${ip}`, limit, 60000)) {
-      console.warn(`[ServerAction:registerHandle] Rate limited for IP: ${ip}`);
+      console.warn('[ServerAction:registerHandle] Rate limited for IP: %s', ip);
       return { success: false, error: "Too many requests. Please try again later." };
     }
 
@@ -156,7 +184,7 @@ export async function registerHandle(handle: string): Promise<{ success: boolean
     const { did, pdsUrl, handle: resolvedHandle } = result;
     const associations = await getAssociations(uuid);
     
-    console.log(`[registerHandle] Registering handle: ${resolvedHandle} (DID: ${did}) for UUID: ${uuid}`);
+    console.log('[registerHandle] Registering handle: %s (DID: %s) for UUID: %s', resolvedHandle, did, uuid);
 
     // DIDベースで既存の登録を確認
     const existing = associations.find(a => a.did === did);
@@ -175,7 +203,7 @@ export async function registerHandle(handle: string): Promise<{ success: boolean
     revalidatePath('/[locale]', 'page');
     await refreshSession();
     return { success: true };
-  } catch (error: unknown) {
+  } catch (error) {
     console.error('[ServerAction:registerHandle] ERROR:', error);
     return { success: false, error: "Internal server error" };
   }
@@ -205,7 +233,7 @@ export async function refreshAssociation(did: string) {
   const ip = headerList.get("x-forwarded-for") || "anonymous";
   const limit = process.env.E2E_TEST === "true" ? 100 : 15;
   if (isRateLimited(`action:refresh:${ip}`, limit, 60000)) {
-    console.warn(`[ServerAction:refreshAssociation] Rate limited for IP: ${ip}`);
+    console.warn('[ServerAction:refreshAssociation] Rate limited for IP: %s', ip);
     return;
   }
 
@@ -219,12 +247,17 @@ export async function refreshAssociation(did: string) {
       pdsUrl: result.pdsUrl,
     });
     revalidatePath('/[locale]', 'page');
+    await refreshSession();
   }
-
-  await refreshSession();
 }
 
 export async function removeAssociation(did: string) {
+  const validation = didSchema.safeParse(did);
+  if (!validation.success) {
+    console.error('[removeAssociation] Invalid DID format:', did);
+    return;
+  }
+
   const uuid = await getSessionUuid();
   if (!uuid) return;
 
@@ -281,6 +314,9 @@ export async function syncWithToken(token: string): Promise<{ success: boolean; 
   const sessionToken = await createSessionToken(targetUuid);
   const cookieStore = await cookies();
 
+  // Clear any existing session before establishing a new one
+  cookieStore.delete(SESSION_COOKIE_NAME);
+
   cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -299,7 +335,7 @@ export async function initializeSession() {
   const ip = headerList.get("x-forwarded-for") || "anonymous";
   const limit = process.env.E2E_TEST === "true" ? 100 : 15;
   if (isRateLimited(`action:init:${ip}`, limit, 60000)) {
-    console.warn(`[ServerAction:initializeSession] Rate limited for IP: ${ip}`);
+    console.warn('[ServerAction:initializeSession] Rate limited for IP: %s', ip);
     return;
   }
 
@@ -318,6 +354,9 @@ export async function initializeSession() {
 
   const sessionToken = await createSessionToken(newUuid);
   const cookieStore = await cookies();
+
+  // Clear any existing session before establishing a new one
+  cookieStore.delete(SESSION_COOKIE_NAME);
 
   cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
     httpOnly: true,
@@ -345,4 +384,38 @@ export async function getVerificationStatus(did: string) {
  */
 export async function getVerifiedDomains(did: string): Promise<VerifiedDomain[]> {
   return await getVerifiedDomainsByDid(did);
+}
+
+/**
+ * ドメインの設定（公開状態など）を更新します。
+ */
+export async function updateDomainSettings(domain: string, did: string, isPublic: boolean) {
+  try {
+    const uuid = await getSessionUuid();
+    if (!uuid) return { success: false, error: "No session found" };
+
+    // 権限チェック:
+    // 1. セッションにそのDIDが紐付いていること
+    const associations = await getAssociations(uuid);
+    if (!associations.some(a => a.did === did)) {
+      return { success: false, error: "DID not associated with your account" };
+    }
+
+    // 2. DB上の登録者がそのDIDであること
+    const existing = await getVerifiedDomainFromDb(domain);
+    if (!existing || existing.verifiedByDid !== did) {
+      return { success: false, error: "Unauthorized or domain not found" };
+    }
+
+    await verifyDomainInDb(domain, did, isPublic, existing.method || 'oauth');
+    
+    revalidatePath('/[locale]/directory');
+    revalidatePath('/[locale]/developers/verify');
+    
+    await refreshSession();
+    return { success: true };
+  } catch (error) {
+    console.error('[ServerAction:updateDomainSettings] ERROR:', error);
+    return { success: false, error: "Internal server error" };
+  }
 }

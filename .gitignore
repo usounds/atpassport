@@ -37,3 +37,5 @@ coverage/
 
 # SST
 .sst/
+.serena/
+.playwright-mcp/

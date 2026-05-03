@@ -18,7 +18,7 @@ export function AssociationListClient({ initialItems }: { initialItems: Associat
 
       setLoading(true);
       try {
-        console.log(`[AssociationListClient] Fetching profiles for ${dids.length} items...`);
+        console.log('[AssociationListClient] Fetching profiles for %s items...', dids.length);
         const profilesMap = await useProfileStore.getState().fetchProfiles(dids);
         
         setItems(prev => prev.map(item => ({
