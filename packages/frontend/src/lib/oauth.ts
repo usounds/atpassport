@@ -7,14 +7,14 @@ import {
 import type { AtprotoDid } from '@atcute/lexicons/syntax';
 import { configureOAuth } from '@atcute/oauth-browser-client';
 
-import { resolveDidDoc, resolveHandle } from './actions';
+import { resolveActorDid, resolveDidDoc } from './actions';
 
 let initialized = false;
 let lastRedirectUri = '';
 
 class ProxyHandleResolver {
   async resolve(handle: string): Promise<AtprotoDid> {
-    const result = await resolveHandle(handle);
+    const result = await resolveActorDid(handle);
     if (!result?.did) {
       throw new Error('Handle not found');
     }

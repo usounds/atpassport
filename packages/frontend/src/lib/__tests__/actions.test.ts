@@ -9,6 +9,7 @@ import {
   updateDomainSettings,
   removeAssociation,
   setPrimaryAssociation,
+  resolveActorDid,
   resolveHandle,
   resolveDidDoc,
   withdrawDomainViaOAuth,
@@ -455,6 +456,19 @@ describe('Actions Library', () => {
       const result = await resolveHandle(mockDid);
       expect(result).toEqual({ did: mockDid, handle: 'h', pdsUrl: 'p' });
       expect(resolveIdentity).toHaveBeenCalledWith(mockDid);
+    });
+
+    it('resolveActorDid should resolve handles for OAuth start', async () => {
+      vi.mocked(resolveIdentity).mockResolvedValue({ did: mockDid, handle: mockHandle, pdsUrl: 'p' } as any);
+      const result = await resolveActorDid(mockHandle);
+      expect(result).toEqual({ did: mockDid });
+      expect(resolveIdentity).toHaveBeenCalledWith(mockHandle);
+    });
+
+    it('resolveActorDid should reject malformed identifiers', async () => {
+      const result = await resolveActorDid('not a handle');
+      expect(result).toEqual({ did: null });
+      expect(resolveIdentity).not.toHaveBeenCalled();
     });
 
     it('resolveDidDoc should call resolveDidDocument', async () => {
