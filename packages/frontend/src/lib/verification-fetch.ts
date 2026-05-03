@@ -1,4 +1,5 @@
 import dns from "node:dns/promises";
+import type { LookupAddress } from "node:dns";
 import http from "node:http";
 import https from "node:https";
 import net from "node:net";
@@ -112,7 +113,7 @@ function requestPinnedVerificationFile(domain: string, address: string, protocol
 }
 
 export async function fetchVerificationFile(domain: string, protocol: "http" | "https" = "https", timeoutMs = 10000): Promise<VerificationFetchResult> {
-  let addresses: dns.LookupAddress[];
+  let addresses: LookupAddress[];
   try {
     addresses = await dns.lookup(domain, { all: true, verbatim: true });
   } catch (error) {
