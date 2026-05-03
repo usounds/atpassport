@@ -16,6 +16,7 @@ const chromeMock = {
 };
 
 vi.stubGlobal('chrome', chromeMock);
+vi.stubGlobal('browser', chromeMock);
 
 // Mock navigator.clipboard
 if (typeof navigator !== 'undefined') {

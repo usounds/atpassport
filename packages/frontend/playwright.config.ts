@@ -18,7 +18,9 @@ export default defineConfig({
   /* Use a single worker to avoid rate limiting in the backend (shared in-memory rate limiter) */
   workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'list',
+  reporter: process.env.CI
+    ? [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]]
+    : 'list',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/test-use-options. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
