@@ -65,7 +65,7 @@ describe('AuthAccountItem', () => {
     const onRefresh = vi.fn();
     render(<AuthAccountItem item={mockItem} index={0} isFirst={true} isLast={false} onSelect={vi.fn()} onRefresh={onRefresh} callback="http://cb" />);
     
-    const menuBtn = screen.getByRole('button');
+    const menuBtn = screen.getByRole('button', { name: 'manage_account' });
     await act(async () => {
       fireEvent.click(menuBtn);
     });
@@ -83,7 +83,7 @@ describe('AuthAccountItem', () => {
     const onMoveDown = vi.fn();
     render(<AuthAccountItem item={mockItem} index={1} isFirst={false} isLast={false} onSelect={vi.fn()} onMoveUp={onMoveUp} onMoveDown={onMoveDown} callback="http://cb" />);
     
-    const menuBtn = screen.getByRole('button');
+    const menuBtn = screen.getByRole('button', { name: 'manage_account' });
     await act(async () => {
       fireEvent.click(menuBtn);
     });
@@ -108,7 +108,7 @@ describe('AuthAccountItem', () => {
     const onDelete = vi.fn();
     render(<AuthAccountItem item={mockItem} index={0} isFirst={true} isLast={false} onSelect={vi.fn()} onDelete={onDelete} callback="http://cb" />);
     
-    const menuBtn = screen.getByRole('button');
+    const menuBtn = screen.getByRole('button', { name: 'manage_account' });
     await act(async () => {
       fireEvent.click(menuBtn);
     });

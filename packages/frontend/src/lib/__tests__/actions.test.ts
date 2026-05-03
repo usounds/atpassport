@@ -43,6 +43,11 @@ describe('Actions Library', () => {
   const mockUuid = 'test-uuid';
   const mockDid = 'did:plc:user123';
   const mockHandle = 'test.bsky.social';
+  const mockCookieStore = () => ({
+    get: vi.fn(),
+    set: vi.fn(),
+    delete: vi.fn(),
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -360,13 +365,14 @@ describe('Actions Library', () => {
       vi.mocked(isRateLimited).mockReturnValue(false);
       vi.mocked(getUuidByShareToken).mockResolvedValue('target-uuid');
       vi.mocked(createSessionToken).mockResolvedValue('session-token');
-      const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
+      const cookieStore = mockCookieStore();
+      vi.mocked(cookies).mockResolvedValue(cookieStore as any);
 
       const result = await syncWithToken('valid-token');
 
       expect(result.success).toBe(true);
-      expect(mockCookieSet).toHaveBeenCalledWith(expect.any(String), 'session-token', expect.any(Object));
+      expect(cookieStore.delete).toHaveBeenCalledWith(SESSION_COOKIE_NAME);
+      expect(cookieStore.set).toHaveBeenCalledWith(expect.any(String), 'session-token', expect.any(Object));
     });
   });
 
@@ -380,10 +386,10 @@ describe('Actions Library', () => {
     it('should return early if uuid exists', async () => {
       vi.mocked(isRateLimited).mockReturnValue(false);
       vi.mocked(getSessionUuid).mockResolvedValue('existing');
-      const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
+      const cookieStore = mockCookieStore();
+      vi.mocked(cookies).mockResolvedValue(cookieStore as any);
       await initializeSession();
-      expect(mockCookieSet).not.toHaveBeenCalled();
+      expect(cookieStore.set).not.toHaveBeenCalled();
     });
 
     it('should retry if UUID collision occurs and eventually succeed', async () => {
@@ -396,13 +402,14 @@ describe('Actions Library', () => {
         .mockResolvedValueOnce([{ did: 'did:3' } as unknown as AssociationWithProfile])
         .mockResolvedValueOnce([]);
       
-      const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
+      const cookieStore = mockCookieStore();
+      vi.mocked(cookies).mockResolvedValue(cookieStore as any);
 
       await initializeSession();
 
       expect(getAssociations).toHaveBeenCalledTimes(4);
-      expect(mockCookieSet).toHaveBeenCalled();
+      expect(cookieStore.delete).toHaveBeenCalledWith(SESSION_COOKIE_NAME);
+      expect(cookieStore.set).toHaveBeenCalled();
     });
 
     it('should set a new session cookie if none exists', async () => {
@@ -410,12 +417,13 @@ describe('Actions Library', () => {
       vi.mocked(getSessionUuid).mockResolvedValue(null);
       vi.mocked(getAssociations).mockResolvedValue([]);
       vi.mocked(createSessionToken).mockResolvedValue('new-token');
-      const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ get: vi.fn(), set: mockCookieSet } as any);
+      const cookieStore = mockCookieStore();
+      vi.mocked(cookies).mockResolvedValue(cookieStore as any);
 
       await initializeSession();
 
-      expect(mockCookieSet).toHaveBeenCalledWith(SESSION_COOKIE_NAME, 'new-token', expect.any(Object));
+      expect(cookieStore.delete).toHaveBeenCalledWith(SESSION_COOKIE_NAME);
+      expect(cookieStore.set).toHaveBeenCalledWith(SESSION_COOKIE_NAME, 'new-token', expect.any(Object));
     });
 
     it('should eventually stop retrying in initializeSession if collision continues', async () => {
@@ -424,14 +432,15 @@ describe('Actions Library', () => {
       // Always return associations (collision)
       vi.mocked(getAssociations).mockResolvedValue([{ did: 'did:1' } as unknown as AssociationWithProfile]);
       
-      const mockCookieSet = vi.fn();
-      vi.mocked(cookies).mockResolvedValue({ set: mockCookieSet } as any);
+      const cookieStore = mockCookieStore();
+      vi.mocked(cookies).mockResolvedValue(cookieStore as any);
 
       await initializeSession();
 
       // Should have attempted 5 times in the while loop (attempts 0 to 4)
       expect(getAssociations).toHaveBeenCalledTimes(5);
-      expect(mockCookieSet).toHaveBeenCalled();
+      expect(cookieStore.delete).toHaveBeenCalledWith(SESSION_COOKIE_NAME);
+      expect(cookieStore.set).toHaveBeenCalled();
     });
   });
 

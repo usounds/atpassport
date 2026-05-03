@@ -183,6 +183,7 @@ export function AuthAccountItem({
                     color="gray" 
                     size="lg" 
                     radius="md" 
+                    aria-label={t('manage_account')}
                     loading={isUpdating}
                     onClick={(e) => e.stopPropagation()}
                   >
