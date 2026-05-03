@@ -4,6 +4,8 @@ import { NetAtpassportVerifySubmit } from '@/lexicons/index';
 import { verifyDomainInDb } from '@/lib/security';
 import { resolveIdentity } from '@/lib/atproto-server';
 import { isRateLimited } from '@/lib/rate-limit';
+import { domainSchema } from '@/lib/schemas';
+import { fetchVerificationFile } from '@/lib/verification-fetch';
 
 export const dynamic = 'force-dynamic';
 import net from 'node:net';
@@ -11,7 +13,7 @@ import net from 'node:net';
 export async function POST(request: Request) {
   try {
     // 1. JWTの取得と検証 (Service Auth)
-    const did = await verifyServiceAuth(request);
+    const did = await verifyServiceAuth(request, 'net.atpassport.verify.submit');
     
     if (!did) {
       const response = NextResponse.json({ success: false, error: 'unauthorized', message: 'Invalid Service Auth token' }, { status: 401 });
@@ -37,6 +39,12 @@ export async function POST(request: Request) {
 
     const lowerDomain = domain.toLowerCase().trim();
     
+    // 入力バリデーション
+    const validation = domainSchema.safeParse(lowerDomain);
+    if (!validation.success) {
+      return NextResponse.json({ success: false, error: 'invalid_request', message: 'Invalid domain format' }, { status: 400 });
+    }
+
     // Resolve identity to check if it's the user's own handle for OAuth verification
     const identity = await resolveIdentity(did);
     if (identity && (identity.handle === lowerDomain || lowerDomain.endsWith('.' + identity.handle))) {
@@ -76,26 +84,18 @@ export async function POST(request: Request) {
     const url = `${protocol}://${lowerDomain}/.well-known/atpassport`;
     
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      const fetchRes = await fetch(url, { 
-        cache: 'no-store',
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
+      const fetchRes = await fetchVerificationFile(lowerDomain, protocol);
 
       if (!fetchRes.ok) {
         const res = NextResponse.json({ 
           success: false, 
-          error: 'unreachable_url',
-          message: `Could not reach ${url}: ${fetchRes.statusText}`
+          error: fetchRes.error === 'private_ip' ? 'invalid_request' : fetchRes.error,
+          message: `Could not verify ${url}: ${fetchRes.message}`
         }, { status: 400 });
         return res;
       }
 
-      const content = await fetchRes.text();
+      const content = fetchRes.content;
       const expectedPrefix = 'atpassport-verification:';
       if (!content.includes(expectedPrefix) || !content.includes(did)) {
         const res = NextResponse.json({ 

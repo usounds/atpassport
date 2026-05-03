@@ -34,10 +34,6 @@ const nextConfig: NextConfig = {
     const isProduction = process.env.NEXT_PUBLIC_URL === 'https://atpassport.net';
     const commonHeaders = [
       {
-        key: "Strict-Transport-Security",
-        value: "max-age=63072000; includeSubDomains; preload",
-      },
-      {
         key: "X-Frame-Options",
         value: "DENY",
       },
@@ -55,9 +51,25 @@ const nextConfig: NextConfig = {
       },
       {
         key: "Content-Security-Policy",
-        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://embed.bsky.app https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src 'self' https: https://cloudflareinsights.com; frame-src 'self' https://embed.bsky.app; upgrade-insecure-requests;",
+        value: [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://embed.bsky.app https://static.cloudflareinsights.com",
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' blob: data: https:",
+          "font-src 'self' data:",
+          "connect-src 'self' https: https://cloudflareinsights.com",
+          "frame-src 'self' https://embed.bsky.app",
+          ...(isProduction ? ["upgrade-insecure-requests"] : []),
+        ].join("; "),
       },
     ];
+
+    if (isProduction) {
+      commonHeaders.push({
+        key: "Strict-Transport-Security",
+        value: "max-age=63072000; includeSubDomains; preload",
+      });
+    }
 
     if (!isProduction) {
       commonHeaders.push({

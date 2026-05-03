@@ -36,20 +36,25 @@ export class HandleManager {
    */
   async applyHandle(handle: string): Promise<string> {
     try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      // Use browser namespace for better cross-browser compatibility, especially in Firefox
+      const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
       if (!tab || !tab.id) {
         throw new Error('No active tab');
       }
 
-      const results = await chrome.scripting.executeScript({
+      const results = await browser.scripting.executeScript({
         target: { tabId: tab.id },
         func: (handleValue: string) => {
-          const activeElement = document.activeElement;
-          
           const fill = (input: HTMLInputElement | HTMLTextAreaElement) => {
-            // Use native value setter to bypass React's tracking if possible
+            // Dispatch focus event
+            input.focus();
+
+            // Use native value setter to bypass React's tracking
             const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
               window.HTMLInputElement.prototype,
+              "value"
+            )?.set || Object.getOwnPropertyDescriptor(
+              window.HTMLTextAreaElement.prototype,
               "value"
             )?.set;
             
@@ -59,22 +64,18 @@ export class HandleManager {
               input.value = handleValue;
             }
 
-            // Dispatch both input and change events for framework compatibility
+            // Dispatch events for framework compatibility
             input.dispatchEvent(new Event('input', { bubbles: true }));
             input.dispatchEvent(new Event('change', { bubbles: true }));
+            input.dispatchEvent(new Event('blur', { bubbles: true }));
           };
 
-          // 1. Try active element first (most reliable if user is already interacting)
-          if (activeElement && (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement)) {
-            fill(activeElement as HTMLInputElement);
-            return { success: true };
-          }
-
-          // 2. Prioritized search for handle fields
+          // 1. Try common handle-related selectors first
           const selectors = [
             'input[name="handle"]',
             'input[id="handle"]',
             'input[placeholder*="handle" i]',
+            'input[placeholder*="ハンドル" i]', // Japanese support
             'input[autocomplete="username"]',
             'input[type="text"]'
           ];
@@ -82,9 +83,16 @@ export class HandleManager {
           for (const selector of selectors) {
             const input = document.querySelector(selector);
             if (input && (input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement)) {
-              fill(input as HTMLInputElement);
+              fill(input);
               return { success: true };
             }
+          }
+
+          // 2. Fallback to active element if still relevant
+          const activeElement = document.activeElement;
+          if (activeElement && (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement)) {
+            fill(activeElement);
+            return { success: true };
           }
 
           return { success: false };
@@ -100,7 +108,8 @@ export class HandleManager {
         await navigator.clipboard.writeText(handle);
         return 'copiedFallback';
       }
-    } catch {
+    } catch (e) {
+      console.error('[HandleManager] applyHandle error:', e);
       await navigator.clipboard.writeText(handle);
       return 'copiedIncompatible';
     }
