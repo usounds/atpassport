@@ -9,6 +9,7 @@ import { cookies, headers } from 'next/headers';
 import { isRateLimited } from './rate-limit';
 import { verifyDomainInDb, getVerifiedDomainFromDb, getVerifiedDomainsByDid, VerifiedDomain, deleteVerifiedDomainFromDb } from './security';
 import { didSchema, handleSchema, domainSchema } from './schemas';
+import { isActorIdentifier } from '@atcute/lexicons/syntax';
 
 /**
  * 手動でセッションの有効期限を延長します。
@@ -48,6 +49,31 @@ export async function resolveHandle(did: string) {
   } catch (error) {
     console.error(`[resolveHandle] Failed to resolve DID ${did}:`, error);
     return { did: null, handle: null, pdsUrl: null };
+  }
+}
+
+/**
+ * OAuth のアカウント指定（handle/DID）から DID を解決します。
+ */
+export async function resolveActorDid(actorIdentifier: string) {
+  if (!isActorIdentifier(actorIdentifier)) {
+    return { did: null };
+  }
+
+  const headerList = await headers();
+  const host = headerList.get('host') || '';
+  const isE2E = process.env.E2E_TEST === "true" || host.includes(':3001');
+
+  if (isE2E && (actorIdentifier === "test.bsky.social" || actorIdentifier === "did:plc:mock")) {
+    return { did: "did:plc:mock" };
+  }
+
+  try {
+    const result = await resolveIdentity(actorIdentifier);
+    return { did: result?.did || null };
+  } catch (error) {
+    console.error(`[resolveActorDid] Failed to resolve actor ${actorIdentifier}:`, error);
+    return { did: null };
   }
 }
 
