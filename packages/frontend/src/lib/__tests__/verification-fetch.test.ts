@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import dns from "node:dns/promises";
+import type { LookupAddress } from "node:dns";
 import http from "node:http";
 import { fetchVerificationFile, isUnsafeIp } from "../verification-fetch";
 
@@ -48,7 +49,10 @@ describe("verification-fetch", () => {
   });
 
   it("does not connect when DNS resolves to an unsafe address", async () => {
-    vi.mocked(dns.lookup).mockResolvedValue([{ address: "169.254.169.254", family: 4 }]);
+    const lookupMock = vi.mocked(dns.lookup) as unknown as {
+      mockResolvedValue: (value: LookupAddress[]) => void;
+    };
+    lookupMock.mockResolvedValue([{ address: "169.254.169.254", family: 4 }]);
 
     const result = await fetchVerificationFile("example.com", "http");
 

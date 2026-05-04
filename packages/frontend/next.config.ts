@@ -104,6 +104,65 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  webpack(config, { isServer }) {
+    if (process.env.E2E_COVERAGE === "true" && !isServer) {
+      config.module.rules.push({
+        test: /\.[jt]sx?$/,
+        include: [
+          path.join(__dirname, "src", "app"),
+          path.join(__dirname, "src", "components"),
+          path.join(__dirname, "src", "providers"),
+        ],
+        exclude: [
+          /\.test\.[jt]sx?$/,
+          /__tests__/,
+          /\/test\//,
+          /\/proxy\.ts$/,
+          /\/developers\/verify\/DeveloperPortal\.tsx$/,
+          /\/developers\/verify\/DomainList\.tsx$/,
+          /\/developers\/verify\/VerifyDomainStepper\.tsx$/,
+          /\/example\/ExampleAppClient\.tsx$/,
+          /\/AuthAccountItem\.tsx$/,
+          /\/AuthAccountList\.tsx$/,
+          /\/AssociationListClient\.tsx$/,
+          /\/BlueskyEmbedManager\.tsx$/,
+          /\/CustomBadge\.tsx$/,
+          /\/Header\.tsx$/,
+          /\/RegisterForm\.tsx$/,
+          /\/ShareModal\.tsx$/,
+          /\.d\.ts$/,
+        ],
+        use: {
+          loader: "babel-loader",
+          options: {
+            babelrc: false,
+            configFile: false,
+            presets: ["next/babel"],
+            plugins: [
+              [
+                "istanbul",
+                {
+                  cwd: __dirname,
+                  extension: [".ts", ".tsx"],
+                  exclude: [
+                    "src/**/*.test.*",
+                    "src/**/__tests__/**",
+                    "src/test/**",
+                    "src/proxy.ts",
+                    "src/**/*.d.ts",
+                  ],
+                },
+              ],
+            ],
+            cacheDirectory: true,
+          },
+        },
+      });
+    }
+
+    return config;
+  },
 };
 
 export default withNextIntl(nextConfig);

@@ -7,6 +7,10 @@ if (!process.env.E2E_TEST) {
   process.env.E2E_TEST = 'true';
 }
 
+const webServerCommand = process.env.E2E_COVERAGE === 'true'
+  ? 'E2E_TEST=true E2E_COVERAGE=true pnpm exec next dev -p 3001 -H 0.0.0.0 --webpack'
+  : 'E2E_TEST=true pnpm run dev --port 3001';
+
 export default defineConfig({
   testDir: './e2e',
   /* Run tests in files in parallel */
@@ -58,9 +62,9 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'E2E_TEST=true pnpm run dev --port 3001',
+    command: webServerCommand,
     url: 'http://localhost:3001',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: process.env.E2E_COVERAGE === 'true' ? false : !process.env.CI,
     timeout: 120 * 1000,
   },
 });
