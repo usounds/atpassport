@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './coverage';
 
 test.describe('Legal Pages E2E', () => {
   test('should show Privacy Policy page', async ({ page }) => {

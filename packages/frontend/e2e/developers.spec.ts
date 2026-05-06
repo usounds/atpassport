@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './coverage';
 
 test.describe('Developer Portal E2E', () => {
   test.beforeEach(async ({ page }) => {

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './coverage';
 
 test.describe('Basic UI Flow', () => {
   // Ensure tests run sequentially to avoid rate limits and state conflicts
