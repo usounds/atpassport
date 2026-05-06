@@ -18,6 +18,20 @@ export type Handle = `${string}.${string}`;
  */
 export const AT_PASSPORT_MAINNET = "https://atpassport.net";
 
+const RESERVED_CALLBACK_PARAM_KEYS = ["handle", "did", "pdsurl", "atpstate"] as const;
+
+type ReservedCallbackParamKey = typeof RESERVED_CALLBACK_PARAM_KEYS[number];
+
+type ReservedCallbackParamTypeError<Key extends ReservedCallbackParamKey> =
+  `Reserved callback parameter "${Key}" cannot be used here`;
+
+/**
+ * Key-value pairs to pass through the callback.
+ * @passport-owned callback parameters are reserved and must not be supplied here.
+ */
+export type AtPassportCustomParams = Record<string, string> & {
+  [Key in ReservedCallbackParamKey]?: ReservedCallbackParamTypeError<Key>;
+};
 
 /**
  * Options for initializing the AtPassport client.
@@ -84,7 +98,9 @@ export class AtPassport {
    * @param options.requiredParams An object defining required custom parameters. 
    *                               The keys of this object will be enforced at runtime.
    */
-  constructor(options: AtPassportOptions & { requiredParams?: Record<string, string> }) {
+  constructor(options: AtPassportOptions & { requiredParams?: AtPassportCustomParams }) {
+    this._assertNoReservedCustomParamKeys(options.requiredParams, "requiredParams");
+
     // Priority: options.baseUrl > Environment Variable > Default Constant
     const defaultUrl = AT_PASSPORT_MAINNET;
     this.baseUrl = (options.baseUrl || defaultUrl).replace(/\/$/, "");
@@ -99,6 +115,7 @@ export class AtPassport {
    * @throws {Error} If any required parameter is missing or empty.
    */
   private _validateCustomParams(customParams?: Record<string, string>) {
+    this._assertNoReservedCustomParamKeys(customParams, "customParams");
     if (this.requiredKeys.length === 0) return;
     
     const missing = this.requiredKeys.filter(
@@ -107,6 +124,22 @@ export class AtPassport {
 
     if (missing.length > 0) {
       throw new Error(`Missing required custom parameters: ${missing.join(", ")}`);
+    }
+  }
+
+  private _assertNoReservedCustomParamKeys(
+    params: Record<string, string> | undefined,
+    label: "customParams" | "requiredParams"
+  ) {
+    if (!params) return;
+
+    const reservedKeys = RESERVED_CALLBACK_PARAM_KEYS.filter(key =>
+      Object.prototype.hasOwnProperty.call(params, key)
+    );
+    if (reservedKeys.length > 0) {
+      throw new Error(
+        `Reserved callback parameters cannot be used in ${label}: ${reservedKeys.join(", ")}`
+      );
     }
   }
 
@@ -121,7 +154,7 @@ export class AtPassport {
    *          - `atpstate`: A unique CSRF state token prefixed with `atpstate-`.
    */
   generateAuthUrl(
-    customParams?: Record<string, string>,
+    customParams?: AtPassportCustomParams,
     options?: { handle?: string }
   ): { url: string; atpstate: string } {
     this._validateCustomParams(customParams);
@@ -155,7 +188,7 @@ export class AtPassport {
    */
   generateAddUrl(
     handle: string, 
-    customParams?: Record<string, string>
+    customParams?: AtPassportCustomParams
   ): { url: string; atpstate: string } {
     this._validateCustomParams(customParams);
 
@@ -217,7 +250,7 @@ export class AtPassport {
 
     const customParams: Record<string, string> = {};
     url.searchParams.forEach((value, key) => {
-      if (!["handle", "did", "pdsurl", "atpstate"].includes(key)) {
+      if (!RESERVED_CALLBACK_PARAM_KEYS.includes(key as ReservedCallbackParamKey)) {
         customParams[key] = value;
       }
     });

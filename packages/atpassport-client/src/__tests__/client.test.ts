@@ -101,6 +101,23 @@ describe('AtPassport', () => {
       .toThrow('Missing required custom parameters: userId');
   });
 
+  it('rejects reserved callback parameters in customParams', () => {
+    const passport = new AtPassport({ baseUrl, callbackUrl });
+
+    expect(() => passport.generateAuthUrl({ handle: 'alice.bsky.social' }))
+      .toThrow('Reserved callback parameters cannot be used in customParams: handle');
+
+    expect(() => passport.generateAddUrl('alice.bsky.social', { did: 'did:plc:123' }))
+      .toThrow('Reserved callback parameters cannot be used in customParams: did');
+  });
+
+  it('rejects reserved callback parameters in requiredParams', () => {
+    expect(() => new AtPassport({
+      callbackUrl,
+      requiredParams: { handle: 'string' },
+    })).toThrow('Reserved callback parameters cannot be used in requiredParams: handle');
+  });
+
   it('parses callback URL correctly and validates requiredParams', () => {
     const passport = new AtPassport({ 
       callbackUrl,
