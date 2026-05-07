@@ -3,7 +3,7 @@ import { MetadataRoute } from 'next';
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://atpassport.net';
   const locales = ['en', 'ja'];
-  const paths = ['', '/about', '/directory', '/developers', '/terms', '/privacy'];
+  const paths = ['', '/about', '/directory', '/developers/verify', '/terms', '/privacy'];
 
   const sitemapData: MetadataRoute.Sitemap = [];
 
