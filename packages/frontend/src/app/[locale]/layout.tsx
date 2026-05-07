@@ -40,7 +40,6 @@ export async function generateMetadata(props: {
     description: t('description'),
     metadataBase: new URL('https://atpassport.net'),
     alternates: {
-      canonical: '/',
       languages: {
         'en': '/en',
         'ja': '/ja',
