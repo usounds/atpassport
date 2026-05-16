@@ -73,6 +73,9 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm --filter frontend exec playwright install chromium --with-deps
 
+      - name: Install extension Playwright Browsers
+        run: pnpm --filter atpassport-extension exec playwright install chromium --with-deps
+
       - name: Run E2E tests
         if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
         run: pnpm --filter frontend test:e2e --project=chromium
