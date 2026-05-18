@@ -191,7 +191,7 @@ export default async function AboutPage({
               "mainEntity": [
                 {
                   "@type": "Question",
-                  "name": locale === 'ja' ? "利用料金はかかりますか？" : "Is it free to use?",
+                  "name": locale === 'ja' ? "無料で利用できますか？" : "Is it free to use?",
                   "acceptedAnswer": {
                     "@type": "Answer",
                     "text": locale === 'ja' ? "はい、@passportは完全に無料で利用できます。広告表示や追加の課金もありません。" : "Yes, @passport is completely free to use. There are no ads or additional charges."
