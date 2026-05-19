@@ -6,6 +6,7 @@ import { type AppBskyActorDefs } from '@atcute/bluesky';
 import { getProfile } from '@/lib/atproto';
 import { resolveIdentity } from '@/lib/atproto-server';
 import { AddHandleClient } from './AddHandleClient';
+import { getCallbackUrlError } from '@/lib/callback-url';
 
 export default async function AddPage({
   params,
@@ -26,6 +27,19 @@ export default async function AddPage({
         </Center>
       </Container>
     );
+  }
+
+  if (callback) {
+    const callbackError = getCallbackUrlError(callback);
+    if (callbackError) {
+      return (
+        <Container size="sm" py="xl">
+          <Center style={{ minHeight: '60vh' }}>
+            <Text c="red" size="lg">{callbackError}</Text>
+          </Center>
+        </Container>
+      );
+    }
   }
 
   const resolved = await resolveIdentity(handle);

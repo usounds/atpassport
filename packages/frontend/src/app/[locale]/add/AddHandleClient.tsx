@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { registerHandle } from '@/lib/actions';
 import { Link } from '@/i18n/routing';
 import { notifications } from '@mantine/notifications';
+import { isAllowedCallbackUrl } from '@/lib/callback-url';
 
 export function AddHandleClient({
   handle,
@@ -43,14 +44,18 @@ export function AddHandleClient({
       }
 
       if (callback) {
+        if (!isAllowedCallbackUrl(callback)) {
+          throw new Error('Invalid callback URL');
+        }
+
+        const url = new URL(callback);
         notifications.show({
-          message: tAuth('authenticating', { domain: new URL(callback).hostname }),
+          message: tAuth('authenticating', { domain: url.hostname }),
           loading: true,
           autoClose: false,
           withCloseButton: false,
         });
 
-        const url = new URL(callback);
         url.searchParams.set('handle', handle);
         url.searchParams.set('did', did);
         url.searchParams.set('pdsurl', pdsUrl);

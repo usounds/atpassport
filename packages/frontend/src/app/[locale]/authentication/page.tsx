@@ -5,6 +5,7 @@ import { getAssociations, type AssociationWithProfile } from '@/lib/models';
 import { getSessionUuid } from '@/lib/session';
 import { verifyDomain, getVerifiedDomainFromDb, verifyDomainInDb } from '@/lib/security';
 import { IconInfoCircle } from '@tabler/icons-react';
+import { getCallbackUrlError } from '@/lib/callback-url';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,20 +32,15 @@ export default async function AuthPage({
   }
 
   let domain = '';
-  let urlError: string | null = null;
+  const urlError = getCallbackUrlError(callback);
   let isLoopback = false;
   try {
     const url = new URL(callback);
     domain = url.hostname;
     const lowerHostname = domain.toLowerCase();
     isLoopback = lowerHostname === 'localhost' || lowerHostname === '127.0.0.1' || lowerHostname.endsWith('.localhost');
-
-    // Enforce HTTPS for callback URL, except for loopback
-    if (url.protocol !== 'https:' && !isLoopback) {
-      urlError = 'Invalid callback URL: HTTPS is required';
-    }
   } catch {
-    urlError = 'Invalid callback URL';
+    // getCallbackUrlError already captured this; keep domain empty for the error view.
   }
 
   if (urlError) {

@@ -134,6 +134,10 @@ describe('AtPassport', () => {
     expect(() => passport.parseCallback(wrongPathUrl, 's'))
       .toThrow('Callback URL pathname mismatch');
 
+    const wrongOriginUrl = 'https://evil.com/callback?handle=alice&atpstate=s';
+    expect(() => passport.parseCallback(wrongOriginUrl, 's'))
+      .toThrow('Callback URL origin mismatch');
+
     // Missing required param in callback
     const missingParamUrl = 'https://app.com/callback?handle=alice&atpstate=s';
     expect(() => passport.parseCallback(missingParamUrl, 's'))
