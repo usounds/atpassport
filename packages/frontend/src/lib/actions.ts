@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getSessionUuid, createSessionToken, SESSION_COOKIE_NAME, refreshSession } from './session';
 import { getAssociations, updateAssociation, deleteAssociation, addAssociation } from './models';
 import { resolveIdentity, resolveDidDocument } from './atproto-server';
-import { getUuidByShareToken } from './share';
+import { getUuidByShareToken, deleteShareToken } from './share';
 import { cookies, headers } from 'next/headers';
 import { isRateLimited } from './rate-limit';
 import { verifyDomainInDb, getVerifiedDomainFromDb, getVerifiedDomainsByDid, VerifiedDomain, deleteVerifiedDomainFromDb } from './security';
@@ -310,6 +310,9 @@ export async function syncWithToken(token: string): Promise<{ success: boolean; 
   if (!targetUuid) {
     return { success: false, error: 'invalid_token' };
   }
+
+  // Delete the token immediately after consumption to prevent replay attacks
+  await deleteShareToken(token);
 
   const sessionToken = await createSessionToken(targetUuid);
   const cookieStore = await cookies();

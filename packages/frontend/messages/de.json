@@ -82,11 +82,11 @@
   "ShareSync": {
     "title": "Gerätesynchronisierung",
     "confirmTitle": "Handles synchronisieren?",
-    "confirmDescription": "Dadurch werden Ihre aktuellen Browserdaten durch die Handles vom Quellgerät überschrieben.",
+    "confirmDescription": "Dadurch werden Ihre aktuellen Browserdaten durch die Handles vom Quellgerät überschrieben. Aus Sicherheitsgründen kann dieser Link nur einmal verwendet werden. Wenn Sie mehrere Geräte synchronisieren möchten, erstellen Sie bitte einen neuen QR-Code.",
     "syncButton": "Mit Quellgerät synchronisieren",
-    "syncing": "Synchronisierung läuft...",
-    "invalidTokenTitle": "Ungültiger Token",
-    "invalidTokenDescription": "Dieser Freigabelink ist abgelaufen oder wurde bereits verwendet. Bitte erstellen Sie einen neuen Link von Ihrem Hauptgerät.",
+    "syncing": "Sicher synchronisieren...",
+    "invalidTokenTitle": "Ungültiger oder bereits verwendeter Link",
+    "invalidTokenDescription": "Dieser Freigabelink ist abgelaufen oder wurde bereits verwendet. Aus Sicherheitsgründen sind Synchronisierungslinks nur zur einmaligen Verwendung gedacht. Bitte erstellen Sie einen neuen Link von Ihrem Hauptgerät.",
     "backToHome": "Zurück zur Startseite"
   },
   "Example": {

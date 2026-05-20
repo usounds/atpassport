@@ -19,7 +19,7 @@ import {
 import { getSessionUuid, createSessionToken, SESSION_COOKIE_NAME } from '../session';
 import { getAssociations, addAssociation, updateAssociation, deleteAssociation, type AssociationWithProfile } from '../models';
 import { resolveIdentity, resolveDidDocument } from '../atproto-server';
-import { getUuidByShareToken } from '../share';
+import { getUuidByShareToken, deleteShareToken } from '../share';
 import { cookies, headers } from 'next/headers';
 import { isRateLimited } from '../rate-limit';
 import { verifyDomainInDb, getVerifiedDomainFromDb, deleteVerifiedDomainFromDb, getVerifiedDomainsByDid } from '../security';
@@ -371,8 +371,36 @@ describe('Actions Library', () => {
       const result = await syncWithToken('valid-token');
 
       expect(result.success).toBe(true);
+      expect(deleteShareToken).toHaveBeenCalledWith('valid-token');
       expect(cookieStore.delete).toHaveBeenCalledWith(SESSION_COOKIE_NAME);
       expect(cookieStore.set).toHaveBeenCalledWith(expect.any(String), 'session-token', expect.any(Object));
+    });
+
+    it('should fail on subsequent reuse of the same token', async () => {
+      vi.mocked(isRateLimited).mockReturnValue(false);
+
+      // Track active tokens in an in-memory simulated set for the mock
+      const activeTokens = new Set(['valid-token']);
+      vi.mocked(getUuidByShareToken).mockImplementation(async (token) => {
+        return activeTokens.has(token) ? 'target-uuid' : null;
+      });
+      vi.mocked(deleteShareToken).mockImplementation(async (token) => {
+        activeTokens.delete(token);
+      });
+
+      vi.mocked(createSessionToken).mockResolvedValue('session-token');
+      const cookieStore = mockCookieStore();
+      vi.mocked(cookies).mockResolvedValue(cookieStore as any);
+
+      // First sync attempt (should succeed and consume token)
+      const result1 = await syncWithToken('valid-token');
+      expect(result1.success).toBe(true);
+      expect(deleteShareToken).toHaveBeenCalledWith('valid-token');
+
+      // Second sync attempt with the same token (should fail since it was deleted)
+      const result2 = await syncWithToken('valid-token');
+      expect(result2.success).toBe(false);
+      expect(result2.error).toBe('invalid_token');
     });
   });
 

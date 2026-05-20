@@ -82,11 +82,11 @@
   "ShareSync": {
     "title": "Synchronisation d'appareils",
     "confirmTitle": "Synchroniser vos handles ?",
-    "confirmDescription": "Cela remplacera vos données de navigation actuelles par les handles de l'appareil source.",
+    "confirmDescription": "La synchronisation écrasera vos données de navigation actuelles par les handles de l'appareil source. Par sécurité, ce lien est à usage unique. Si vous souhaitez synchroniser plusieurs appareils, veuillez générer un nouveau code QR.",
     "syncButton": "Synchroniser avec l'appareil source",
-    "syncing": "Synchronisation en cours...",
-    "invalidTokenTitle": "Jeton invalide",
-    "invalidTokenDescription": "Ce lien de partage a expiré ou a déjà été utilisé. Veuillez générer un nouveau lien depuis votre appareil principal.",
+    "syncing": "Synchronisation sécurisée...",
+    "invalidTokenTitle": "Lien invalide ou déjà utilisé",
+    "invalidTokenDescription": "Ce lien de partage a expiré ou a déjà été utilisé. Par sécurité, les liens de synchronisation sont conçus pour un usage unique. Veuillez générer un nouveau lien depuis votre appareil principal.",
     "backToHome": "Retour à l'accueil"
   },
   "Example": {

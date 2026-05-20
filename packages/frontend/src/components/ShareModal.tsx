@@ -43,6 +43,15 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
     }
   }, []);
 
+  // Reset token state when the modal is closed to ensure a fresh token is generated upon next open
+  useEffect(() => {
+    if (!opened) {
+      setToken(null);
+      setTimeLeft(0);
+      setRateError(false);
+    }
+  }, [opened]);
+
   useEffect(() => {
     if (opened && !token && !loading) {
       const timer = setTimeout(() => generateToken(), 0);
@@ -63,9 +72,45 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
   const shareUrl = token ? `${window.location.origin}/${locale}/share/${token}` : '';
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        })
+        .catch((err) => {
+          console.error('Failed to copy using navigator.clipboard:', err);
+          fallbackCopy();
+        });
+    } else {
+      fallbackCopy();
+    }
+  };
+
+  const fallbackCopy = () => {
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = shareUrl;
+      textArea.style.top = '0';
+      textArea.style.left = '0';
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        console.error('Fallback copy command was unsuccessful');
+      }
+    } catch (err) {
+      console.error('Fallback copy failed:', err);
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -120,7 +165,7 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
               <Text size="sm" fw={600} c="blue.7">
                 {t('scanInstruction')}
               </Text>
-              <Text size="xs" color="dimmed" ta="center" px="md">
+              <Text size="xs" c="dimmed" ta="center" px="md">
                 {t('description')}
               </Text>
             </Stack>
@@ -129,11 +174,11 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
               <Group gap={0} wrap="nowrap" style={{ 
                 borderRadius: '12px', 
                 overflow: 'hidden',
-                border: '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
-                backgroundColor: 'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6))' 
+                border: '1px solid var(--mantine-color-default-border)',
+                backgroundColor: 'var(--mantine-color-default-hover)' 
               }}>
                 <Box px="md" py="xs" style={{ flex: 1, overflow: 'hidden' }}>
-                  <Text size="xs" truncate color="dimmed" ff="monospace">
+                  <Text size="xs" truncate c="var(--mantine-color-text)" ff="monospace">
                     {shareUrl}
                   </Text>
                 </Box>
@@ -164,7 +209,7 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
           </Stack>
         ) : rateError ? (
           <Stack align="center" py="md">
-            <Text size="sm" color="red" ta="center" fw={500}>
+            <Text size="sm" c="red" ta="center" fw={500}>
               {t('rateLimitExceeded')}
             </Text>
             <Button variant="outline" onClick={generateToken} radius="md">
