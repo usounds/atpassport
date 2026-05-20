@@ -46,9 +46,12 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
   // Reset token state when the modal is closed to ensure a fresh token is generated upon next open
   useEffect(() => {
     if (!opened) {
-      setToken(null);
-      setTimeLeft(0);
-      setRateError(false);
+      const timer = setTimeout(() => {
+        setToken(null);
+        setTimeLeft(0);
+        setRateError(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [opened]);
 

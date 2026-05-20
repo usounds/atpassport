@@ -2,9 +2,9 @@
 
 import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { Text, Title, Button, Stack, Container, Center, Box, Paper, Group, Badge } from '@mantine/core';
-import { IconDeviceMobile, IconAlertCircle, IconCheck, IconLock, IconShield } from '@tabler/icons-react';
+import { IconDeviceMobile, IconAlertCircle, IconCheck, IconShield } from '@tabler/icons-react';
 import { RefreshCw } from 'lucide-react';
 import { syncWithToken } from '@/lib/actions';
 
