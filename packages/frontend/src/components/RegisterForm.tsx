@@ -152,6 +152,8 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
             name="handle"
             placeholder={t('placeholder_handle')}
             required
+            aria-required="true"
+            aria-invalid={!!error}
             radius="md"
             autoCapitalize={"none"}
             autoCorrect={"off"}
@@ -205,6 +207,8 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
                   await initializeSession();
                 }
               }}
+              required
+              aria-required="true"
               label={t.rich('agree_to_terms', {
                 terms: (chunks: React.ReactNode) => (
                   <Link href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>

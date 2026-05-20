@@ -37,7 +37,7 @@ export default async function HomePage({
 
         <header style={{ textAlign: 'center' }}>
           <Title order={3} mb="xs">{t('title')}</Title>
-          <Text size="sm" style={{ lineHeight: 1.6, maxWidth: 460, margin: '0 auto' }}>
+          <Text size="sm" className="text-pretty" style={{ lineHeight: 1.6, maxWidth: 460, margin: '0 auto' }}>
             {t('description')}
           </Text>
         </header>
