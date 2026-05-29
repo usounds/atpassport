@@ -168,6 +168,11 @@ describe('RegisterForm', () => {
     const checkbox = await screen.findByRole('checkbox');
     fireEvent.click(checkbox);
     
+    // Wait for the async session initialization (and loading state) to finish
+    await waitFor(() => {
+      expect(actions.initializeSession).toHaveBeenCalled();
+    });
+    
     const registerBtn = screen.getByText(/^add$/i);
     fireEvent.click(registerBtn);
     
