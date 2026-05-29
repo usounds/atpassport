@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Text, Title, Button, Stack, Container, Center, Box, Paper, Group, Badge } from '@mantine/core';
+import { Text, Title, Button, Stack, Container, Center, Box, Paper, Group, Badge, Loader } from '@mantine/core';
 import { IconDeviceMobile, IconAlertCircle, IconCheck, IconShield } from '@tabler/icons-react';
 import { RefreshCw } from 'lucide-react';
-import { syncWithToken } from '@/lib/actions';
+import { syncWithToken, checkShareTokenValidity } from '@/lib/actions';
 
 interface PageProps {
   params: Promise<{
@@ -22,6 +22,33 @@ export default function ShareSyncPage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [isValidating, setIsValidating] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    async function validate() {
+      try {
+        const isValid = await checkShareTokenValidity(token);
+        if (!active) return;
+        if (!isValid) {
+          setError('invalid_token');
+        }
+      } catch (err) {
+        console.error('Failed to validate token:', err);
+        if (active) {
+          setError('connection_error');
+        }
+      } finally {
+        if (active) {
+          setIsValidating(false);
+        }
+      }
+    }
+    validate();
+    return () => {
+      active = false;
+    };
+  }, [token]);
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -44,6 +71,21 @@ export default function ShareSyncPage({ params }: PageProps) {
       setIsSyncing(false);
     }
   };
+
+  if (isValidating) {
+    return (
+      <Container size="sm" py="xl">
+        <Center style={{ height: '70vh' }}>
+          <Stack align="center" gap="md">
+            <Loader size="lg" color="blue" />
+            <Text c="dimmed" size="sm">
+              {locale === 'ja' ? 'セキュア接続を確認中...' : 'Verifying secure connection...'}
+            </Text>
+          </Stack>
+        </Center>
+      </Container>
+    );
+  }
 
   if (success) {
     return (

@@ -204,7 +204,14 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
                 const isChecked = e.currentTarget.checked;
                 setAgreed(isChecked);
                 if (isChecked) {
-                  await initializeSession();
+                  setLoading(true);
+                  try {
+                    await initializeSession();
+                  } catch (error) {
+                    console.error('Failed to initialize session:', error);
+                  } finally {
+                    setLoading(false);
+                  }
                 }
               }}
               required

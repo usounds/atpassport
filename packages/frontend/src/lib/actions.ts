@@ -296,6 +296,11 @@ export async function moveAssociation(did: string, direction: 'up' | 'down') {
   await refreshSession();
 }
 
+export async function checkShareTokenValidity(token: string): Promise<boolean> {
+  const targetUuid = await getUuidByShareToken(token);
+  return !!targetUuid;
+}
+
 export async function syncWithToken(token: string): Promise<{ success: boolean; error?: string }> {
   // IPベースのレート制限 (1分間に10回まで)
   const headerList = await headers();

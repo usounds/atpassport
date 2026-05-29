@@ -82,7 +82,7 @@
   "ShareSync": {
     "title": "Device Sync",
     "confirmTitle": "Sync your handles?",
-    "confirmDescription": "Synchronizing will overwrite your current browser data with the handles from the source device. For security, this link is for one-time use only. If you want to sync with multiple devices, please generate a new QR code.",
+    "confirmDescription": "Synchronizing will overwrite the handle information in this browser with the handles from the source device. For security, this link is for one-time use only. If you want to sync with multiple devices, please generate a new QR code.",
     "syncButton": "Sync with source device",
     "syncing": "Syncing securely...",
     "invalidTokenTitle": "Invalid or Used Link",

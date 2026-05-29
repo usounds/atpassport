@@ -44,7 +44,7 @@ test.describe('Token Replay Attack Protection Flow', () => {
     await expect(page.getByRole('heading', { name: 'デバイス間で共有', exact: true })).toBeVisible();
 
     // 6. Extract the real generated share URL from the DOM
-    const urlTextElement = page.locator('div.mantine-Box-root').locator('text=/ja/share/');
+    const urlTextElement = page.locator('text=/ja/share/').first();
     await expect(urlTextElement).toBeVisible({ timeout: 10000 });
     
     const shareUrl = await urlTextElement.textContent();

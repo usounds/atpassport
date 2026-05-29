@@ -82,7 +82,7 @@
   "ShareSync": {
     "title": "Synchronisation d'appareils",
     "confirmTitle": "Synchroniser vos handles ?",
-    "confirmDescription": "La synchronisation écrasera vos données de navigation actuelles par les handles de l'appareil source. Par sécurité, ce lien est à usage unique. Si vous souhaitez synchroniser plusieurs appareils, veuillez générer un nouveau code QR.",
+    "confirmDescription": "La synchronisation écrasera les informations de handle dans ce navigateur par les handles de l'appareil source. Par sécurité, ce lien est à usage unique. Si vous souhaitez synchroniser plusieurs appareils, veuillez générer un nouveau code QR.",
     "syncButton": "Synchroniser avec l'appareil source",
     "syncing": "Synchronisation sécurisée...",
     "invalidTokenTitle": "Lien invalide ou déjà utilisé",
