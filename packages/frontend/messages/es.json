@@ -66,7 +66,8 @@
     "privacy": "Privacidad",
     "toggle_color_scheme": "Cambiar tema de colores",
     "directory": "Dominios",
-    "developers": "Desarrolladores"
+    "developers": "Portal dev",
+    "guide": "Guía para devs"
   },
   "Share": {
     "title": "Compartir con\nOtros Dispositivos",
@@ -82,11 +83,11 @@
   "ShareSync": {
     "title": "Sincronización de Dispositivos",
     "confirmTitle": "¿Sincronizar tus handles?",
-    "confirmDescription": "Esto sobrescribirá los datos actuales de tu navegador con los handles del dispositivo de origen.",
+    "confirmDescription": "La sincronización sobrescribirá los datos actuales de tu navegador con los handles del dispositivo de origen. Por seguridad, este enlace es de un solo uso. Si deseas sincronizar múltiples dispositivos, genera un nuevo código QR.",
     "syncButton": "Sincronizar con el dispositivo de origen",
-    "syncing": "Sincronizando...",
-    "invalidTokenTitle": "Token Inválido",
-    "invalidTokenDescription": "Este enlace ha caducado o ya se ha utilizado. Por favor, genera un enlace nuevo desde tu dispositivo principal.",
+    "syncing": "Sincronizando de forma segura...",
+    "invalidTokenTitle": "Enlace inválido o ya utilizado",
+    "invalidTokenDescription": "Este enlace ha caducado o ya se ha utilizado. Por seguridad, los enlaces de sincronización son de un solo uso. Por favor, genera un enlace nuevo desde tu dispositivo principal.",
     "backToHome": "Volver al Inicio"
   },
   "Example": {

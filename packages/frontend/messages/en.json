@@ -65,7 +65,8 @@
     "terms": "Terms",
     "privacy": "Privacy",
     "directory": "Domains",
-    "developers": "Developers",
+    "developers": "Developer portal",
+    "guide": "Developer guide",
     "toggle_color_scheme": "Toggle color scheme"
   },
   "Share": {
@@ -82,11 +83,11 @@
   "ShareSync": {
     "title": "Device Sync",
     "confirmTitle": "Sync your handles?",
-    "confirmDescription": "This will overwrite your current browser data with the handles from the source device.",
+    "confirmDescription": "Synchronizing will overwrite the handle information in this browser with the handles from the source device. For security, this link is for one-time use only. If you want to sync with multiple devices, please generate a new QR code.",
     "syncButton": "Sync with source device",
-    "syncing": "Syncing...",
-    "invalidTokenTitle": "Invalid Token",
-    "invalidTokenDescription": "This share link is expired or has already been used. Please generate a new link from your main device.",
+    "syncing": "Syncing securely...",
+    "invalidTokenTitle": "Invalid or Used Link",
+    "invalidTokenDescription": "This share link is expired or has already been used. For security, synchronization links are designed for single-use only. Please generate a new link from your main device.",
     "backToHome": "Back to Home"
   },
   "Example": {

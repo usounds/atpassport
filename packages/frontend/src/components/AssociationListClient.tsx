@@ -9,25 +9,19 @@ import { useProfileStore } from '@/lib/profile-store';
 
 export function AssociationListClient({ initialItems }: { initialItems: AssociationWithProfile[] }) {
   const [items, setItems] = useState(initialItems);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfiles = async () => {
       const dids = initialItems.map(item => item.did);
       if (dids.length === 0) return;
 
-      setLoading(true);
-      try {
-        console.log('[AssociationListClient] Fetching profiles for %s items...', dids.length);
-        const profilesMap = await useProfileStore.getState().fetchProfiles(dids);
-        
-        setItems(prev => prev.map(item => ({
-          ...item,
-          profile: profilesMap[item.did] || item.profile
-        })));
-      } finally {
-        setLoading(false);
-      }
+      console.log('[AssociationListClient] Fetching profiles for %s items...', dids.length);
+      const profilesMap = await useProfileStore.getState().fetchProfiles(dids);
+      
+      setItems(prev => prev.map(item => ({
+        ...item,
+        profile: profilesMap[item.did] || item.profile
+      })));
     };
 
     fetchProfiles();

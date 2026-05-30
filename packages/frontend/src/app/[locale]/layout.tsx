@@ -39,12 +39,6 @@ export async function generateMetadata(props: {
     },
     description: t('description'),
     metadataBase: new URL('https://atpassport.net'),
-    alternates: {
-      languages: {
-        'en': '/en',
-        'ja': '/ja',
-      },
-    },
     openGraph: {
       title: t('title'),
       description: t('description'),

@@ -16,6 +16,9 @@ export function Footer() {
       <Divider mb="sm" />
       <Stack align="center" gap="xs" pb="xl">
         <Group justify="center" align="center" gap="md" wrap="wrap">
+          <Anchor component={Link} size="xs" c="dimmed" href="/developers/guide">
+            {t('guide')}
+          </Anchor>
           <Anchor component={Link} size="xs" c="dimmed" href="/developers/verify">
             {t('developers')}
           </Anchor>

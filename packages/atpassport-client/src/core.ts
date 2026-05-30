@@ -230,8 +230,12 @@ export class AtPassport {
   } {
     const url = new URL(currentUrl);
     
-    // Verify callback URL matches configuration (pathname must match)
+    // Verify callback URL matches configuration (origin and pathname must match)
     const expectedBase = new URL(this.callbackUrl);
+    if (url.origin !== expectedBase.origin) {
+      throw new Error(`Callback URL origin mismatch. Expected: ${expectedBase.origin}, Got: ${url.origin}`);
+    }
+
     if (url.pathname !== expectedBase.pathname) {
       throw new Error(`Callback URL pathname mismatch. Expected: ${expectedBase.pathname}, Got: ${url.pathname}`);
     }

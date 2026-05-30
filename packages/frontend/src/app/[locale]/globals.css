@@ -2,6 +2,7 @@
   --at-indigo: #1A237E;
   --at-gold: #FFD700;
   --at-light-gray: #F5F5F5;
+  color-scheme: light dark;
 }
 
 body {
@@ -11,6 +12,34 @@ body {
   color: var(--mantine-color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Modern Web Guidance Improvements --- */
+
+/* 1. Typography & Text Wrap */
+h1, h2, h3, h4, h5, h6, .text-balance {
+  text-wrap: balance;
+}
+
+p, .text-pretty {
+  text-wrap: pretty;
+}
+
+/* 2. Brand-consistent Accent Color for form controls */
+input, select, textarea, [type="checkbox"], [type="radio"] {
+  accent-color: var(--mantine-color-blue-filled);
+}
+
+/* 3. Modern Scrollbar Customization */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4)) transparent;
+}
+
+/* 4. Native interaction-based validation styles */
+input:user-invalid, select:user-invalid, textarea:user-invalid {
+  border-color: var(--mantine-color-red-filled) !important;
+  background-color: light-dark(var(--mantine-color-red-0), rgba(250, 82, 82, 0.05)) !important;
 }
 
 

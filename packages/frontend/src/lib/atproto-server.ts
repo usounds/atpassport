@@ -42,6 +42,24 @@ export async function resolveIdentity(handleOrDid: string): Promise<{
     return null;
   }
 
+  // --- E2E Mocking ---
+  if (process.env.E2E_TEST === 'true') {
+    if (handleOrDid === 'e2e-sync.bsky.social' || handleOrDid === 'did:plc:e2e-sync') {
+      return {
+        did: 'did:plc:e2e-sync',
+        handle: 'e2e-sync.bsky.social' as Handle,
+        pdsUrl: 'https://bsky.social'
+      };
+    }
+    if (handleOrDid === 'test.bsky.social' || handleOrDid === 'did:plc:mock') {
+      return {
+        did: 'did:plc:mock',
+        handle: 'test.bsky.social' as Handle,
+        pdsUrl: 'https://bsky.social'
+      };
+    }
+  }
+
   try {
     const actor = await actorResolver.resolve(handleOrDid);
     

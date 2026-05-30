@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getSessionUuid, createSessionToken, SESSION_COOKIE_NAME, refreshSession } from './session';
 import { getAssociations, updateAssociation, deleteAssociation, addAssociation } from './models';
 import { resolveIdentity, resolveDidDocument } from './atproto-server';
-import { getUuidByShareToken } from './share';
+import { getUuidByShareToken, deleteShareToken } from './share';
 import { cookies, headers } from 'next/headers';
 import { isRateLimited } from './rate-limit';
 import { verifyDomainInDb, getVerifiedDomainFromDb, getVerifiedDomainsByDid, VerifiedDomain, deleteVerifiedDomainFromDb } from './security';
@@ -296,6 +296,11 @@ export async function moveAssociation(did: string, direction: 'up' | 'down') {
   await refreshSession();
 }
 
+export async function checkShareTokenValidity(token: string): Promise<boolean> {
+  const targetUuid = await getUuidByShareToken(token);
+  return !!targetUuid;
+}
+
 export async function syncWithToken(token: string): Promise<{ success: boolean; error?: string }> {
   // IPベースのレート制限 (1分間に10回まで)
   const headerList = await headers();
@@ -310,6 +315,9 @@ export async function syncWithToken(token: string): Promise<{ success: boolean; 
   if (!targetUuid) {
     return { success: false, error: 'invalid_token' };
   }
+
+  // Delete the token immediately after consumption to prevent replay attacks
+  await deleteShareToken(token);
 
   const sessionToken = await createSessionToken(targetUuid);
   const cookieStore = await cookies();
