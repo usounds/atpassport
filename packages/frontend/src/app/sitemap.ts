@@ -25,7 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         url: `${baseUrl}/${locale}${path}`,
         lastModified: new Date(),
         changeFrequency: 'weekly',
-        priority: path === '/about' ? 0.9 : path.includes('/guides/') ? 0.85 : 0.7,
+        priority: path === '/about' || path === '/developers/guide' ? 0.9 : 0.7,
         alternates: {
           languages: localizedAlternates(path, contentLocales),
         },

@@ -7,10 +7,6 @@ export const contentIndexPaths = [
   '/about',
   '/terms',
   '/privacy',
-  '/guides/atproto-login',
-  '/guides/bluesky-handle-login',
-  '/guides/atproto-oauth-helper',
-  '/supported-apps',
   '/developers/guide',
 ] as const;
 export const contentLocales = ['en', 'ja'] as const;

@@ -1,12 +1,21 @@
-import { Badge, Container, Stack, Text, Title } from '@mantine/core';
+import React from 'react';
+import { Container, Stack, Text, Title, Paper } from '@mantine/core';
 import { setRequestLocale } from 'next-intl/server';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Link } from '@/i18n/routing';
 import { createPageMetadata } from '@/lib/seo';
-import { developerGuidePage, getSeoContentLocale, seoContentLocales } from '@/lib/seo-content';
+import { contentLocales } from '@/lib/seo';
+import { getMarkdownContent } from '@/lib/markdown';
 
 export function generateStaticParams() {
-  return seoContentLocales.map((locale) => ({ locale }));
+  return contentLocales.map((locale) => ({ locale }));
 }
+
+const descriptions: Record<string, string> = {
+  en: 'Implementation guide for adding @passport handle selection, callback handling, domain verification, and extension support to an atproto app.',
+  ja: 'atprotoアプリに@passportのハンドル選択、callback処理、ドメイン確認、拡張機能対応を追加するための実装ガイドです。',
+};
 
 export async function generateMetadata({
   params,
@@ -14,15 +23,15 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const page = developerGuidePage[getSeoContentLocale(locale)];
+  const { data } = await getMarkdownContent('developers-guide', locale);
 
   return createPageMetadata({
     locale,
     path: '/developers/guide',
-    title: page.title,
-    description: page.description,
-    index: seoContentLocales.includes(locale as (typeof seoContentLocales)[number]),
-    alternateLocales: seoContentLocales,
+    title: data.title,
+    description: descriptions[locale] ?? descriptions.en,
+    index: contentLocales.includes(locale as (typeof contentLocales)[number]),
+    alternateLocales: contentLocales,
   });
 }
 
@@ -33,42 +42,97 @@ export default async function DeveloperGuidePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const page = developerGuidePage[getSeoContentLocale(locale)];
+  const { data, content } = await getMarkdownContent('developers-guide', locale);
 
   return (
-    <Container size="sm" py={{ base: 'xl', sm: 56 }}>
+    <Container size="sm" py={{ base: 'md', sm: 'xl' }}>
       <Stack gap="xl">
-        <header>
-          <Badge variant="light" color="violet" mb="sm">{page.eyebrow}</Badge>
-          <Title order={1} size="h2">{page.title}</Title>
-          <Text c="dimmed" mt="md" style={{ lineHeight: 1.7 }}>
-            {page.intro}
-          </Text>
-        </header>
+        <Paper p={{ base: 'md', sm: 'xl' }} radius="md" shadow="sm" className="responsive-content-paper">
+          <Stack gap="lg">
+            <div>
+              <Title order={2}>{data.title}</Title>
+              <Text size="sm" c="dimmed" mt="xs">
+                {locale === 'ja' ? `最終更新日: ${data.last_updated}` : `Last updated: ${data.last_updated}`}
+              </Text>
+            </div>
 
-        <Stack gap="lg">
-          {page.sections.map((section) => (
-            <section key={section.title}>
-              <Title order={2} size="h4" mb="xs">{section.title}</Title>
-              <Text size="sm" style={{ lineHeight: 1.7 }}>{section.body}</Text>
-              {section.items && (
-                <ul style={{ marginTop: 8, marginBottom: 0, paddingLeft: 20 }}>
-                  {section.items.map((item) => (
-                    <li key={item} style={{ fontSize: 'var(--mantine-font-size-sm)', lineHeight: 1.7 }}>
-                      {item}
+            <div style={{ lineHeight: 1.6 }}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h2: ({ children }) => <Title order={4} mb="xs" mt="lg">{children}</Title>,
+                  h3: ({ children }) => <Title order={5} mb="xs" mt="md">{children}</Title>,
+                  p: ({ children }) => <Text size="sm" mb="sm" style={{ whiteSpace: 'pre-wrap' }}>{children}</Text>,
+                  ul: ({ children }) => <ul style={{ paddingLeft: 20, marginBottom: 16 }}>{children}</ul>,
+                  ol: ({ children }) => <ol style={{ paddingLeft: 20, marginBottom: 16 }}>{children}</ol>,
+                  li: ({ children }) => (
+                    <li style={{ fontSize: 'var(--mantine-font-size-sm)', marginBottom: 4 }}>
+                      {children}
                     </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          ))}
-        </Stack>
+                  ),
+                  code: ({ className, children }) => {
+                    const isBlock = className?.includes('language-') || (typeof children === 'string' && children.includes('\n'));
 
-        <Text size="sm" c="dimmed">
-          <Link href="/developers/verify">
-            {locale === 'ja' ? 'ドメイン所有権を確認する' : 'Verify your domain'}
-          </Link>
-        </Text>
+                    if (isBlock) {
+                      return (
+                        <pre style={{
+                          whiteSpace: 'pre-wrap',
+                          overflowWrap: 'break-word',
+                          backgroundColor: 'light-dark(rgba(0, 0, 0, 0.03), rgba(255, 255, 255, 0.05))',
+                          padding: 12,
+                          borderRadius: 8,
+                          fontSize: 'var(--mantine-font-size-sm)',
+                          border: '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+                          marginBottom: 16,
+                          marginTop: 8,
+                        }}>{children}</pre>
+                      );
+                    }
+
+                    return (
+                      <code style={{
+                        whiteSpace: 'pre-wrap',
+                        overflowWrap: 'break-word',
+                        backgroundColor: 'light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.1))',
+                        padding: '2px 4px',
+                        borderRadius: 4,
+                        fontSize: '0.9em',
+                      }}>{children}</code>
+                    );
+                  },
+                  pre: ({ children }) => <>{children}</>,
+                  blockquote: ({ children }) => (
+                    <div style={{
+                      borderLeft: '3px solid var(--mantine-color-blue-5)',
+                      paddingLeft: 12,
+                      marginBottom: 16,
+                      color: 'var(--mantine-color-dimmed)',
+                    }}>
+                      {children}
+                    </div>
+                  ),
+                  a: ({ href, children }) => {
+                    const isInternal = !!href && (
+                      href.startsWith('/') ||
+                      href === 'https://atpassport.net' ||
+                      href.startsWith('https://atpassport.net/') ||
+                      href === 'https://dev.atpassport.net' ||
+                      href.startsWith('https://dev.atpassport.net/')
+                    );
+                    const finalHref = href?.replace(/^https:\/\/(dev\.)?atpassport\.net(\/[a-z]{2})?/, '') || '';
+
+                    if (isInternal && href) {
+                      return <Link href={finalHref as "/"} style={{ color: 'var(--mantine-color-blue-6)' }}>{children}</Link>;
+                    }
+                    return <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>{children}</a>;
+                  },
+                }}
+              >
+                {content}
+              </ReactMarkdown>
+            </div>
+          </Stack>
+        </Paper>
       </Stack>
     </Container>
   );

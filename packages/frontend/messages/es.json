@@ -66,9 +66,8 @@
     "privacy": "Privacidad",
     "toggle_color_scheme": "Cambiar tema de colores",
     "directory": "Dominios",
-    "developers": "Desarrolladores",
-    "guide": "Guía",
-    "supported_apps": "Apps compatibles"
+    "developers": "Portal dev",
+    "guide": "Guía para devs"
   },
   "Share": {
     "title": "Compartir con\nOtros Dispositivos",

@@ -66,9 +66,8 @@
     "privacy": "Confidentialité",
     "toggle_color_scheme": "Changer le mode de couleur",
     "directory": "Domaines",
-    "developers": "Développeurs",
-    "guide": "Guide",
-    "supported_apps": "Apps compatibles"
+    "developers": "Portail dev",
+    "guide": "Guide développeur"
   },
   "Share": {
     "title": "Partager avec\nd'autres appareils",
