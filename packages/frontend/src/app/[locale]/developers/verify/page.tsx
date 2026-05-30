@@ -2,7 +2,7 @@ import { Container, Loader, Center } from '@mantine/core';
 import { DeveloperPortal } from './DeveloperPortal';
 import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
-import { createPageMetadata } from '@/lib/seo';
+import { noIndexMetadata } from '@/lib/seo';
 
 export async function generateMetadata({
   params,
@@ -12,12 +12,11 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Developers' });
 
-  return createPageMetadata({
-    locale,
-    path: '/developers/verify',
+  return {
     title: t('title'),
     description: t('description'),
-  });
+    ...noIndexMetadata,
+  };
 }
 
 export default async function DeveloperVerifyPage({

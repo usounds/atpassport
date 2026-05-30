@@ -18,6 +18,24 @@ import { Client } from '@atcute/client';
 import { isActorIdentifier } from '@atcute/lexicons/syntax';
 import { NetAtpassportVerifyList, NetAtpassportVerifySubmit, NetAtpassportVerifyWithdraw } from '@/lexicons/index';
 
+const accountHeaderStyles = {
+  backgroundColor: 'var(--mantine-color-gray-0)',
+  borderBottom: '1px solid var(--mantine-color-gray-2)',
+};
+
+const accountHeaderTextStyles = {
+  primary: {
+    color: 'var(--mantine-color-text)',
+  },
+  secondary: {
+    color: 'var(--mantine-color-dimmed)',
+  },
+  tertiary: {
+    color: 'var(--mantine-color-dimmed)',
+    opacity: 0.8,
+  },
+};
+
 export function DeveloperPortal({ 
   locale
 }: { 
@@ -635,16 +653,18 @@ export function DeveloperPortal({
       </header>
 
       <Paper withBorder radius="lg" shadow="sm" style={{ overflow: 'hidden' }}>
-        <Box py="sm" px="md" bg="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))" style={{ borderBottom: '1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4))' }}>
+        <Box py="sm" px="md" style={accountHeaderStyles}>
           <Group justify="space-between" align="center" wrap="nowrap" gap="md">
             <Group wrap="nowrap" gap="md" align="center" style={{ flex: 1, minWidth: 0 }}>
               <Avatar src={profile?.avatar} radius="xl" size="md" />
               <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
-                <Text fw={600} size="sm" truncate>{profile?.displayName || profile?.handle || session.info.sub}</Text>
-                <Text size="xs" c="dimmed" truncate>
+                <Text fw={600} size="sm" truncate style={accountHeaderTextStyles.primary}>
+                  {profile?.displayName || profile?.handle || session.info.sub}
+                </Text>
+                <Text size="xs" truncate style={accountHeaderTextStyles.secondary}>
                   @{profile?.handle || session.info.sub}
                 </Text>
-                <Text size="10px" c="dimmed" truncate style={{ opacity: 0.8 }}>
+                <Text size="10px" truncate style={accountHeaderTextStyles.tertiary}>
                   PDS:{profile?.pdsUrl ? new URL(profile.pdsUrl).hostname : ''}
                 </Text>
               </Stack>

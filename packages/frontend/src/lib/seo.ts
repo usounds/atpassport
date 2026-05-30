@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { routing } from '@/i18n/routing';
 
 export const baseUrl = 'https://atpassport.net';
-export const appIndexPaths = ['', '/directory', '/developers/verify'] as const;
+export const appIndexPaths = ['', '/directory'] as const;
 export const contentIndexPaths = [
   '/about',
   '/terms',
@@ -12,6 +12,15 @@ export const contentIndexPaths = [
 export const contentLocales = ['en', 'ja'] as const;
 
 export type SeoPath = (typeof appIndexPaths)[number] | (typeof contentIndexPaths)[number];
+
+export const sitemapLastModified: Record<SeoPath, string> = {
+  '': '2026-05-30',
+  '/directory': '2026-05-30',
+  '/about': '2026-04-26',
+  '/terms': '2026-03-29',
+  '/privacy': '2026-03-29',
+  '/developers/guide': '2026-05-30',
+};
 
 export function localizedAlternates(
   path: SeoPath,

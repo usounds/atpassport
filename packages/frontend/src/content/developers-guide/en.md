@@ -70,3 +70,17 @@ In your web application's login forms, we recommend setting the following attrib
 - **`id="handle"`**: Can be used as a fallback if `name="handle"` does not work as expected.
 
 By setting these, the @passport extension will automatically recognize the field, and values will be accurately reflected even on sites using advanced frameworks like React.
+
+## Frequently asked questions
+
+### What does @passport add to an atproto app?
+
+@passport lets users choose a previously registered handle and returns the handle, DID, and PDS URL to your callback so your app can start its own OAuth flow.
+
+### Do I need the @atpassport/client library?
+
+No. The TypeScript client library is recommended for React apps, but the same flow can be implemented with a direct redirect to the @passport authentication endpoint.
+
+### Why should I verify my domain?
+
+Verified domains avoid the unverified-domain warning during @passport authentication and give users a clearer trust signal before they continue.
