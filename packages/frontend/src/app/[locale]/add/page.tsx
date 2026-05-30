@@ -7,6 +7,9 @@ import { getProfile } from '@/lib/atproto';
 import { resolveIdentity } from '@/lib/atproto-server';
 import { AddHandleClient } from './AddHandleClient';
 import { getCallbackUrlError } from '@/lib/callback-url';
+import { noIndexMetadata } from '@/lib/seo';
+
+export const metadata = noIndexMetadata;
 
 export default async function AddPage({
   params,

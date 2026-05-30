@@ -5,9 +5,34 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Link, routing } from '@/i18n/routing';
 import { setRequestLocale } from 'next-intl/server';
+import { contentLocales, createPageMetadata } from '@/lib/seo';
+
+const descriptions: Record<string, string> = {
+  en: 'Terms of service for using @passport handle management, authentication assistance, sharing, and developer verification features.',
+  ja: '@passport のハンドル管理、認証補助、共有、開発者向けドメイン確認機能に関する利用規約です。',
+};
 
 export async function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const { data } = await getMarkdownContent('terms', locale);
+  const hasLocalizedContent = contentLocales.includes(locale as (typeof contentLocales)[number]);
+
+  return createPageMetadata({
+    locale,
+    path: '/terms',
+    title: data.title,
+    description: descriptions[locale] ?? descriptions.en,
+    index: hasLocalizedContent,
+    alternateLocales: contentLocales,
+  });
 }
 
 export default async function TermsPage({

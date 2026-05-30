@@ -66,7 +66,9 @@
     "privacy": "Privacidade",
     "toggle_color_scheme": "Alternar tema de cores",
     "directory": "Domínios",
-    "developers": "Desenvolvedores"
+    "developers": "Desenvolvedores",
+    "guide": "Guia",
+    "supported_apps": "Apps compatíveis"
   },
   "Share": {
     "title": "Compartilhar com\nOutros Dispositivos",

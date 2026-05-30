@@ -6,8 +6,10 @@ import { getSessionUuid } from '@/lib/session';
 import { verifyDomain, getVerifiedDomainFromDb, verifyDomainInDb } from '@/lib/security';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { getCallbackUrlError } from '@/lib/callback-url';
+import { noIndexMetadata } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
+export const metadata = noIndexMetadata;
 
 export default async function AuthPage({
   params,

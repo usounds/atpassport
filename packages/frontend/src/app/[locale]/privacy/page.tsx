@@ -5,9 +5,34 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Link, routing } from '@/i18n/routing';
 import { setRequestLocale } from 'next-intl/server';
+import { contentLocales, createPageMetadata } from '@/lib/seo';
+
+const descriptions: Record<string, string> = {
+  en: 'Privacy policy explaining what @passport stores, how handle data is used, and how authentication-related information is protected.',
+  ja: '@passport が保存する情報、ハンドル情報の利用方法、認証関連情報の保護について説明するプライバシーポリシーです。',
+};
 
 export async function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const { data } = await getMarkdownContent('privacy', locale);
+  const hasLocalizedContent = contentLocales.includes(locale as (typeof contentLocales)[number]);
+
+  return createPageMetadata({
+    locale,
+    path: '/privacy',
+    title: data.title,
+    description: descriptions[locale] ?? descriptions.en,
+    index: hasLocalizedContent,
+    alternateLocales: contentLocales,
+  });
 }
 
 export default async function PrivacyPage({

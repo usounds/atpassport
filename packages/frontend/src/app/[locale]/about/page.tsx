@@ -8,9 +8,34 @@ import { IconInfoCircle } from '@tabler/icons-react';
 import Script from 'next/script';
 import { BlueskyEmbedManager } from '@/components/BlueskyEmbedManager';
 import { setRequestLocale } from 'next-intl/server';
+import { contentLocales, createPageMetadata } from '@/lib/seo';
+
+const descriptions: Record<string, string> = {
+  en: '@passport removes repeated atproto handle entry by letting users register handles once and reuse them across supported apps and browser extensions.',
+  ja: '@passport は、atproto サービスで毎回ハンドルを入力する手間を減らすための、ハンドル管理・認証アシスタントです。',
+};
 
 export async function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const { data } = await getMarkdownContent('about', locale);
+  const hasLocalizedContent = contentLocales.includes(locale as (typeof contentLocales)[number]);
+
+  return createPageMetadata({
+    locale,
+    path: '/about',
+    title: data.title,
+    description: descriptions[locale] ?? descriptions.en,
+    index: hasLocalizedContent,
+    alternateLocales: contentLocales,
+  });
 }
 
 export default async function AboutPage({
