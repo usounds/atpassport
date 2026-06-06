@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Checkbox, Stack, Box, Text } from '@mantine/core';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { registerHandle } from '@/lib/actions';
 import { Link } from '@/i18n/routing';
@@ -28,6 +28,8 @@ export function AddHandleClient({
   const t = useTranslations('Add');
   const tHome = useTranslations('Home');
   const tAuth = useTranslations('Auth');
+  const locale = useLocale();
+  const legalLocale = locale === 'ja' ? 'ja' : 'en';
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -102,12 +104,12 @@ export function AddHandleClient({
             onChange={(e) => setAgreed(e.currentTarget.checked)}
             label={tHome.rich('agree_to_terms', {
               terms: (chunks) => (
-                <Link href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
+                <Link href="/terms" locale={legalLocale} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
                   {chunks}
                 </Link>
               ),
               privacy: (chunks) => (
-                <Link href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
+                <Link href="/privacy" locale={legalLocale} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
                   {chunks}
                 </Link>
               ),

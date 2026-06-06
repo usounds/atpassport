@@ -3,7 +3,7 @@
 import { type AssociationWithProfile } from '@/lib/models';
 import { Card, Avatar, Text, Group, UnstyledButton, Stack, Box, Checkbox, Button } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { registerHandle } from '@/lib/actions';
 import { Link } from '@/i18n/routing';
@@ -27,6 +27,8 @@ export function AuthSuggestedAccountItem({
 }) {
   const t = useTranslations('Auth');
   const tHome = useTranslations('Home');
+  const locale = useLocale();
+  const legalLocale = locale === 'ja' ? 'ja' : 'en';
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -121,12 +123,12 @@ export function AuthSuggestedAccountItem({
               onChange={(e) => setAgreed(e.currentTarget.checked)}
               label={tHome.rich('agree_to_terms', {
                 terms: (chunks) => (
-                  <Link href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
+                  <Link href="/terms" locale={legalLocale} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
                     {chunks}
                   </Link>
                 ),
                 privacy: (chunks) => (
-                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
+                  <Link href="/privacy" locale={legalLocale} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
                     {chunks}
                   </Link>
                 ),

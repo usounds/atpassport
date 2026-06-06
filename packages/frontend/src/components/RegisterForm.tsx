@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Autocomplete, Avatar, Group, Text, Button, Modal, Stack, Checkbox, Box, type ComboboxItem } from '@mantine/core';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useDebouncedCallback, useDisclosure } from '@mantine/hooks';
 import { registerHandle, initializeSession } from '@/lib/actions';
 import { IconPlus } from '@tabler/icons-react';
@@ -25,6 +25,8 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   const [agreed, setAgreed] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
   const t = useTranslations('Home');
+  const locale = useLocale();
+  const legalLocale = locale === 'ja' ? 'ja' : 'en';
   const isLimitReached = handleCount >= MAX_HANDLES;
   const needsConsent = handleCount === 0;
 
@@ -218,12 +220,12 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
               aria-required="true"
               label={t.rich('agree_to_terms', {
                 terms: (chunks: React.ReactNode) => (
-                  <Link href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
+                  <Link href="/terms" locale={legalLocale} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
                     {chunks}
                   </Link>
                 ),
                 privacy: (chunks: React.ReactNode) => (
-                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
+                  <Link href="/privacy" locale={legalLocale} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--mantine-color-blue-6)' }}>
                     {chunks}
                   </Link>
                 ),

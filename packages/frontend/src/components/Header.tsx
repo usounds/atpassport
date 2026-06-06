@@ -11,11 +11,18 @@ import { useSearchParams } from 'next/navigation';
 import classes from './Header.module.css';
 
 const links = [
-  { link: '/about', labelKey: 'about' },
+  { link: '/about', labelKey: 'about', contentOnly: true },
   { link: '/directory', labelKey: 'directory' },
-  { link: '/terms', labelKey: 'terms' },
-  { link: '/privacy', labelKey: 'privacy' },
+  { link: '/terms', labelKey: 'terms', contentOnly: true },
+  { link: '/privacy', labelKey: 'privacy', contentOnly: true },
 ];
+
+const contentLocales = ['en', 'ja'];
+const contentOnlyPaths = ['/about', '/terms', '/privacy', '/developers/guide'];
+
+function isContentLocale(locale: string) {
+  return contentLocales.includes(locale);
+}
 
 export function Header() {
   const t = useTranslations('Home');
@@ -34,7 +41,11 @@ export function Header() {
 
   const handleLocaleChange = (nextLocale: string) => {
     const params = searchParams.toString();
-    const href = params ? `${pathname}?${params}` : pathname;
+    const targetPathname =
+      contentOnlyPaths.includes(pathname) && !isContentLocale(nextLocale)
+        ? '/'
+        : pathname;
+    const href = params ? `${targetPathname}?${params}` : targetPathname;
     router.replace(href, { locale: nextLocale });
   };
 
@@ -118,10 +129,12 @@ export function Header() {
 
   const items = links.map((link) => {
     const isActive = pathname === link.link;
+    const targetLocale = link.contentOnly && !isContentLocale(locale) ? 'en' : locale;
     return (
       <Link
         key={link.labelKey}
         href={link.link}
+        locale={targetLocale}
         className={`${classes.link} ${isActive ? classes.linkActive : ''}`}
         onClick={close}
         data-active={isActive || undefined}

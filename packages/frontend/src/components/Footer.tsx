@@ -2,7 +2,7 @@
 
 import { version } from '../../package.json';
 import { Text, Anchor, Group, Divider, Stack } from '@mantine/core';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { FaGithub } from "react-icons/fa6";
 import { FaBluesky } from "react-icons/fa6";
 
@@ -10,13 +10,15 @@ import { Link } from '@/i18n/routing';
 
 export function Footer() {
   const t = useTranslations('Nav');
+  const locale = useLocale();
+  const contentLocale = locale === 'ja' ? 'ja' : 'en';
 
   return (
     <footer style={{ marginTop: 'auto', paddingTop: '2rem' }}>
       <Divider mb="sm" />
       <Stack align="center" gap="xs" pb="xl">
         <Group justify="center" align="center" gap="md" wrap="wrap">
-          <Anchor component={Link} size="xs" c="dimmed" href="/developers/guide">
+          <Anchor component={Link} size="xs" c="dimmed" href="/developers/guide" locale={contentLocale}>
             {t('guide')}
           </Anchor>
           <Anchor component={Link} size="xs" c="dimmed" href="/developers/verify">

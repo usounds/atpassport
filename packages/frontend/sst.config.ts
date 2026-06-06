@@ -13,6 +13,7 @@ export default $config({
   },
   async run() {
     const sessionSecret = new sst.Secret("SessionSecret");
+    const nextServerActionsEncryptionKey = new sst.Secret("NextServerActionsEncryptionKey");
 
     const table = new sst.aws.Dynamo("AtPassportSessions", {
       fields: {
@@ -55,7 +56,7 @@ export default $config({
 
     new sst.aws.Nextjs("AtPassportApp", {
       path: ".",
-      link: [table, shareTokensTable, verifiedDomainsTable, sessionSecret],
+      link: [table, shareTokensTable, verifiedDomainsTable, sessionSecret, nextServerActionsEncryptionKey],
       permissions: [
         {
           actions: ["dynamodb:Query", "dynamodb:Scan", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"],
@@ -71,6 +72,7 @@ export default $config({
       ],
       environment: {
         SESSION_SECRET: sessionSecret.value,
+        NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: nextServerActionsEncryptionKey.value,
         NEXT_PUBLIC_URL: 
           $app.stage === "production" ? "https://atpassport.net" : 
           $app.stage === "preview" ? "https://preview.atpassport.net" : 
