@@ -22,6 +22,10 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Dynamo"
     }
+    "NextServerActionsEncryptionKey": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "SessionSecret": {
       "type": "sst.sst.Secret"
       "value": string

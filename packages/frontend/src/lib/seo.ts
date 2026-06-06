@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { routing } from '@/i18n/routing';
 
-export const baseUrl = 'https://atpassport.net';
+export const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://atpassport.net';
 export const ogImage = {
   url: '/atpassportOgp.png',
   width: 1200,

@@ -38,7 +38,7 @@ export async function generateMetadata(props: {
       template: `%s | ${t('title')}`,
     },
     description: t('description'),
-    metadataBase: new URL('https://atpassport.net'),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_URL || 'https://atpassport.net'),
     openGraph: {
       title: t('title'),
       description: t('description'),
