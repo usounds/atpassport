@@ -13,6 +13,8 @@ export function generateStaticParams() {
   return contentLocales.map((locale) => ({ locale }));
 }
 
+export const dynamicParams = false;
+
 const descriptions: Record<string, string> = {
   en: 'Implementation guide for adding @passport handle selection, callback handling, domain verification, and extension support to an atproto app.',
   ja: 'atprotoアプリに@passportのハンドル選択、callback処理、ドメイン確認、拡張機能対応を追加するための実装ガイドです。',

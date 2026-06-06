@@ -13,9 +13,10 @@ This is the frontend for @passport, built with Next.js.
 To run the development server locally (using an in-memory stub for DynamoDB):
 
 1.  **Set the required secrets:**
-    Before the first run, create a `.env.local` file and set the `SESSION_SECRET` (at least 32 characters).
+    Before the first run, create a `.env.local` file and set the required secrets.
     ```bash
     SESSION_SECRET=a-very-secret-key-at-least-32-chars-long
+    NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=<output-of-openssl-rand-base64-32>
     ```
 
 2.  **Install dependencies:**
@@ -34,3 +35,6 @@ To run the development server locally (using an in-memory stub for DynamoDB):
 The project uses `.env.local` for local-only configuration.
 
 - `SESSION_SECRET`: Secret key for session/cookie encryption (at least 32 characters).
+- `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`: Fixed encryption key for Next.js Server Actions. Generate it with `openssl rand -base64 32`, then use the same value across builds and running instances.
+
+For SST deployments, set `NextServerActionsEncryptionKey` once per stage before deploying.

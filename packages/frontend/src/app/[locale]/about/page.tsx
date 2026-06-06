@@ -3,7 +3,7 @@ import { Container, Title, Text, Stack, Paper, Divider, Table, Alert } from '@ma
 import { getMarkdownContent } from '@/lib/markdown';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Link, routing } from '@/i18n/routing';
+import { Link } from '@/i18n/routing';
 import { IconInfoCircle } from '@tabler/icons-react';
 import Script from 'next/script';
 import { BlueskyEmbedManager } from '@/components/BlueskyEmbedManager';
@@ -16,8 +16,10 @@ const descriptions: Record<string, string> = {
 };
 
 export async function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
+  return contentLocales.map((locale) => ({ locale }));
 }
+
+export const dynamicParams = false;
 
 export async function generateMetadata({
   params,

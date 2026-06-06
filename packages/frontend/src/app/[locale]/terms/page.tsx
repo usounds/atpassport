@@ -3,7 +3,7 @@ import { Container, Title, Text, Stack, Paper } from '@mantine/core';
 import { getMarkdownContent } from '@/lib/markdown';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Link, routing } from '@/i18n/routing';
+import { Link } from '@/i18n/routing';
 import { setRequestLocale } from 'next-intl/server';
 import { contentLocales, createPageMetadata } from '@/lib/seo';
 
@@ -13,8 +13,10 @@ const descriptions: Record<string, string> = {
 };
 
 export async function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
+  return contentLocales.map((locale) => ({ locale }));
 }
+
+export const dynamicParams = false;
 
 export async function generateMetadata({
   params,

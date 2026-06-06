@@ -2,6 +2,12 @@ import type { Metadata } from 'next';
 import { routing } from '@/i18n/routing';
 
 export const baseUrl = 'https://atpassport.net';
+export const ogImage = {
+  url: '/atpassportOgp.png',
+  width: 1200,
+  height: 630,
+  alt: '@passport',
+} as const;
 export const appIndexPaths = ['', '/directory'] as const;
 export const contentIndexPaths = [
   '/about',
@@ -67,11 +73,13 @@ export function createPageMetadata({
       url,
       type: 'website',
       locale,
+      images: [ogImage],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: [ogImage.url],
     },
     robots: {
       index,
