@@ -45,3 +45,92 @@
   text-decoration: none;
   color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
 }
+
+.drawerContent {
+  background-color: light-dark(rgba(255, 255, 255, 0.8), rgba(18, 18, 18, 0.8)) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-left: 1px solid light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08));
+}
+
+.drawerHeader {
+  padding-bottom: var(--mantine-spacing-md) !important;
+  border-bottom: 1px solid light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.06));
+}
+
+.drawerTitle {
+  font-weight: 700 !important;
+  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+}
+
+.drawerLink {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 12px var(--mantine-spacing-md);
+  border-radius: var(--mantine-radius-md);
+  color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-dark-0));
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: transparent;
+  width: 100%;
+
+  &:hover {
+    background-color: light-dark(rgba(0, 0, 0, 0.03), rgba(255, 255, 255, 0.03));
+    transform: translateX(4px);
+  }
+
+  &[data-active] {
+    background-color: light-dark(rgba(34, 139, 230, 0.08), rgba(34, 139, 230, 0.15)) !important;
+    color: var(--mantine-color-blue-filled) !important;
+  }
+}
+
+.drawerIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--mantine-radius-md);
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .drawerLink:hover & {
+    background-color: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+    color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-dark-0));
+  }
+
+  .drawerLink[data-active] & {
+    background-color: var(--mantine-color-blue-filled);
+    color: var(--mantine-color-white);
+  }
+}
+
+.drawerLinkLabel {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  display: block;
+}
+
+.drawerLinkDesc {
+  font-size: 11px;
+  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
+  display: block;
+  font-weight: 400;
+}
+
+.drawerArrow {
+  color: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4));
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .drawerLink:hover & {
+    transform: translateX(2px);
+    color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  }
+
+  .drawerLink[data-active] & {
+    color: var(--mantine-color-blue-filled);
+  }
+}
+

@@ -6,7 +6,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
-import { Languages, Sun, Moon } from 'lucide-react';
+import { Languages, Sun, Moon, Info, Compass, FileText, Shield, ChevronRight } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import classes from './Header.module.css';
 
@@ -144,6 +144,45 @@ export function Header() {
     );
   });
 
+  const drawerItems = links.map((link) => {
+    const isActive = pathname === link.link;
+    const targetLocale = link.contentOnly && !isContentLocale(locale) ? 'en' : locale;
+    
+    let Icon = Info;
+    if (link.labelKey === 'directory') Icon = Compass;
+    if (link.labelKey === 'terms') Icon = FileText;
+    if (link.labelKey === 'privacy') Icon = Shield;
+
+    return (
+      <Link
+        key={link.labelKey}
+        href={link.link}
+        locale={targetLocale}
+        className={`${classes.drawerLink} ${isActive ? classes.drawerLinkActive : ''}`}
+        onClick={close}
+        data-active={isActive || undefined}
+      >
+        <Group justify="space-between" w="100%" wrap="nowrap">
+          <Group gap="sm" wrap="nowrap">
+            <div className={`${classes.drawerIconWrapper} ${isActive ? classes.drawerIconActive : ''}`}>
+              <Icon size={18} strokeWidth={2} />
+            </div>
+            <Stack gap={2}>
+              <span className={classes.drawerLinkLabel}>{tNav(link.labelKey)}</span>
+              <span className={classes.drawerLinkDesc}>
+                {link.labelKey === 'about' && (locale === 'ja' ? 'AtPassportについて知る' : 'Learn more about @passport')}
+                {link.labelKey === 'directory' && (locale === 'ja' ? '登録済みの公開ドメイン一覧' : 'Browse verified public domains')}
+                {link.labelKey === 'terms' && (locale === 'ja' ? 'サービス利用規約' : 'Read terms of service')}
+                {link.labelKey === 'privacy' && (locale === 'ja' ? '個人情報保護方針' : 'Read privacy policy')}
+              </span>
+            </Stack>
+          </Group>
+          <ChevronRight size={16} className={classes.drawerArrow} />
+        </Group>
+      </Link>
+    );
+  });
+
   return (
     <header className={classes.header}>
       {/* 以前は size="sm" 定義でしたが、項目が増えたため wider な "lg" に変更 */}
@@ -177,18 +216,37 @@ export function Header() {
         <Drawer
           opened={opened}
           onClose={close}
-          size="70%"
+          size="300px"
           padding="md"
           title={t('title')}
           position="right"
           hiddenFrom="sm"
           zIndex={1000}
-          styles={{
-            content: { backgroundColor: 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-7))' }
+          classNames={{
+            content: classes.drawerContent,
+            header: classes.drawerHeader,
+            title: classes.drawerTitle,
+          }}
+          overlayProps={{
+            backgroundOpacity: 0.15,
+            blur: 4,
           }}
         >
-          <Stack gap="md">
-            {items}
+          <Stack gap="xl" h="calc(100dvh - 110px)" justify="space-between" mt="md">
+            <Stack gap="xs">
+              {drawerItems}
+            </Stack>
+            <Stack gap="xs" style={{ borderTop: '1px solid light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.06))', paddingTop: 'var(--mantine-spacing-md)' }}>
+              <Group gap="xs" justify="center">
+                <Image src="/icon128.svg" alt="logo" width={18} height={18} />
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-3))' }}>
+                  AtPassport
+                </span>
+              </Group>
+              <span style={{ fontSize: '10px', textAlign: 'center', color: 'light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-4))' }}>
+                © {new Date().getFullYear()} AtPassport
+              </span>
+            </Stack>
           </Stack>
         </Drawer>
       </Container>

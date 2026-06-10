@@ -132,8 +132,8 @@ export default async function DeveloperGuidePage({
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  h2: ({ children }) => <Title order={4} mb="xs" mt="lg">{children}</Title>,
-                  h3: ({ children }) => <Title order={5} mb="xs" mt="md">{children}</Title>,
+                  h2: ({ children }) => <Title order={3} size="h4" mb="xs" mt="lg">{children}</Title>,
+                  h3: ({ children }) => <Title order={4} size="h5" mb="xs" mt="md">{children}</Title>,
                   p: ({ children }) => <Text size="sm" mb="sm" style={{ whiteSpace: 'pre-wrap' }}>{children}</Text>,
                   ul: ({ children }) => <ul style={{ paddingLeft: 20, marginBottom: 16 }}>{children}</ul>,
                   ol: ({ children }) => <ol style={{ paddingLeft: 20, marginBottom: 16 }}>{children}</ol>,

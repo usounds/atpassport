@@ -143,8 +143,8 @@ export default async function AboutPage({
                     );
                   },
                   pre: ({ children }) => <>{children}</>,
-                  h2: ({ children }) => <Title order={4} mb="xs" mt="lg">{children}</Title>,
-                  h3: ({ children }) => <Title order={5} mb="xs" mt="md">{children}</Title>,
+                  h2: ({ children }) => <Title order={3} size="h4" mb="xs" mt="lg">{children}</Title>,
+                  h3: ({ children }) => <Title order={4} size="h5" mb="xs" mt="md">{children}</Title>,
                   p: ({ children }) => (
                     <Text 
                       size="sm" 

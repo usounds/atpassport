@@ -67,7 +67,7 @@ export default async function PrivacyPage({
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  h2: ({ children }) => <Title order={4} mb="xs" mt="lg">{children}</Title>,
+                  h2: ({ children }) => <Title order={3} size="h4" mb="xs" mt="lg">{children}</Title>,
                   p: ({ children }) => <Text size="sm" mb="sm" style={{ whiteSpace: 'pre-wrap' }}>{children}</Text>,
                   ul: ({ children }) => <Stack gap={4} mb="md" pl="md" style={{ listStyleType: 'disc' }}>{children}</Stack>,
                   li: ({ children }) => (
