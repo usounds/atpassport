@@ -31,9 +31,24 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  const response = (pathname.startsWith('/api') || pathname.startsWith('/xrpc'))
+  let response = (pathname.startsWith('/api') || pathname.startsWith('/xrpc'))
     ? NextResponse.next()
     : intlMiddleware(request);
+
+  // Check if the middleware triggered a temporary redirect (307)
+  // and convert it to a permanent redirect (308) for better SEO configuration.
+  if (response.status === 307 && response.headers.get('location')) {
+    const location = response.headers.get('location')!;
+    const redirectResponse = NextResponse.redirect(new URL(location, request.url), 308);
+    
+    // Copy all headers (like Set-Cookie, etc.) from the original response
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() !== 'location') {
+        redirectResponse.headers.set(key, value);
+      }
+    });
+    response = redirectResponse;
+  }
 
   // Ensure responses that might contain user-specific data are NEVER cached by CDNs
   // We apply this to all requests handled by this middleware (non-static)
