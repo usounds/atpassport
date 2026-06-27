@@ -1,18 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { getMarkdownContent } from '../markdown';
 import fs from 'fs';
-import matter from 'gray-matter';
 
 vi.mock('fs');
-vi.mock('gray-matter');
 
 describe('Markdown Library', () => {
   it('should read and return markdown content', async () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(matter.read).mockReturnValue({
-      data: { title: 'Test Title', last_updated: '2024-01-01' },
-      content: '# Test Content',
-    } as unknown as ReturnType<typeof matter.read>);
+    vi.mocked(fs.readFileSync).mockReturnValue('---\ntitle: Test Title\nlast_updated: 2024-01-01\n---\n# Test Content');
 
     const result = await getMarkdownContent('test-slug', 'en');
 
@@ -25,10 +20,7 @@ describe('Markdown Library', () => {
       // Return false for Japanese, true for English
       return !path.toString().endsWith('ja.md');
     });
-    vi.mocked(matter.read).mockReturnValue({
-      data: { title: 'English Title', last_updated: '2024-01-01' },
-      content: '# English Content',
-    } as unknown as ReturnType<typeof matter.read>);
+    vi.mocked(fs.readFileSync).mockReturnValue('---\ntitle: English Title\nlast_updated: 2024-01-01\n---\n# English Content');
 
     const result = await getMarkdownContent('test-slug', 'ja');
 
@@ -49,10 +41,7 @@ describe('Markdown Library', () => {
     // sanitizedSlug will be 'directory'
     // sanitizedLocale will be 'en'
     vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(matter.read).mockReturnValue({
-      data: { title: 'Safe' },
-      content: 'Safe',
-    } as any);
+    vi.mocked(fs.readFileSync).mockReturnValue('Safe');
     
     await getMarkdownContent('../../../etc/passwd', 'en');
     

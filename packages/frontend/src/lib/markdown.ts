@@ -1,6 +1,20 @@
 import fs from 'fs';
 import path from 'path';
-import matter from 'gray-matter';
+import yaml from 'js-yaml';
+
+function parseMarkdownFile(filePath: string) {
+  const source = fs.readFileSync(filePath, 'utf8');
+  const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+
+  if (!match) {
+    return { data: {}, content: source };
+  }
+
+  return {
+    data: (yaml.load(match[1]) ?? {}) as Record<string, unknown>,
+    content: match[2],
+  };
+}
 
 export async function getMarkdownContent(slug: string, locale: string) {
   const sanitizedSlug = slug.replace(/[^a-zA-Z0-9_-]/g, '');
@@ -20,7 +34,7 @@ export async function getMarkdownContent(slug: string, locale: string) {
     throw new Error(`Invalid content path: ${slug}`);
   }
 
-  const { data, content } = matter.read(fullPath);
+  const { data, content } = parseMarkdownFile(fullPath);
 
   return {
     data: data as { title: string; last_updated: string },
