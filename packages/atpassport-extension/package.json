@@ -9,7 +9,7 @@
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
     "update": "pnpm dlx npm-check-updates -u && pnpm install && pnpm update",
-    "build": "wxt build",
+    "build": "wxt build && wxt build -b firefox",
     "build:firefox": "wxt build -b firefox",
     "zip": "wxt zip && wxt zip -b firefox",
     "submit:chrome": "pnpm zip && npx publish-browser-extension@latest --chrome-zip .output/atpassport-extension-$npm_package_version-chrome.zip",
