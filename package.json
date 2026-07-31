@@ -16,28 +16,5 @@
     "npm-check-updates": "^17.1.18",
     "sst": "^4.15.2",
     "typescript": "^5.9.3"
-  },
-  "pnpm": {
-    "overrides": {
-      "fast-xml-parser": "^5.7.0",
-      "fast-xml-builder": "^1.1.7",
-      "uuid": "^14.0.0",
-      "minimatch": "8.0.6",
-      "brace-expansion": "2.0.3",
-      "next": "^16.2.9",
-      "next-intl": "4.11.0",
-      "react": "19.2.5",
-      "react-dom": "19.2.5",
-      "@types/react": "19.2.14",
-      "@types/react-dom": "19.2.3",
-      "esbuild": "0.28.1",
-      "picomatch": "4.0.4",
-      "yaml": "2.8.3",
-      "postcss": "^8.5.10",
-      "tmp": ">=0.2.6",
-      "shell-quote": ">=1.8.4",
-      "undici": "^7.28.0",
-      "js-yaml": "^4.2.0"
-    }
   }
 }
