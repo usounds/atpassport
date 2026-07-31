@@ -4,7 +4,10 @@ test.describe('Token Replay Attack Protection Flow', () => {
   // Ensure tests run sequentially to avoid rate limits and state conflicts
   test.describe.configure({ mode: 'serial' });
 
-  test('should synchronize device handles using a token and then block token reuse', async ({ page }) => {
+  test('should synchronize device handles using a token and then block token reuse', async ({ page }, testInfo) => {
+    await page.setExtraHTTPHeaders({
+      'x-forwarded-for': `e2e-${testInfo.testId.replace(/[^a-zA-Z0-9-]/g, '-')}`,
+    });
     // 1. Go to Japanese home page
     await page.goto('/ja');
     await page.waitForTimeout(2000);
@@ -41,10 +44,11 @@ test.describe('Token Replay Attack Protection Flow', () => {
     await shareBtn.click();
 
     // Verify the share modal is open
-    await expect(page.getByRole('heading', { name: 'デバイス間で共有', exact: true })).toBeVisible();
+    const shareDialog = page.getByRole('dialog', { name: 'デバイス間で共有' });
+    await expect(shareDialog).toBeVisible();
 
     // 6. Extract the real generated share URL from the DOM
-    const urlTextElement = page.locator('text=/ja/share/').first();
+    const urlTextElement = shareDialog.getByTestId('share-url');
     await expect(urlTextElement).toBeVisible({ timeout: 10000 });
     
     const shareUrl = await urlTextElement.textContent();
@@ -60,7 +64,7 @@ test.describe('Token Replay Attack Protection Flow', () => {
 
     // Close the share modal
     await page.keyboard.press('Escape');
-    await expect(page.getByRole('heading', { name: 'デバイス間で共有', exact: true })).not.toBeVisible();
+    await expect(shareDialog).not.toBeVisible();
 
     // 7. Navigate to the generated sync URL to simulate the second device sync
     await page.goto(urlObj.pathname);
@@ -93,7 +97,10 @@ test.describe('Token Replay Attack Protection Flow', () => {
     await expect(page.getByText('同期用のリンクは一度しか使用できない「使い捨て」の仕組みになっています。')).toBeVisible();
   });
 
-  test('should render the sync flow in English and block token reuse', async ({ page }) => {
+  test('should render the sync flow in English and block token reuse', async ({ page }, testInfo) => {
+    await page.setExtraHTTPHeaders({
+      'x-forwarded-for': `e2e-${testInfo.testId.replace(/[^a-zA-Z0-9-]/g, '-')}`,
+    });
     await page.goto('/ja');
     await page.waitForTimeout(2000);
 
@@ -118,9 +125,10 @@ test.describe('Token Replay Attack Protection Flow', () => {
     const shareBtn = page.getByRole('button', { name: 'デバイス間で共有' }).first();
     await expect(shareBtn).toBeVisible();
     await shareBtn.click();
-    await expect(page.getByRole('heading', { name: 'デバイス間で共有', exact: true })).toBeVisible();
+    const japaneseShareDialog = page.getByRole('dialog', { name: 'デバイス間で共有' });
+    await expect(japaneseShareDialog).toBeVisible();
 
-    const urlTextElement = page.locator('text=/ja\\/share\\//').first();
+    const urlTextElement = japaneseShareDialog.getByTestId('share-url');
     await expect(urlTextElement).toBeVisible({ timeout: 10000 });
 
     const shareUrl = await urlTextElement.textContent();
@@ -132,7 +140,7 @@ test.describe('Token Replay Attack Protection Flow', () => {
     expect(token).toBeTruthy();
 
     await page.keyboard.press('Escape');
-    await expect(page.getByRole('heading', { name: 'デバイス間で共有', exact: true })).not.toBeVisible();
+    await expect(japaneseShareDialog).not.toBeVisible();
 
     await page.goto(`/en/share/${token}`);
     await page.waitForTimeout(2000);
@@ -162,9 +170,10 @@ test.describe('Token Replay Attack Protection Flow', () => {
     const secondShareBtn = page.getByRole('button', { name: 'Share with Other Devices' }).first();
     await expect(secondShareBtn).toBeVisible();
     await secondShareBtn.click();
-    await expect(page.getByRole('heading', { name: 'Share with Other Devices', exact: true })).toBeVisible();
+    const englishShareDialog = page.getByRole('dialog', { name: 'Share with Other Devices' });
+    await expect(englishShareDialog).toBeVisible();
 
-    const secondUrlTextElement = page.locator('text=/\\/en\\/share\\//').first();
+    const secondUrlTextElement = englishShareDialog.getByTestId('share-url');
     await expect(secondUrlTextElement).toBeVisible({ timeout: 10000 });
 
     const secondShareUrl = await secondUrlTextElement.textContent();

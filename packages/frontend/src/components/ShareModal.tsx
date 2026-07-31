@@ -181,7 +181,13 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
                 backgroundColor: 'var(--mantine-color-default-hover)' 
               }}>
                 <Box px="md" py="xs" style={{ flex: 1, overflow: 'hidden' }}>
-                  <Text size="xs" truncate c="var(--mantine-color-text)" ff="monospace">
+                  <Text
+                    data-testid="share-url"
+                    size="xs"
+                    truncate
+                    c="var(--mantine-color-text)"
+                    ff="monospace"
+                  >
                     {shareUrl}
                   </Text>
                 </Box>
