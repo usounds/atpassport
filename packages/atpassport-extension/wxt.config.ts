@@ -28,7 +28,6 @@ export default defineConfig({
       gecko: {
         id: 'extension@atpassport.net',
         strict_min_version: '142.0',
-        // @ts-expect-error: Required for Firefox but missing from WXT types
         data_collection_permissions: {
           required: ['none'],
         },
