@@ -104,7 +104,7 @@ describe('HandleManager', () => {
 
       await manager.applyHandle('test.handle');
       
-      const callArgs = spy.mock.calls[0][0] as any;
+      const callArgs = spy.mock.calls[0]![0] as any;
       const scriptFunc = callArgs.func;
       
       // Setup DOM for scriptFunc

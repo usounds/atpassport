@@ -45,21 +45,28 @@
 body {
   margin: 0;
   padding: 0;
+  max-height: 600px;
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
 }
 
 .popup-container {
+  display: flex;
+  flex-direction: column;
   width: 320px;
+  max-height: 600px;
   padding: 20px;
   box-sizing: border-box;
+  overflow: hidden;
   animation: fadeIn 0.3s ease-out;
 }
 
 /* Header */
 .header {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 8px;
   margin-bottom: 20px;
@@ -127,7 +134,10 @@ body {
 .handle-list {
   display: flex;
   flex-direction: column;
+  min-height: 0;
   gap: 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .handle-item {
@@ -175,21 +185,29 @@ body {
 
 .handle-content {
   display: flex;
+  flex: 1;
+  min-width: 0;
   align-items: center;
   gap: 12px;
 }
 
 .handle-icon {
+  flex-shrink: 0;
   color: var(--accent);
 }
 
 .handle-text {
+  min-width: 0;
   font-size: 0.95rem;
   font-weight: 500;
+  overflow-wrap: anywhere;
+  text-align: left;
   color: var(--text-secondary);
 }
 
 .copy-icon {
+  flex-shrink: 0;
+  margin-left: 12px;
   color: var(--text-tertiary);
   opacity: 0.5;
 }
@@ -206,6 +224,7 @@ body {
 
 /* Footer */
 .footer {
+  flex-shrink: 0;
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid var(--border-color);
