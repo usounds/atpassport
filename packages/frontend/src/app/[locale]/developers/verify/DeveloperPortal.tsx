@@ -71,20 +71,14 @@ export function DeveloperPortal({
            // This will be intercepted by Playwright route mocks
            return await fetch(pathname, init);
         },
-        proxy: {
-          did: 'did:plc:mock',
-          serviceId: '#mock-verify',
-        },
+        proxy: 'did:plc:mock#mock-verify',
       });
     }
 
     const agent = new OAuthUserAgent(activeSession);
     return new Client({
       handler: agent,
-      proxy: {
-        did: `did:web:${window.location.host}`,
-        serviceId: '#atpassport_appview',
-      },
+      proxy: `did:web:${window.location.host}#atpassport_appview`,
     });
   }, [session]);
 

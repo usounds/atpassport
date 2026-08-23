@@ -40,6 +40,47 @@ test.describe('popup', () => {
     await expect(popup.getByRole('button', { name: /bob\.test/ })).toBeVisible();
   });
 
+  test('keeps the footer visible and scrolls a long handle list', async () => {
+    const handles = [
+      'usounds.work',
+      'sports.usounds.work',
+      'skyblur.uk',
+      'rito.blue',
+      'atpassport.net',
+      'label.wol.blue',
+      'feed.usounds.work',
+      'solo.usounds.work',
+      'rito-test.spaces-alpha.bsky.network',
+    ];
+
+    await context.route('https://atpassport.net/api/user/handles', async route => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ handles }),
+      });
+    });
+
+    const extensionId = await getExtensionId(context);
+    const popup = await context.newPage();
+    await popup.setViewportSize({ width: 320, height: 600 });
+    await popup.goto(`chrome-extension://${extensionId}/popup.html`);
+
+    const list = popup.locator('.handle-list');
+    const footer = popup.locator('.footer');
+    await expect(footer).toBeVisible();
+    await expect(popup.getByRole('button', { name: /rito-test\.spaces-alpha\.bsky\.network/ })).toBeAttached();
+
+    const layout = await list.evaluate(element => ({
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+    }));
+    const footerBox = await footer.boundingBox();
+
+    expect(layout.scrollHeight).toBeGreaterThan(layout.clientHeight);
+    expect(footerBox).not.toBeNull();
+    expect(footerBox!.y + footerBox!.height).toBeLessThanOrEqual(600);
+  });
+
   test('links login-required state to atpassport.net', async () => {
     await context.route('https://atpassport.net/api/user/handles', async route => {
       await route.fulfill({ status: 401, body: 'Unauthorized' });
