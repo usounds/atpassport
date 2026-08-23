@@ -10,28 +10,32 @@ onlyBuiltDependencies:
   - unrs-resolver
 
 overrides:
-  fast-xml-parser: ^5.7.0
-  fast-xml-builder: ^1.1.7
-  uuid: ^14.0.0
-  'multimatch@6.0.0': 8.0.0
-  minimatch: ^10.0.3
-  brace-expansion: 5.0.9
-  next: ^16.3.0
-  next-intl: 4.11.0
-  react: 19.2.5
-  react-dom: 19.2.5
   '@types/react': 19.2.14
   '@types/react-dom': 19.2.3
-  esbuild: 0.28.1
-  picomatch: 4.0.4
-  yaml: 2.8.3
-  postcss: ^8.5.18
-  sharp: ^0.35.3
-  tmp: '>=0.2.6'
-  shell-quote: ^1.9.0
   adm-zip: ^0.6.0
-  undici: ^7.29.0
+  brace-expansion: 5.0.9
+  esbuild: 0.28.1
+  fast-xml-builder: ^1.1.7
+  fast-xml-parser: ^5.7.0
   js-yaml: ^4.3.1
-  'nanoid@<3.3.17': 3.3.17
+  minimatch: ^10.0.3
+  'multimatch@6.0.0': 8.0.0
+  'nanoid@<3.3.18': 3.3.18
   'nanoid@>=4.0.0 <5.1.16': 5.1.16
+  next: ^16.3.0
+  next-intl: 4.11.0
+  picomatch: 4.0.4
+  postcss: ^8.5.18
+  react: 19.2.5
+  react-dom: 19.2.5
+  sharp: ^0.35.3
+  shell-quote: ^1.9.0
+  tmp: '>=0.2.6'
+  undici: ^7.29.0
+  uuid: ^14.0.0
   valibot: ^1.4.2
+  yaml: 2.8.3
+patchedDependencies:
+  # No upstream release fixes GHSA-5p2g-fcmc-qvqq / GHSA-w3rx-r6r6-pgpr yet.
+  # Remove this patch once image-size publishes a fixed version.
+  image-size@2.0.2: patches/image-size@2.0.2.patch

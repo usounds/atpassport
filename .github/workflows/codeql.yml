@@ -27,7 +27,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript-typescript' ]
+        include:
+          - language: actions
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
 
     env:
       # 2026年4月以降もPRでのファイルカバレッジを継続するための設定
@@ -43,12 +47,10 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
           # 必要に応じて解析対象を限定することで、キャッシュタイムアウトを軽減できます
           # paths-ignore:
           #   - '**/node_modules/**'
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v4
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4

@@ -1,0 +1,416 @@
+diff --git a/dist/detector.cjs b/dist/detector.cjs
+index 0898608dbeca36722dfd795341b1c3c1448f58aa..81098a788ebc47b1fbef6cc2459c128ed24c4192 100644
+--- a/dist/detector.cjs
++++ b/dist/detector.cjs
+@@ -40,9 +40,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+@@ -251,6 +251,9 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] < 8) {
++        throw new TypeError("Invalid ICNS entry length");
++      }
+       const imageSize = getImageSize2(imageHeader[0]);
+       images.push(imageSize);
+       imageOffset += imageHeader[1];
+diff --git a/dist/detector.mjs b/dist/detector.mjs
+index 67afcab02d627f95e98c938499e07a934b832a26..3656f009341e96e4a424cb32ff82b2a30c1843ef 100644
+--- a/dist/detector.mjs
++++ b/dist/detector.mjs
+@@ -38,9 +38,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+@@ -249,6 +249,9 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] < 8) {
++        throw new TypeError("Invalid ICNS entry length");
++      }
+       const imageSize = getImageSize2(imageHeader[0]);
+       images.push(imageSize);
+       imageOffset += imageHeader[1];
+diff --git a/dist/fromFile.cjs b/dist/fromFile.cjs
+index c226d3dac07f235db456c774b26cca88f655e1af..b3af57c6909ac61f77f36b62ad3de39bb4964ba8 100644
+--- a/dist/fromFile.cjs
++++ b/dist/fromFile.cjs
+@@ -66,9 +66,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+@@ -277,6 +277,9 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] < 8) {
++        throw new TypeError("Invalid ICNS entry length");
++      }
+       const imageSize2 = getImageSize2(imageHeader[0]);
+       images.push(imageSize2);
+       imageOffset += imageHeader[1];
+diff --git a/dist/fromFile.mjs b/dist/fromFile.mjs
+index 4a3c44432982397204f7a9d04fc66ef65a8e7ba4..caa99efd9c1451fe6e33604be96fccc33a373bca 100644
+--- a/dist/fromFile.mjs
++++ b/dist/fromFile.mjs
+@@ -43,9 +43,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+@@ -254,6 +254,9 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] < 8) {
++        throw new TypeError("Invalid ICNS entry length");
++      }
+       const imageSize2 = getImageSize2(imageHeader[0]);
+       images.push(imageSize2);
+       imageOffset += imageHeader[1];
+diff --git a/dist/index.cjs b/dist/index.cjs
+index bde0210eb131db06ccca30a5c466c7252a03af50..23a22e6e77f833a75a8a359c5a3a46225cdc2099 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -42,9 +42,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+@@ -253,6 +253,9 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] < 8) {
++        throw new TypeError("Invalid ICNS entry length");
++      }
+       const imageSize2 = getImageSize2(imageHeader[0]);
+       images.push(imageSize2);
+       imageOffset += imageHeader[1];
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 22c17afad4e406eba013fff7858366cb5f8e3ba4..91ee2ff9a6b0842fa36c12b07745f56789d347a2 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -38,9 +38,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+@@ -249,6 +249,9 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] < 8) {
++        throw new TypeError("Invalid ICNS entry length");
++      }
+       const imageSize2 = getImageSize2(imageHeader[0]);
+       images.push(imageSize2);
+       imageOffset += imageHeader[1];
+diff --git a/dist/lookup.cjs b/dist/lookup.cjs
+index 9731ad8bb0949f8fdf9297851bdb312e91282f01..3192ecd3ee639c227d6c6a1560eb5624303a4993 100644
+--- a/dist/lookup.cjs
++++ b/dist/lookup.cjs
+@@ -40,9 +40,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+@@ -251,6 +251,9 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] < 8) {
++        throw new TypeError("Invalid ICNS entry length");
++      }
+       const imageSize2 = getImageSize2(imageHeader[0]);
+       images.push(imageSize2);
+       imageOffset += imageHeader[1];
+diff --git a/dist/lookup.mjs b/dist/lookup.mjs
+index f787d1c8408d7b681fec8617595d058f66959869..e1f404cae6318591e89e6643b1639416a93c268f 100644
+--- a/dist/lookup.mjs
++++ b/dist/lookup.mjs
+@@ -38,9 +38,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+@@ -249,6 +249,9 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] < 8) {
++        throw new TypeError("Invalid ICNS entry length");
++      }
+       const imageSize2 = getImageSize2(imageHeader[0]);
+       images.push(imageSize2);
+       imageOffset += imageHeader[1];
+diff --git a/dist/types/heif.cjs b/dist/types/heif.cjs
+index 1f490788ea654ea9896060a5c0253d81e348af92..661a34ac341673d15c3c0b1b6abd24509533b869 100644
+--- a/dist/types/heif.cjs
++++ b/dist/types/heif.cjs
+@@ -18,9 +18,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+diff --git a/dist/types/heif.mjs b/dist/types/heif.mjs
+index 01330919e01b3c034a96a7b4b1dbf5a7f658bb2d..84ff9e0c71ad49f4ca12f93616b708fdea2c178d 100644
+--- a/dist/types/heif.mjs
++++ b/dist/types/heif.mjs
+@@ -16,9 +16,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+diff --git a/dist/types/icns.cjs b/dist/types/icns.cjs
+index 32c8d370dcf80a10f14a6deebfdbe04d3c70585c..2521146d1551a0f87632eda216b4b443e4973f40 100644
+--- a/dist/types/icns.cjs
++++ b/dist/types/icns.cjs
+@@ -72,6 +72,9 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] < 8) {
++        throw new TypeError("Invalid ICNS entry length");
++      }
+       const imageSize = getImageSize(imageHeader[0]);
+       images.push(imageSize);
+       imageOffset += imageHeader[1];
+diff --git a/dist/types/icns.mjs b/dist/types/icns.mjs
+index 8710027bc5890a79d05a7fdb87de3018e556729e..6b6e7f380b955783474222903ff55af05fffad97 100644
+--- a/dist/types/icns.mjs
++++ b/dist/types/icns.mjs
+@@ -70,6 +70,9 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] < 8) {
++        throw new TypeError("Invalid ICNS entry length");
++      }
+       const imageSize = getImageSize(imageHeader[0]);
+       images.push(imageSize);
+       imageOffset += imageHeader[1];
+diff --git a/dist/types/index.cjs b/dist/types/index.cjs
+index 6949cd134db7ab59dae7b804b36c7bacb4e387cf..d38581fa8d19692e16cff90eede93257324191c3 100644
+--- a/dist/types/index.cjs
++++ b/dist/types/index.cjs
+@@ -40,9 +40,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+@@ -251,6 +251,9 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] < 8) {
++        throw new TypeError("Invalid ICNS entry length");
++      }
+       const imageSize = getImageSize2(imageHeader[0]);
+       images.push(imageSize);
+       imageOffset += imageHeader[1];
+diff --git a/dist/types/index.mjs b/dist/types/index.mjs
+index b026dda4aa16c6077a76e4b3cfe3f54fe1d6d1d0..c9bc8f4529ce84542daefbd483ffacbbb0bd4934 100644
+--- a/dist/types/index.mjs
++++ b/dist/types/index.mjs
+@@ -38,9 +38,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+@@ -249,6 +249,9 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] < 8) {
++        throw new TypeError("Invalid ICNS entry length");
++      }
+       const imageSize = getImageSize2(imageHeader[0]);
+       images.push(imageSize);
+       imageOffset += imageHeader[1];
+diff --git a/dist/types/jp2.cjs b/dist/types/jp2.cjs
+index cdd7c884efeb940b99f69a8f1d6ed361a1979211..681ef9a46ccaa7845742f601896e76e47a4df3f9 100644
+--- a/dist/types/jp2.cjs
++++ b/dist/types/jp2.cjs
+@@ -18,9 +18,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+diff --git a/dist/types/jp2.mjs b/dist/types/jp2.mjs
+index 63a537635b4f91250431a53225d4521ed60cf67d..f28fa637d3442b1890b957820f992db216a5f613 100644
+--- a/dist/types/jp2.mjs
++++ b/dist/types/jp2.mjs
+@@ -16,9 +16,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+diff --git a/dist/types/jxl.cjs b/dist/types/jxl.cjs
+index a12095be85c7a8fd25763895a47c46b4292ebd9c..96939a11b76e469f7874c5e9250b6063ca8f7d2e 100644
+--- a/dist/types/jxl.cjs
++++ b/dist/types/jxl.cjs
+@@ -59,9 +59,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+diff --git a/dist/types/jxl.mjs b/dist/types/jxl.mjs
+index 49b0c4cac6abb366378e5feed745f16981b441c0..a2c9c0b0d5c3bda82dafec5870f01f4a7af1ddd4 100644
+--- a/dist/types/jxl.mjs
++++ b/dist/types/jxl.mjs
+@@ -57,9 +57,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+diff --git a/dist/types/utils.cjs b/dist/types/utils.cjs
+index 23d52e4cbf271e667feb2d7f040c07f69678d3aa..49c4ba8cf8051530edc310ff30cd5a65cbda51e5 100644
+--- a/dist/types/utils.cjs
++++ b/dist/types/utils.cjs
+@@ -40,9 +40,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
+diff --git a/dist/types/utils.mjs b/dist/types/utils.mjs
+index 3f09dceb036e40be8538dbb5588d88c951339158..93ae3799bf078f21063faa6b92dc00605a534154 100644
+--- a/dist/types/utils.mjs
++++ b/dist/types/utils.mjs
+@@ -38,9 +38,9 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size < 8) break;
+     if (box.name === boxName) return box;
+-    currentOffset += box.size > 0 ? box.size : 8;
++    currentOffset += box.size;
+   }
+ }
+ 
