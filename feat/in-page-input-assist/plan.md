@@ -55,14 +55,14 @@ W3C標準である **FedCM** を導入することで、ブラウザ標準のセ
 └──────────────┬──────────────────────────────▲───────────────┘
                │ 1. GET /fedcm/config.json    │
                │ 2. GET /api/fedcm/accounts   │ 4. Token返却
-               │ 3. POST /api/fedcm/assertion │
+               │ 3. POST /api/fedcm/assertion │   (DID/username)
                ▼                              │
 ┌─────────────────────────────────────────────────────────────┐
 │ IdP (@passport サーバー: packages/frontend)                 │
 │  ・HttpOnly セッションCookie検証                            │
 │  ・Sec-Fetch-Dest: webidentity ヘッダー検証                 │
 │  ・登録済みDIDs/ハンドル一覧提供                            │
-│  ・選択されたDIDとハンドルを文字列Tokenとして返却           │
+│  ・選択されたDIDとハンドル（username）をTokenとして返却     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -179,23 +179,40 @@ RPの利用規約およびプライバシーポリシーURLをブラウザの同
   - `account_id`: 選択された DID
   - `disclosure_text_shown`: 同意文の表示有無
 - **レスポンス**:
-  - Chrome 141で利用可能な文字列Tokenとして、バージョン、DID、ハンドルを含むJSONをシリアライズして返却する。
+  - Chrome 141で利用可能な文字列Tokenとして、バージョン、DID、ユーザー名（`username`）を含むJSONをシリアライズして返却する。
   - Tokenに暗号学的な署名は行わず、新しい秘密鍵、公開鍵配布、JWKSエンドポイントは追加しない。
   ```json
   {
-    "token": "{\"v\":1,\"did\":\"did:plc:abcdef1234567890\",\"handle\":\"alice.bsky.social\"}"
+    "token": "{\"v\":1,\"did\":\"did:plc:abcdef1234567890\",\"username\":\"alice.bsky.social\"}"
   }
   ```
 - **信頼境界**:
   - Tokenはブラウザが選択結果をRPへ渡すためのデータ形式であり、署名付きID Tokenではない。
   - SDKはTokenの形式と必須フィールドを検証して入力欄へ反映するが、DIDの本人性を保証しない。
-  - RPがログインやアカウント連携を行う場合は、返されたハンドルを起点にatproto OAuthを開始し、その結果を本人確認に使用する。
+  - RPがログインやアカウント連携を行う場合は、返された `username` を起点にatproto OAuthを開始し、その結果を本人確認に使用する。
 
 ### 4.6 IdP Login Status API
 ブラウザが不要なネットワークリクエストを行わないよう、ログイン状態をブラウザに通知する。
 
 - ログイン成功時: HTTPレスポンスヘッダー `Set-Login: logged-in` を返却、またはクライアント側で `navigator.login.setStatus("logged-in")` を実行。
 - ログアウト時: HTTPレスポンスヘッダー `Set-Login: logged-out` を返却、または `navigator.login.setStatus("logged-out")` を実行。
+
+### 4.7 Webフォールバック／リダイレクトコールバック仕様
+FedCM非対応環境やフォールバック時（利用者が通常のWeb認証画面 `/authentication` または `/add` を経由してアカウントを選択した場合）、@passport は指定された `callback` URLへ以下のクエリパラメータを付与してリダイレクトする:
+
+- `username`: 認証されたハンドル / ユーザー名（例: `alice.bsky.social`。標準パラメータ）
+- `handle`: `username` と同一値（既存RP実装および後方互換性のためのエイリアス）
+- `did`: ハンドルのDID（例: `did:plc:abcdef1234567890`）
+- `pdsurl`: アカウントのPDSエンドポイントURL
+- `atpstate`: 連携開始時にRPから渡されたCSRF防止用ステートトークン
+- 連携開始時に指定された任意のカスタムパラメータ（`customParams`）
+
+**コールバックURL例:**
+```url
+https://your-app.com/callback?username=alice.bsky.social&handle=alice.bsky.social&did=did%3Aplc%3Aabcdef1234567890&pdsurl=https%3A%2F%2Fpds.example.com&atpstate=atpstate-1234
+```
+
+Webフォールバック時もFedCMと同様、受け取った `username` は入力支援・候補として扱い、RP側で本人確認が必要な場合はatproto OAuthのフローを開始する。
 
 ---
 
@@ -205,45 +222,68 @@ RPサイトに組み込まれる `@atpassport/client` を更新し、FedCM を�
 
 ### 5.1 FedCM API呼び出し
 ```typescript
-export async function requestHandleAssist(options?: {
+export interface HandleAssistResult {
+  /** DID associated with the selected handle. Unverified until OAuth completes. */
+  did: AtprotoDid | string;
+  /** Selected handle to use as an input hint for atproto OAuth. */
+  username: Handle | string;
+  /** Serialized handle-assist payload. Not a bearer token or access token. */
+  token: string;
+}
+
+export interface HandleAssistOptions {
   targetInput?: HTMLInputElement;
   clientId?: string;
-}): Promise<{ did: string; handle: string; token?: string } | null> {
+  configURL?: string;
+  fallback?: () => HandleAssistResult | null | Promise<HandleAssistResult | null>;
+  onError?: (error: unknown) => void;
+}
+
+export async function requestHandleAssist(
+  options: HandleAssistOptions = {}
+): Promise<HandleAssistResult | null> {
   // 1. FedCMが利用可能かチェック
-  if (typeof window !== 'undefined' && 'IdentityCredential' in window) {
+  if (isHandleAssistSupported()) {
     try {
       const credential = (await navigator.credentials.get({
         identity: {
-          context: 'signin',
+          context: 'use',
           providers: [
             {
-              configURL: 'https://atpassport.net/fedcm/config.json',
-              clientId: options?.clientId || window.location.origin,
+              configURL: options.configURL ?? 'https://atpassport.net/fedcm/config.json',
+              clientId: options.clientId ?? window.location.origin,
+              fields: ['username', 'picture'],
             },
           ],
           mode: 'active', // ユーザージェスチャーを伴うアクティブモード
         },
-      } as any)) as { token?: string } | null;
+      } as CredentialRequestOptions)) as { token?: unknown } | null;
 
-      if (credential?.token) {
-        const payload = parseHandleAssistToken(credential.token);
-        if (options?.targetInput && payload.handle) {
-          fillInputValue(options.targetInput, payload.handle);
+      if (credential?.token && typeof credential.token === 'string') {
+        const result = parseHandleAssistToken(credential.token);
+        if (options.targetInput) {
+          fillInputValue(options.targetInput, result.username);
         }
-        return {
-          did: payload.did,
-          handle: payload.handle,
-          token: credential.token,
-        };
+        return result;
       }
     } catch (err) {
-      // ユーザーキャンセル、または非対応ケースはフォールバックへ
-      console.debug('[atpassport] FedCM bypassed or failed, falling back:', err);
+      options.onError?.(err);
+      // ユーザーキャンセルや非対応エラー等の処理・フォールバック判定
+      const errorName = typeof err === 'object' && err !== null && 'name' in err ? String(err.name) : '';
+      const shouldFallback =
+        err instanceof TypeError ||
+        errorName === 'NotSupportedError' ||
+        errorName === 'NetworkError' ||
+        errorName === 'IdentityCredentialError';
+      if (shouldFallback && options.fallback) {
+        return await options.fallback();
+      }
+      return null;
     }
   }
 
-  // 2. フォールバック: 既存のモーダル/ポップアップ連携
-  return fallbackModalAssist(options);
+  // 2. フォールバック: 既存のモーダル/ポップアップ/リダイレクト連携
+  return options.fallback ? await options.fallback() : null;
 }
 ```
 
@@ -266,6 +306,32 @@ function fillInputValue(input: HTMLInputElement, value: string) {
 }
 ```
 
+### 5.3 コールバック解析と後方互換性（`parseCallback`）
+WebフォールバックやHTTPリダイレクト連携において、RP側でコールバックURLを安全に解析するために `AtPassport` クラスの `parseCallback` メソッドを提供する。
+
+```typescript
+export class AtPassport {
+  parseCallback(currentUrl: string, expectedState?: string | null): {
+    username: Handle | string | null;
+    handle: Handle | string | null;
+    did: AtprotoDid | string | null;
+    pdsUrl: string | null;
+    atpstate: string;
+    customParams: Record<string, string>;
+  };
+}
+```
+
+- **パラメータ抽出順序**:
+  - `const username = url.searchParams.get("username") ?? url.searchParams.get("handle");`
+  - 新仕様の `username` パラメータを最優先で取得し、未指定の場合は従来の `handle` パラメータにフォールバックする。
+- **後方互換用エイリアスの返却**:
+  - 戻り値オブジェクトの `username` と `handle` に同一のハンドル名を設定する。
+  - これにより、RPが新仕様の `result.username` を参照する場合でも、従来の `result.handle` を参照している場合でも、修正なしで安全に動作する。
+- **CSRF検証と予約パラメータ**:
+  - `atpstate` パラメータの存在および `expectedState` との一致を検証する。
+  - `RESERVED_CALLBACK_PARAM_KEYS`（`username`, `handle`, `did`, `pdsurl`, `atpstate`）以外のパラメータのみを `customParams` として抽出・検証する。
+
 ---
 
 ## 6. ブラウザ拡張機能との役割分担（`packages/atpassport-extension`）
@@ -287,8 +353,8 @@ function fillInputValue(input: HTMLInputElement, value: string) {
 2. **Sec-Fetch-Dest ヘッダーによるCSRF防止**:
    - `/api/fedcm/accounts` および `/api/fedcm/assertion` は、ブラウザ内部リクエストでのみ付与される `Sec-Fetch-Dest: webidentity` を必須とする。通常の Fetch/XHR や画像タグからの偽装呼び出しは即時400/403で遮断する。
 3. **入力支援と本人認証の分離**:
-   - 返却Tokenはハンドル入力候補の伝達にのみ使用し、本人認証やログインセッションの確立には使用しない。
-   - 本人確認が必要なRPは、返されたハンドルを起点にatproto OAuthを実行する。
+   - 返却Tokenおよびコールバックで渡される `username` / `handle` / `did` は入力候補の伝達にのみ使用し、本人認証やログインセッションの確立には使用しない。
+   - 本人確認が必要なRPは、返された `username` を起点にatproto OAuthを実行する。
 4. **トラッキング遮断**:
    - ユーザーがブラウザUIで特定アカウントをクリックするまで、RPに対してユーザー情報（ログイン有無を含む）は一切伝達されない。
 
@@ -300,12 +366,14 @@ function fillInputValue(input: HTMLInputElement, value: string) {
 - `packages/frontend`:
   - `/.well-known/web-identity` および `/fedcm/config.json` の仕様準拠レスポンス検証。
   - `/api/fedcm/accounts` の認証、`Sec-Fetch-Dest: webidentity` 検証、CORS拒否動作。
-  - `/api/fedcm/assertion` の `client_id`・`Origin` 検証、文字列Tokenの形式と必須フィールド検証。
+  - `/api/fedcm/assertion` の `client_id`・`Origin` 検証、文字列Tokenの形式と必須フィールド（`v`, `did`, `username`）の検証。
   - FedCM専用Cookieの属性、用途制限、有効期限、ログイン時発行、ログアウト時削除を検証。
   - 通常セッションCookieだけではFedCMエンドポイントを利用できず、FedCM専用Cookieが通常の認証には利用できないことを検証。
+  - Webフォールバック時のコールバックURL生成（`AuthAccountItem` / `AuthSuggestedAccountItem`）において、`username` と `handle` の双方が付与されることの検証。
 - `packages/atpassport-client`:
   - `IdentityCredential` の有無に応じた FedCM 実行とフォールバック動作の分岐検証。
-  - 入力支援Tokenのバージョン、JSON形式、DID、ハンドルの検証と、不正なTokenを入力欄へ反映しないことの検証。
+  - 入力支援Tokenのバージョン、JSON形式、DID、`username` の検証と、不正なTokenを入力欄へ反映しないことの検証。
+  - `parseCallback` における `username` の抽出、後方互換用 `handle` のエイリアス提供、`atpstate` によるCSRF検証、予約パラメータの検証。
   - ネイティブ値セットとイベントバブリングの動作検証。
 
 ### 8.2 E2Eテスト（Playwright）
@@ -355,18 +423,20 @@ Chromium 141以降の環境において Chrome DevTools Protocol (`FedCm` ドメ
   - FedCM専用の `Secure; HttpOnly; SameSite=None` Cookieの発行、検証、削除とCSRF対策の実装。既存の `SameSite=Lax` セッションCookieは変更しない。
   - `/api/fedcm/accounts` ルートの実装（セッション検証、`Sec-Fetch-Dest` 検証）。
   - `/api/fedcm/client_metadata` の実装。
-  - `/api/fedcm/assertion` の実装（入力支援用の文字列Token返却）。
+  - `/api/fedcm/assertion` の実装（入力支援用のDID/usernameを含む文字列Token返却）。
   - IdP Login Status API（ログイン・ログアウト時のステータス更新）の反映。
-- [x] **Phase 2: クライアントSDKのFedCM対応（`packages/atpassport-client`）**
+  - Webフォールバック時のコールバックURL生成における `username` および後方互換用 `handle` の付与。
+- [x] **Phase 2: クライアントSDKのFedCM対応およびコールバック仕様追従（`packages/atpassport-client`）**
   - `navigator.credentials.get`（`identity` プロバイダ指定）の統合。
-  - 入力欄への値注入およびフォールバック機構の実装。
+  - `requestHandleAssist` による `username` 返却・入力欄への値注入およびフォールバック機構の実装。
+  - `parseCallback` における `username` 抽出、後方互換用 `handle` エイリアスの提供、予約パラメータ保護の実装。
 - [ ] **Phase 3: E2Eテスト・開発者コンソール対応**
   - [x] PlaywrightによるSDK正常系、ユーザーキャンセル、ネットワーク障害のブラウザテスト。
   - [x] 未ログイン、登録ハンドル0件、Origin不整合、ヘッダー欠落、所有権不一致のRoute単体テスト。
   - [ ] 実際のFedCM UIをCDP FedCmで操作するHTTPS・別Originの統合テスト。
   - [x] 既存の確認済みドメインをclient ID登録として利用し、任意の規約・プライバシーURLを確認済みドメイン設定から提供。
 - [ ] **Phase 4: ドキュメント整備と検証**
-  - [x] 開発者向け導入ガイド（FedCM対応SDKの利用方法）の作成。
+  - [x] 開発者向け導入ガイド（FedCM対応SDKの利用方法、コールバックパラメータ仕様）の作成。
   - 実機ブラウザ（Chrome / Edge）での総合検証。
 
 ---
@@ -374,10 +444,10 @@ Chromium 141以降の環境において Chrome DevTools Protocol (`FedCm` ドメ
 ## 10. 受け入れ条件
 
 1. Chrome / Edge などの FedCM 対応ブラウザにおいて、RP上の `@atpassport/client` 呼び出しによりブラウザ標準のアカウント選択シートが表示されること。
-2. アカウント選択後、入力支援用の文字列Tokenが返却され、対象のハンドル入力欄に値が自動設定されること。Tokenを本人認証やRPのログインセッション確立には使用しないこと。
+2. アカウント選択後、入力支援用の文字列Token（`did` と `username`）が返却され、対象のハンドル入力欄に値（`username`）が自動設定されること。Tokenを本人認証やRPのログインセッション確立には使用しないこと。
 3. ユーザーキャンセル、IdP未ログイン、登録ハンドル0件、Origin不整合、ネットワーク障害、FedCM非対応環境など、すべてのネガティブコンディションで安全にエラーハンドリングまたはフォールバックが行われ、ページやフォームが破損しないこと。
 4. 拡張機能に危険な任意ホスト権限（`https://*/*`）を要求せず、既存のポップアップ機能に回帰がないこと。
 5. `pnpm audit`、`pnpm test`、`pnpm build` がすべて警告・エラーなく通過すること。
-6. Chrome 141以降ではアカウント情報のハンドルを `username` として扱い、実在しないメールアドレスを生成しないこと。
+6. Chrome 141以降ではアカウント情報およびTokenでハンドルを `username` として扱い、実在しないメールアドレスを生成しないこと。また、Webフォールバック時のコールバックURLおよびSDKの `parseCallback` において `username` を標準パラメータとしつつ、後方互換性のために `handle` も提供されること。
 7. 既存の通常セッションCookieを `SameSite=Lax` のまま維持し、FedCM専用CookieがFedCM以外の認証経路で使用されないこと。
 8. 新しいアサーション署名鍵やJWKSを追加せず、本人確認が必要な処理は後続のatproto OAuthで行うこと。
