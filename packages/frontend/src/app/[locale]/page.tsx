@@ -8,6 +8,7 @@ import { getAssociations } from '@/lib/models';
 import { getSessionUuid } from '@/lib/session';
 import { createPageMetadata } from '@/lib/seo';
 import { IconInfoCircle } from '@tabler/icons-react';
+import { FedCmStatusBadge } from '@/components/FedCmStatusBadge';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,6 +69,10 @@ export default async function HomePage({
         <RegisterForm handleCount={handleCount} />
 
         <ShareSection handleCount={handleCount} />
+
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: -8 }}>
+          <FedCmStatusBadge />
+        </div>
       </Stack>
     </Container>
   );

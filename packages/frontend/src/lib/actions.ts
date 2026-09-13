@@ -1,7 +1,13 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getSessionUuid, createSessionToken, SESSION_COOKIE_NAME, refreshSession } from './session';
+import {
+  getSessionUuid,
+  createSessionToken,
+  SESSION_COOKIE_NAME,
+  refreshSession,
+  setFedCmSessionCookie,
+} from './session';
 import { getAssociations, updateAssociation, deleteAssociation, addAssociation } from './models';
 import { resolveIdentity, resolveDidDocument } from './atproto-server';
 import { getUuidByShareToken, deleteShareToken } from './share';
@@ -348,7 +354,10 @@ export async function initializeSession() {
   }
 
   const uuid = await getSessionUuid();
-  if (uuid) return;
+  if (uuid) {
+    await setFedCmSessionCookie(uuid);
+    return;
+  }
 
   let newUuid = crypto.randomUUID();
   let attempts = 0;
@@ -397,7 +406,44 @@ export async function getVerifiedDomains(did: string): Promise<VerifiedDomain[]>
 /**
  * ドメインの設定（公開状態など）を更新します。
  */
-export async function updateDomainSettings(domain: string, did: string, isPublic: boolean) {
+function normalizeVerifiedDomainPolicyUrl(
+  value: string | null | undefined,
+  domain: string,
+): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.length > 2048) throw new Error("invalid_policy_url");
+
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    throw new Error("invalid_policy_url");
+  }
+
+  const hostname = url.hostname.toLowerCase();
+  const verifiedDomain = domain.toLowerCase();
+  if (
+    url.protocol !== "https:" ||
+    url.username ||
+    url.password ||
+    (hostname !== verifiedDomain && !hostname.endsWith(`.${verifiedDomain}`))
+  ) {
+    throw new Error("invalid_policy_url");
+  }
+
+  return url.href;
+}
+
+export async function updateDomainSettings(
+  domain: string,
+  did: string,
+  isPublic: boolean,
+  privacyPolicyUrl?: string | null,
+  termsOfServiceUrl?: string | null,
+) {
   try {
     const uuid = await getSessionUuid();
     if (!uuid) return { success: false, error: "No session found" };
@@ -415,7 +461,25 @@ export async function updateDomainSettings(domain: string, did: string, isPublic
       return { success: false, error: "Unauthorized or domain not found" };
     }
 
-    await verifyDomainInDb(domain, did, isPublic, existing.method || 'oauth');
+    const normalizedPrivacyPolicyUrl = normalizeVerifiedDomainPolicyUrl(
+      privacyPolicyUrl,
+      domain,
+    );
+    const normalizedTermsOfServiceUrl = normalizeVerifiedDomainPolicyUrl(
+      termsOfServiceUrl,
+      domain,
+    );
+
+    await verifyDomainInDb(domain, did, isPublic, existing.method || 'oauth', {
+      privacyPolicyUrl:
+        normalizedPrivacyPolicyUrl === undefined
+          ? existing.privacyPolicyUrl
+          : normalizedPrivacyPolicyUrl,
+      termsOfServiceUrl:
+        normalizedTermsOfServiceUrl === undefined
+          ? existing.termsOfServiceUrl
+          : normalizedTermsOfServiceUrl,
+    });
     
     revalidatePath('/[locale]/directory');
     revalidatePath('/[locale]/developers/verify');
@@ -424,6 +488,9 @@ export async function updateDomainSettings(domain: string, did: string, isPublic
     return { success: true };
   } catch (error) {
     console.error('[ServerAction:updateDomainSettings] ERROR:', error);
+    if (error instanceof Error && error.message === "invalid_policy_url") {
+      return { success: false, error: "invalid_policy_url" };
+    }
     return { success: false, error: "Internal server error" };
   }
 }

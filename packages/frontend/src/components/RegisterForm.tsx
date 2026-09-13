@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Autocomplete, Avatar, Group, Text, Button, Modal, Stack, Checkbox, Box, type ComboboxItem } from '@mantine/core';
 import { useLocale, useTranslations } from 'next-intl';
 import { useDebouncedCallback, useDisclosure } from '@mantine/hooks';
@@ -29,6 +29,12 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   const legalLocale = locale === 'ja' ? 'ja' : 'en';
   const isLimitReached = handleCount >= MAX_HANDLES;
   const needsConsent = handleCount === 0;
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('fedcm') === '1') {
+      open();
+    }
+  }, [open]);
 
   const normalize = (v: string) => {
     const f = v.trim().replace(/@/g, '').toLowerCase();
@@ -62,9 +68,24 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
         }
         return;
       }
+      try {
+        await (navigator as Navigator & {
+          login?: { setStatus: (status: 'logged-in' | 'logged-out') => Promise<void> };
+        }).login?.setStatus('logged-in');
+      } catch {
+        // Login Status API is optional and does not affect registration success.
+      }
       setHandle('');
       setAgreed(false);
       close();
+
+      if (typeof window !== 'undefined' && 'IdentityProvider' in window) {
+        try {
+          (window as unknown as { IdentityProvider: { close: () => void } }).IdentityProvider.close();
+        } catch {
+          window.close();
+        }
+      }
     } catch (e) {
       console.error('Registration failed:', e);
       setError(e instanceof Error ? e.message : 'Failed to register');

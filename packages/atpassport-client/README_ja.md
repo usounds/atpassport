@@ -6,7 +6,7 @@
 *For the English documentation, please see [README.md](./README.md).*
 
 ## 特徴
-- 依存関係ゼロ（Zero dependencies）
+- パッケージルートに統合した単一API
 - OAuthライクなセキュアな連携フロー（CSRF対策のための `atpstate` 対応）
 - 複数のカスタムパラメータの引き回し（コールバックに付与したパラメータが自動で返却されます）
 
@@ -21,7 +21,7 @@ pnpm add @atpassport/client
 ## 使い方
 
 ```typescript
-import { AtPassport } from '@atpassport/client/core';
+import { AtPassport } from '@atpassport/client';
 
 // 1. クライアントの初期化
 const passport = new AtPassport({
@@ -70,7 +70,7 @@ export async function GET(req: Request) {
 開発者が独自のUI（例: 「@passportでログイン」ボタン）を実装しやすいように、多言語の標準テキストとSVGアイコンの定数 `AtPassportUI` をエクスポートしています。
 
 ```typescript
-import { AtPassportUI } from '@atpassport/client/ui';
+import { AtPassportIcon, AtPassportUI } from '@atpassport/client';
 
 // 日本語のテキスト
 console.log(AtPassportUI.ja.title); // "@passportでログイン"
@@ -83,39 +83,71 @@ console.log(AtPassportUI.en.description); // 英語の説明文...
 // Standard Icon (SVG String)
 const svgString = AtPassportUI.iconSvg;
 
-// React Component
-import { AtPassportIcon } from '@atpassport/client/ui';
-
 // Use it in your React component
 // <AtPassportIcon size={24} />
 ```
 
-## FedCMによるハンドル入力支援
+## FedCM（ブラウザ標準アカウント選択）による入力アシスト
 
-ChromeおよびChromium 141以降では、ブラウザ標準のアカウント選択UIを利用できます。返されたハンドルは入力候補であり、利用者がそのアカウントを操作できることの証明ではありません。本人確認やPDSアクセスが必要な場合は、atproto OAuthの完全なフローを実行してください。
+Chrome / Chromium 141 以降のブラウザでは、W3C 標準の **FedCM (Federated Credential Management API)** を利用したネイティブなアカウント選択シートを表示できます。
+ユーザーはブラウザのUIから登録済みのハンドルをワンタップで選択でき、拡張機能のインストールや外部サイトへのモーダルリダイレクトなしにスムーズに入力アシストを受けられます。
+
+### 1. 基本的な使い方
+
+`requestHandleAssist()` に `fallback` を渡すことで、FedCM対応ブラウザ（Chrome等）ではネイティブダイアログが、非対応ブラウザ（Safari, Firefox等）ではWebリダイレクト認証が自動で動作します。
 
 ```typescript
-import { requestHandleAssist } from '@atpassport/client/core';
+import { AtPassport } from '@atpassport/client';
 
-const input = document.querySelector<HTMLInputElement>('[name="handle"]');
+const passport = new AtPassport({
+  callbackUrl: 'https://myapp.com/api/atpassport/callback',
+  fedcm: true,
+});
 
 button.addEventListener('click', async () => {
-  const result = await requestHandleAssist({
+  const input = document.querySelector<HTMLInputElement>('input[name="handle"]');
+
+  const result = await passport.requestHandleAssist({
     targetInput: input ?? undefined,
     fallback: async () => {
-      // FedCM非対応時は既存の@passportリダイレクトフローを開きます。
+      // 非対応ブラウザ用: 従来のWeb認証ページへリダイレクト
+      const { url, atpstate } = passport.generateAuthUrl();
+      document.cookie = `atpstate=${atpstate}; path=/; max-age=600; SameSite=Lax`;
+      window.location.href = url;
       return null;
     },
   });
 
   if (result) {
-    // result.handleはlogin hintとして扱い、atproto OAuthで再解決します。
-    console.log(result.handle);
+    console.log('選択されたハンドル:', result.handle);
+    console.log('DID:', result.did);
   }
 });
 ```
 
-RPのOriginをFedCMのclient IDとして使用します。本番Originは事前に@passportのドメイン確認を完了し、`/privacy` と `/terms` を公開する必要があります。利用者がブラウザの選択UIを閉じた場合はフォールバックを自動表示せず、既存ページとフォームの状態を維持します。
+> [!TIP]
+> **`passport.isHandleAssistSupported()` について**:
+> 「全ブラウザ共通のログインボタン」では上記のように常にボタンを表示して `fallback` に任せる設計を推奨します。`isHandleAssistSupported()` は、入力欄の右端に「ブラウザ標準で補完する」専用のアイコンボタンなどを条件付きで追加表示したい場合に利用してください。
+
+### 2. 受け取りデータの仕様 (`HandleAssistResult`)
+
+`requestHandleAssist()` が成功すると、以下のプロパティを含むオブジェクトが返されます（利用者がダイアログを閉じた場合は `null`）：
+
+| プロパティ | 型 | 説明 |
+| :--- | :--- | :--- |
+| `handle` | `string` | 選択された Bluesky / atproto ハンドル名（例: `alice.bsky.social`） |
+| `did` | `string` | ユーザーの Decentralized Identifier（例: `did:plc:12345...`） |
+| `token` | `string` | FedCM アサーション文字列（シリアライズされたJSON） |
+
+> [!NOTE]
+> - **自動入力 (`targetInput`)**: `targetInput` に `<input>` 要素を指定した場合、選択完了時にハンドルの入力および `input` / `change` イベントの発行が自動で行われます（React等のステート管理とも正しく同期されます）。
+> - **キャンセル時の挙動**: ユーザーがブラウザのアカウント選択ダイアログを閉じた場合（Escキーやダイアログ外クリック）、`fallback` は発火せず静かに `null` を返します。これにより、キャンセル時に不要なフォールバック画面が勝手に開くのを防ぎます。
+> - **セキュリティ境界**: 返却されるハンドルは入力支援（ログインヒント）です。利用者がそのアカウントを正当に所持しているかの最終確認や PDS アクセスが必要な場合は、必ず返されたハンドルを起点に atproto OAuth フローを完了させてください。
+
+### 3. 本番利用におけるドメイン確認
+
+本番環境で FedCM を利用するには、利用側Webサイトの Origin が [@passport 開発者ポータル](https://atpassport.net/developers/verify) で所有権確認（DNS TXTレコードまたは HTTP ファイル検証）されている必要があります。
+ドメイン確認を完了すると、ブラウザのアカウント選択ダイアログに利用規約やプライバシーポリシーのリンクを表示させることも可能です。
 
 ---
 

@@ -1,5 +1,6 @@
-import { Table, ActionIcon, Group, Text, Menu, Stack, Center, Loader, Box, LoadingOverlay } from '@mantine/core';
-import { IconDotsVertical, IconTrash, IconWorld, IconShieldCheck, IconFileCheck, IconEye, IconEyeOff } from '@tabler/icons-react';
+import { useState } from 'react';
+import { Table, ActionIcon, Group, Text, Menu, Stack, Center, Loader, Box, LoadingOverlay, Modal, TextInput, Button } from '@mantine/core';
+import { IconDotsVertical, IconTrash, IconWorld, IconShieldCheck, IconFileCheck, IconEye, IconEyeOff, IconSettings } from '@tabler/icons-react';
 import { useTranslations } from 'next-intl';
 import { CustomBadge } from '@/components/CustomBadge';
 import { NetAtpassportVerifyList } from '@/lexicons/index';
@@ -7,13 +8,38 @@ import { NetAtpassportVerifyList } from '@/lexicons/index';
 interface DomainListProps {
   domains: NetAtpassportVerifyList.Domain[];
   onWithdraw: (domain: string) => void;
-  onUpdatePublic: (domain: string, isPublic: boolean) => void;
+  onUpdateSettings: (
+    domain: string,
+    isPublic: boolean,
+    privacyPolicyUrl?: string | null,
+    termsOfServiceUrl?: string | null,
+  ) => Promise<boolean>;
   loading?: boolean;
   listLoading?: boolean;
 }
 
-export function DomainList({ domains, onWithdraw, onUpdatePublic, loading, listLoading }: DomainListProps) {
+export function DomainList({ domains, onWithdraw, onUpdateSettings, loading, listLoading }: DomainListProps) {
   const t = useTranslations('Developers');
+  const [editingDomain, setEditingDomain] = useState<NetAtpassportVerifyList.Domain | null>(null);
+  const [privacyPolicyUrl, setPrivacyPolicyUrl] = useState('');
+  const [termsOfServiceUrl, setTermsOfServiceUrl] = useState('');
+
+  const openFedCmSettings = (domain: NetAtpassportVerifyList.Domain) => {
+    setEditingDomain(domain);
+    setPrivacyPolicyUrl(domain.privacyPolicyUrl ?? '');
+    setTermsOfServiceUrl(domain.termsOfServiceUrl ?? '');
+  };
+
+  const saveFedCmSettings = async () => {
+    if (!editingDomain) return;
+    const saved = await onUpdateSettings(
+      editingDomain.domain,
+      editingDomain.isPublic,
+      privacyPolicyUrl,
+      termsOfServiceUrl,
+    );
+    if (saved) setEditingDomain(null);
+  };
 
   if (domains.length === 0) {
     return (
@@ -93,10 +119,18 @@ export function DomainList({ domains, onWithdraw, onUpdatePublic, loading, listL
                       <Menu.Label>{t('settings')}</Menu.Label>
                       <Menu.Item
                         leftSection={d.isPublic ? <IconEyeOff size={14} /> : <IconEye size={14} />}
-                        onClick={() => onUpdatePublic(d.domain, !d.isPublic)}
+                        onClick={() => void onUpdateSettings(d.domain, !d.isPublic)}
                         disabled={loading}
                       >
                         {d.isPublic ? t('make_private') : t('make_public')}
+                      </Menu.Item>
+
+                      <Menu.Item
+                        leftSection={<IconSettings size={14} />}
+                        onClick={() => openFedCmSettings(d)}
+                        disabled={loading}
+                      >
+                        {t('fedcm_settings')}
                       </Menu.Item>
                       
                       <Menu.Divider />
@@ -117,6 +151,41 @@ export function DomainList({ domains, onWithdraw, onUpdatePublic, loading, listL
           ))}
         </Table.Tbody>
       </Table>
+
+      <Modal
+        opened={editingDomain !== null}
+        onClose={() => setEditingDomain(null)}
+        title={t('fedcm_settings')}
+        centered
+      >
+        <Stack gap="md">
+          <Text size="sm" c="dimmed">{t('fedcm_settings_description')}</Text>
+          <TextInput
+            label={t('privacy_policy_url')}
+            description={t('policy_url_description')}
+            placeholder="https://example.com/legal/privacy"
+            value={privacyPolicyUrl}
+            onChange={(event) => setPrivacyPolicyUrl(event.currentTarget.value)}
+            type="url"
+          />
+          <TextInput
+            label={t('terms_of_service_url')}
+            description={t('policy_url_description')}
+            placeholder="https://example.com/legal/terms"
+            value={termsOfServiceUrl}
+            onChange={(event) => setTermsOfServiceUrl(event.currentTarget.value)}
+            type="url"
+          />
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setEditingDomain(null)}>
+              {t('cancel')}
+            </Button>
+            <Button onClick={() => void saveFedCmSettings()} loading={loading}>
+              {t('save')}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Box>
   );
 }

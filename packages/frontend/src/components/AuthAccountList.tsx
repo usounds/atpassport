@@ -90,8 +90,18 @@ export function AuthAccountList({
   };
 
   const handleDelete = async (did: string) => {
+    const hasRemainingAccount = items.some(item => item.did !== did);
     setItems(prev => prev.filter(item => item.did !== did));
     await removeAssociation(did);
+    if (!hasRemainingAccount) {
+      try {
+        await (navigator as Navigator & {
+          login?: { setStatus: (status: 'logged-in' | 'logged-out') => Promise<void> };
+        }).login?.setStatus('logged-out');
+      } catch {
+        // Login Status API is optional and does not affect removal success.
+      }
+    }
   };
 
   const handleMove = async (did: string, direction: 'up' | 'down') => {

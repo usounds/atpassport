@@ -32,6 +32,16 @@ export interface HandleAssistOptions {
   onError?: (error: unknown) => void;
 }
 
+export interface AtPassportFedCmOptions {
+  configURL?: string;
+  clientId?: string;
+}
+
+export type AtPassportHandleAssistOptions = Pick<
+  HandleAssistOptions,
+  "targetInput" | "fallback" | "onError"
+>;
+
 type IdentityCredentialResult = Credential & {
   token?: unknown;
 };
@@ -91,9 +101,7 @@ export function fillInputValue(input: HTMLInputElement, value: string) {
   input.focus();
 }
 
-export async function requestHandleAssist(
-  options: HandleAssistOptions = {},
-): Promise<HandleAssistResult | null> {
+export function isHandleAssistSupported(): boolean {
   const policy = typeof document !== "undefined"
     ? (document as Document & {
         permissionsPolicy?: { allowsFeature: (feature: string) => boolean };
@@ -102,15 +110,27 @@ export async function requestHandleAssist(
         featurePolicy?: { allowsFeature: (feature: string) => boolean };
       }).featurePolicy
     : undefined;
-  const policyAllowsFedCm = policy?.allowsFeature("identity-credentials-get") ?? true;
-  const canUseFedCm =
+
+  let policyAllowsFedCm = true;
+  try {
+    policyAllowsFedCm = policy?.allowsFeature("identity-credentials-get") ?? true;
+  } catch {
+    policyAllowsFedCm = false;
+  }
+
+  return (
     policyAllowsFedCm &&
     typeof window !== "undefined" &&
     "IdentityCredential" in window &&
     typeof navigator !== "undefined" &&
-    typeof navigator.credentials?.get === "function";
+    typeof navigator.credentials?.get === "function"
+  );
+}
 
-  if (!canUseFedCm) {
+export async function requestHandleAssist(
+  options: HandleAssistOptions = {},
+): Promise<HandleAssistResult | null> {
+  if (!isHandleAssistSupported()) {
     return options.fallback ? await options.fallback() : null;
   }
 
@@ -122,7 +142,7 @@ export async function requestHandleAssist(
           {
             configURL: options.configURL ?? `${AT_PASSPORT_MAINNET}/fedcm/config.json`,
             clientId: options.clientId ?? window.location.origin,
-            fields: ["username"],
+            fields: ["username", "picture"],
           },
         ],
         mode: "active",
@@ -190,6 +210,12 @@ export interface AtPassportOptions {
    * If not specified, the service will use its default (usually 'en').
    */
   lang?: 'en' | 'ja' | 'pt' | 'de' | 'fr' | 'es';
+
+  /**
+   * Enables FedCM handle input assistance for this client.
+   * Pass true to use the configured baseUrl, or override FedCM URLs explicitly.
+   */
+  fedcm?: boolean | AtPassportFedCmOptions;
 }
 
 function generateUuid(): string {
@@ -227,6 +253,7 @@ export class AtPassport {
   private readonly callbackUrl: string;
   private readonly lang?: 'en' | 'ja' | 'pt' | 'de' | 'fr' | 'es';
   private readonly requiredKeys: string[];
+  private readonly fedCm: AtPassportFedCmOptions | null;
 
   /**
    * Creates a new instance of the AtPassport client.
@@ -243,6 +270,27 @@ export class AtPassport {
     this.callbackUrl = options.callbackUrl;
     this.lang = options.lang;
     this.requiredKeys = options.requiredParams ? Object.keys(options.requiredParams) : [];
+    this.fedCm = options.fedcm === true
+      ? {}
+      : options.fedcm && typeof options.fedcm === "object"
+        ? options.fedcm
+        : null;
+  }
+
+  isHandleAssistSupported(): boolean {
+    return this.fedCm !== null && isHandleAssistSupported();
+  }
+
+  async requestHandleAssist(
+    options: AtPassportHandleAssistOptions = {},
+  ): Promise<HandleAssistResult | null> {
+    if (!this.fedCm) return null;
+
+    return requestHandleAssist({
+      ...options,
+      configURL: this.fedCm.configURL ?? `${this.baseUrl}/fedcm/config.json`,
+      clientId: this.fedCm.clientId,
+    });
   }
 
   /**
