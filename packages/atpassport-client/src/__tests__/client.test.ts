@@ -133,7 +133,7 @@ describe('AtPassport', () => {
     const testUrl = 'https://app.com/callback?handle=alice.bsky.social&did=did:plc:123&pdsurl=https://pds.example.com&atpstate=test-state&session=abc';
     
     const result = passport.parseCallback(testUrl, 'test-state');
-    expect(result.handle).toBe('alice.bsky.social');
+    expect(result.username).toBe('alice.bsky.social');
     expect(result.customParams.session).toBe('abc');
 
     // Mismatched callback path
@@ -169,13 +169,13 @@ describe('AtPassport', () => {
     const validToken = JSON.stringify({
       v: 1,
       did: 'did:plc:123',
-      handle: 'Alice.Bsky.Social',
+      username: 'Alice.Bsky.Social',
     });
 
     it('parses and normalizes a valid handle assist token', () => {
       expect(parseHandleAssistToken(validToken)).toEqual({
         did: 'did:plc:123',
-        handle: 'alice.bsky.social',
+        username: 'alice.bsky.social',
         token: validToken,
       });
     });
@@ -183,9 +183,9 @@ describe('AtPassport', () => {
     it.each([
       '',
       'not-json',
-      JSON.stringify({ v: 2, did: 'did:plc:123', handle: 'alice.bsky.social' }),
-      JSON.stringify({ v: 1, did: 'not-a-did', handle: 'alice.bsky.social' }),
-      JSON.stringify({ v: 1, did: 'did:plc:123', handle: 'not a handle' }),
+      JSON.stringify({ v: 2, did: 'did:plc:123', username: 'alice.bsky.social' }),
+      JSON.stringify({ v: 1, did: 'not-a-did', username: 'alice.bsky.social' }),
+      JSON.stringify({ v: 1, did: 'did:plc:123', username: 'not a handle' }),
     ])('rejects an invalid handle assist token', (token) => {
       expect(() => parseHandleAssistToken(token)).toThrow('Invalid @passport handle assist token.');
     });
@@ -251,7 +251,7 @@ describe('AtPassport', () => {
 
       await expect(requestHandleAssist({ targetInput: input })).resolves.toMatchObject({
         did: 'did:plc:123',
-        handle: 'alice.bsky.social',
+        username: 'alice.bsky.social',
       });
       expect(input.value).toBe('alice.bsky.social');
       expect(get).toHaveBeenCalledWith(expect.objectContaining({
@@ -277,7 +277,7 @@ describe('AtPassport', () => {
 
       expect(passport.isHandleAssistSupported()).toBe(true);
       await expect(passport.requestHandleAssist()).resolves.toMatchObject({
-        handle: 'alice.bsky.social',
+        username: 'alice.bsky.social',
       });
       expect(get).toHaveBeenCalledWith(expect.objectContaining({
         identity: expect.objectContaining({
@@ -318,8 +318,8 @@ describe('AtPassport', () => {
       const get = vi.fn().mockRejectedValue(new DOMException('Unsupported', 'NotSupportedError'));
       const fallbackResult = {
         did: 'did:plc:fallback',
-        handle: 'fallback.example',
-        token: JSON.stringify({ v: 1, did: 'did:plc:fallback', handle: 'fallback.example' }),
+        username: 'fallback.example',
+        token: JSON.stringify({ v: 1, did: 'did:plc:fallback', username: 'fallback.example' }),
       };
       const fallback = vi.fn().mockResolvedValue(fallbackResult);
       vi.stubGlobal('window', {

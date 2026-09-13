@@ -59,14 +59,14 @@ It is also possible to link handle information directly via HTTP redirect withou
 
 2. **Handle Callback**
    After authentication, the user will be redirected back to your `callback` URL with the following query parameters:
-   - `handle`: The authenticated handle.
+   - `username`: The authenticated handle / username.
    - `did`: The handle's DID.
    - `pdsurl`: The PDS URL.
    - `atpstate`: If provided during the request, the same string will be returned.
 
    **Callback Example:**
    ```url
-   https://your-app.com/callback?handle=alice.atproto.site&did=did%3Aplc%3Axxx&pdsurl=https%3A%2F%2Fpds.example.com&atpstate=xyz123
+   https://your-app.com/callback?username=alice.atproto.site&did=did%3Aplc%3Axxx&pdsurl=https%3A%2F%2Fpds.example.com&atpstate=xyz123
    ```
 
 Using these, you can provide a smooth login experience without requiring users to manually input their handles.

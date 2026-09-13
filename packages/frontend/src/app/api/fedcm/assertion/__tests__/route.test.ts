@@ -77,7 +77,7 @@ describe("FedCM assertion endpoint", () => {
     expect(JSON.parse(data.token)).toEqual({
       v: 1,
       did: "did:plc:1",
-      handle: "alice.bsky.social",
+      username: "alice.bsky.social",
     });
   });
 });

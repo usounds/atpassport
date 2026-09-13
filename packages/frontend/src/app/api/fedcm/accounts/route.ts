@@ -40,12 +40,16 @@ export async function GET(request: Request) {
   const loginStatus = associations.length > 0 ? "logged-in" : "logged-out";
   return NextResponse.json(
     {
-      accounts: associations.map(({ did, handle }) => ({
-        id: did,
-        username: `@${handle}`,
-        ...(profiles[did]?.avatar ? { picture: profiles[did].avatar } : {}),
-        approved_clients: [],
-      })),
+      accounts: associations.map(({ did, handle }) => {
+        const displayName = profiles[did]?.displayName?.trim();
+        return {
+          id: did,
+          name: displayName || handle,
+          username: `@${handle}`,
+          ...(profiles[did]?.avatar ? { picture: profiles[did].avatar } : {}),
+          approved_clients: [],
+        };
+      }),
     },
     {
       headers: { ...NO_STORE_HEADERS, "Set-Login": loginStatus },

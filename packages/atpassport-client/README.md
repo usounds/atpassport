@@ -119,7 +119,7 @@ button.addEventListener('click', async () => {
   });
 
   if (result) {
-    console.log('Handle:', result.handle);
+    console.log('Username:', result.username);
     console.log('DID:', result.did);
   }
 });
@@ -135,14 +135,14 @@ When `requestHandleAssist()` succeeds, it returns the following object (or `null
 
 | Property | Type | Description |
 | :--- | :--- | :--- |
-| `handle` | `string` | The selected Bluesky / atproto handle (e.g. `alice.bsky.social`) |
+| `username` | `string` | The selected Bluesky / atproto handle / username (e.g. `alice.bsky.social`) |
 | `did` | `string` | The Decentralized Identifier (e.g. `did:plc:12345...`) |
 | `token` | `string` | The serialized FedCM assertion token |
 
 > [!NOTE]
-> - **Automatic Input Fill (`targetInput`)**: If `targetInput` is provided, the selected handle is automatically inserted into the input field, firing native `input` and `change` events (compatible with React, Vue, etc.).
+> - **Automatic Input Fill (`targetInput`)**: If `targetInput` is provided, the selected username is automatically inserted into the input field, firing native `input` and `change` events (compatible with React, Vue, etc.).
 > - **User Dismissal Behavior**: If the user closes the browser chooser (via Escape or backdrop click), `fallback` is NOT triggered and `null` is returned silently, preventing unwanted popups when canceled.
-> - **Security Boundary**: The returned handle is an input hint. To verify that the user actually owns the account or to gain PDS access, always initiate and complete the full atproto OAuth flow using the returned handle.
+> - **Security Boundary**: The returned username is an input hint. To verify that the user actually owns the account or to gain PDS access, always initiate and complete the full atproto OAuth flow using the returned username.
 
 ### 3. Production Domain Verification
 
@@ -156,9 +156,9 @@ Verified domains can also display custom Privacy Policy and Terms of Service lin
 When @passport redirects back to your `callbackUrl`, the following information will be attached as URL parameters.
 
 ### Basic Parameters (Automatically extracted by `parseCallback`)
-- **`handle`**: The authenticated user's Bluesky / atproto handle (e.g., `alice.bsky.social`).
+- **`username`**: The authenticated user's Bluesky / atproto handle / username (e.g., `alice.bsky.social`).
 - **`did`**: The user's Decentralized Identifier (DID). (e.g., `did:plc:xxxxxxxx`. Used to resolve the handle or communicate with the user's PDS.)
 - **`pdsurl`**: The endpoint URL of the user's Personal Data Server (PDS).
 - **`atpstate`**: The state string automatically generated for CSRF protection via `generateAuthUrl()`.
 
-*Note: In the standard `generateAuthUrl` → `parseCallback` flow using `@atpassport/client`, @passport securely appends information as standard query parameters (e.g., `&handle=...`). By using `parseCallback()`, you can easily receive all these parameters.*
+*Note: In the standard `generateAuthUrl` → `parseCallback` flow using `@atpassport/client`, @passport securely appends information as standard query parameters (e.g., `&username=...`). By using `parseCallback()`, you can easily receive all these parameters.*
