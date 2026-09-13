@@ -155,6 +155,7 @@ Verified domains can also display custom Privacy Policy and Terms of Service lin
 When @passport redirects back to your `callbackUrl`, the following information will be attached as URL parameters.
 
 ### Basic Parameters (Automatically extracted by `parseCallback`)
+- **`handle`**: Same value as `username`, also returned by `parseCallback()`.
 - **`username`**: The authenticated user's Bluesky / atproto handle / username (e.g., `alice.bsky.social`).
 - **`did`**: The user's Decentralized Identifier (DID). (e.g., `did:plc:xxxxxxxx`. Used to resolve the handle or communicate with the user's PDS.)
 - **`pdsurl`**: The endpoint URL of the user's Personal Data Server (PDS).

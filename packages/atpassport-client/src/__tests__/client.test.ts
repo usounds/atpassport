@@ -134,6 +134,7 @@ describe('AtPassport', () => {
     
     const result = passport.parseCallback(testUrl, 'test-state');
     expect(result.username).toBe('alice.bsky.social');
+    expect(result.handle).toBe('alice.bsky.social');
     expect(result.customParams.session).toBe('abc');
 
     // Mismatched callback path
@@ -149,6 +150,14 @@ describe('AtPassport', () => {
     const missingParamUrl = 'https://app.com/callback?handle=alice&atpstate=s';
     expect(() => passport.parseCallback(missingParamUrl, 's'))
       .toThrow('Missing required custom parameters: session');
+  });
+
+  it.each(['username=alice.bsky.social', 'username=alice.bsky.social&handle=old.example'])('returns handle as a username alias for %s', (params) => {
+    const passport = new AtPassport({ callbackUrl });
+    const result = passport.parseCallback(`${callbackUrl}?${params}&atpstate=s`, 's');
+    expect(result.handle).toBe('alice.bsky.social');
+    expect(result.username).toBe(result.handle);
+    expect(result.customParams).toEqual({});
   });
 
   it('throws on CSRF state mismatch', () => {
