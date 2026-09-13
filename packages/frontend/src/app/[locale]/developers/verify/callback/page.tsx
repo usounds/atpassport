@@ -8,7 +8,7 @@ export default async function CallbackPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ handle?: string; [key: string]: string | string[] | undefined }>;
+  searchParams: Promise<{ username?: string; [key: string]: string | string[] | undefined }>;
 }) {
   const { locale } = await params;
   const sParams = await searchParams;
@@ -19,9 +19,9 @@ export default async function CallbackPage({
   const baseUrl = `${protocol}://${host}`;
   const callbackUrl = `${baseUrl}/${locale}/developers/verify/callback`;
 
-  // AtPassport からの戻り（handle パラメータあり）をサーバーサイドで解析
+  // AtPassport からの戻りをサーバーサイドで解析
   let parsedHandle: string | null = null;
-  if (sParams.handle) {
+  if (sParams.username) {
     const atp = new AtPassport({
       callbackUrl,
       baseUrl,
@@ -33,7 +33,7 @@ export default async function CallbackPage({
     });
     try {
       const parsed = atp.parseCallback(url.toString());
-      parsedHandle = (parsed as { handle?: string | null }).handle || null;
+      parsedHandle = parsed.username;
     } catch (e) {
       console.error('parseCallback failed:', e);
     }
