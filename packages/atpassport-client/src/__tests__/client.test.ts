@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { AtPassport } from '../core';
+import {
+  AtPassport,
+  fillInputValue,
+  parseHandleAssistToken,
+  requestHandleAssist,
+} from '../core';
 
 describe('AtPassport', () => {
   const baseUrl = 'https://passport.atproto.com';
@@ -22,6 +27,7 @@ describe('AtPassport', () => {
       open: vi.fn().mockReturnValue({ closed: false }),
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
+      location: { origin: 'https://app.com' },
     });
   });
 
@@ -156,5 +162,123 @@ describe('AtPassport', () => {
     const testUrl = 'https://app.com/callback?handle=alice.bsky.social';
     
     expect(() => passport.parseCallback(testUrl)).toThrow('Missing atpstate: CSRF token is required.');
+  });
+
+  describe('FedCM handle assist', () => {
+    const validToken = JSON.stringify({
+      v: 1,
+      did: 'did:plc:123',
+      handle: 'Alice.Bsky.Social',
+    });
+
+    it('parses and normalizes a valid handle assist token', () => {
+      expect(parseHandleAssistToken(validToken)).toEqual({
+        did: 'did:plc:123',
+        handle: 'alice.bsky.social',
+        token: validToken,
+      });
+    });
+
+    it.each([
+      '',
+      'not-json',
+      JSON.stringify({ v: 2, did: 'did:plc:123', handle: 'alice.bsky.social' }),
+      JSON.stringify({ v: 1, did: 'not-a-did', handle: 'alice.bsky.social' }),
+      JSON.stringify({ v: 1, did: 'did:plc:123', handle: 'not a handle' }),
+    ])('rejects an invalid handle assist token', (token) => {
+      expect(() => parseHandleAssistToken(token)).toThrow('Invalid @passport handle assist token.');
+    });
+
+    it('updates a native input and dispatches bubbling events', () => {
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+      const inputListener = vi.fn();
+      const changeListener = vi.fn();
+      input.addEventListener('input', inputListener);
+      input.addEventListener('change', changeListener);
+
+      fillInputValue(input, 'alice.bsky.social');
+
+      expect(input.value).toBe('alice.bsky.social');
+      expect(inputListener).toHaveBeenCalledOnce();
+      expect(changeListener).toHaveBeenCalledOnce();
+      expect(document.activeElement).toBe(input);
+      input.remove();
+    });
+
+    it('uses the explicit fallback when FedCM is unavailable', async () => {
+      const fallback = vi.fn().mockResolvedValue(null);
+      await expect(requestHandleAssist({ fallback })).resolves.toBeNull();
+      expect(fallback).toHaveBeenCalledOnce();
+    });
+
+    it('requests an active FedCM credential and fills the target input', async () => {
+      const get = vi.fn().mockResolvedValue({ token: validToken });
+      vi.stubGlobal('window', {
+        IdentityCredential: class {},
+        location: { origin: 'https://app.com' },
+      });
+      vi.stubGlobal('navigator', { credentials: { get } });
+      const input = document.createElement('input');
+
+      await expect(requestHandleAssist({ targetInput: input })).resolves.toMatchObject({
+        did: 'did:plc:123',
+        handle: 'alice.bsky.social',
+      });
+      expect(input.value).toBe('alice.bsky.social');
+      expect(get).toHaveBeenCalledWith(expect.objectContaining({
+        identity: expect.objectContaining({ mode: 'active' }),
+      }));
+    });
+
+    it('does not open a fallback or alter the input after user dismissal', async () => {
+      const dismissal = new DOMException('Dismissed', 'AbortError');
+      const get = vi.fn().mockRejectedValue(dismissal);
+      const fallback = vi.fn();
+      const onError = vi.fn();
+      vi.stubGlobal('window', {
+        IdentityCredential: class {},
+        location: { origin: 'https://app.com' },
+      });
+      vi.stubGlobal('navigator', { credentials: { get } });
+      const input = document.createElement('input');
+      input.value = 'unchanged.example';
+
+      await expect(requestHandleAssist({ targetInput: input, fallback, onError })).resolves.toBeNull();
+      expect(input.value).toBe('unchanged.example');
+      expect(fallback).not.toHaveBeenCalled();
+      expect(onError).toHaveBeenCalledWith(dismissal);
+    });
+
+    it('uses the explicit fallback when the active mode is unsupported', async () => {
+      const get = vi.fn().mockRejectedValue(new DOMException('Unsupported', 'NotSupportedError'));
+      const fallbackResult = {
+        did: 'did:plc:fallback',
+        handle: 'fallback.example',
+        token: JSON.stringify({ v: 1, did: 'did:plc:fallback', handle: 'fallback.example' }),
+      };
+      const fallback = vi.fn().mockResolvedValue(fallbackResult);
+      vi.stubGlobal('window', {
+        IdentityCredential: class {},
+        location: { origin: 'https://app.com' },
+      });
+      vi.stubGlobal('navigator', { credentials: { get } });
+
+      await expect(requestHandleAssist({ fallback })).resolves.toEqual(fallbackResult);
+      expect(fallback).toHaveBeenCalledOnce();
+    });
+
+    it('uses the explicit fallback when Permissions Policy blocks FedCM', async () => {
+      const fallback = vi.fn().mockResolvedValue(null);
+      Object.defineProperty(document, 'permissionsPolicy', {
+        configurable: true,
+        value: { allowsFeature: vi.fn().mockReturnValue(false) },
+      });
+
+      await expect(requestHandleAssist({ fallback })).resolves.toBeNull();
+      expect(fallback).toHaveBeenCalledOnce();
+
+      Reflect.deleteProperty(document, 'permissionsPolicy');
+    });
   });
 });

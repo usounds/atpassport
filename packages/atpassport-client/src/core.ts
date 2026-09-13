@@ -18,6 +18,142 @@ export type Handle = `${string}.${string}`;
  */
 export const AT_PASSPORT_MAINNET = "https://atpassport.net";
 
+export interface HandleAssistResult {
+  did: AtprotoDid | string;
+  handle: Handle | string;
+  token: string;
+}
+
+export interface HandleAssistOptions {
+  targetInput?: HTMLInputElement;
+  clientId?: string;
+  configURL?: string;
+  fallback?: () => HandleAssistResult | null | Promise<HandleAssistResult | null>;
+  onError?: (error: unknown) => void;
+}
+
+type IdentityCredentialResult = Credential & {
+  token?: unknown;
+};
+
+const DID_PATTERN = /^did:[a-z]+:[a-zA-Z0-9._:%-]+$/;
+const HANDLE_PATTERN = /^(?=.{1,253}$)(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
+
+export function parseHandleAssistToken(token: string): HandleAssistResult {
+  if (typeof token !== "string" || token.length === 0 || token.length > 2048) {
+    throw new Error("Invalid @passport handle assist token.");
+  }
+
+  let payload: unknown;
+  try {
+    payload = JSON.parse(token);
+  } catch {
+    throw new Error("Invalid @passport handle assist token.");
+  }
+
+  if (
+    typeof payload !== "object" ||
+    payload === null ||
+    !("v" in payload) ||
+    payload.v !== 1 ||
+    !("did" in payload) ||
+    typeof payload.did !== "string" ||
+    !DID_PATTERN.test(payload.did) ||
+    !("handle" in payload) ||
+    typeof payload.handle !== "string" ||
+    !HANDLE_PATTERN.test(payload.handle)
+  ) {
+    throw new Error("Invalid @passport handle assist token.");
+  }
+
+  return {
+    did: payload.did,
+    handle: payload.handle.toLowerCase(),
+    token,
+  };
+}
+
+export function fillInputValue(input: HTMLInputElement, value: string) {
+  const view = input.ownerDocument.defaultView;
+  const nativeInputValueSetter = view
+    ? Object.getOwnPropertyDescriptor(view.HTMLInputElement.prototype, "value")?.set
+    : undefined;
+
+  if (nativeInputValueSetter) {
+    nativeInputValueSetter.call(input, value);
+  } else {
+    input.value = value;
+  }
+
+  const EventConstructor = view?.Event ?? Event;
+  input.dispatchEvent(new EventConstructor("input", { bubbles: true }));
+  input.dispatchEvent(new EventConstructor("change", { bubbles: true }));
+  input.focus();
+}
+
+export async function requestHandleAssist(
+  options: HandleAssistOptions = {},
+): Promise<HandleAssistResult | null> {
+  const policy = typeof document !== "undefined"
+    ? (document as Document & {
+        permissionsPolicy?: { allowsFeature: (feature: string) => boolean };
+        featurePolicy?: { allowsFeature: (feature: string) => boolean };
+      }).permissionsPolicy ?? (document as Document & {
+        featurePolicy?: { allowsFeature: (feature: string) => boolean };
+      }).featurePolicy
+    : undefined;
+  const policyAllowsFedCm = policy?.allowsFeature("identity-credentials-get") ?? true;
+  const canUseFedCm =
+    policyAllowsFedCm &&
+    typeof window !== "undefined" &&
+    "IdentityCredential" in window &&
+    typeof navigator !== "undefined" &&
+    typeof navigator.credentials?.get === "function";
+
+  if (!canUseFedCm) {
+    return options.fallback ? await options.fallback() : null;
+  }
+
+  try {
+    const credential = (await navigator.credentials.get({
+      identity: {
+        context: "use",
+        providers: [
+          {
+            configURL: options.configURL ?? `${AT_PASSPORT_MAINNET}/fedcm/config.json`,
+            clientId: options.clientId ?? window.location.origin,
+            fields: ["username"],
+          },
+        ],
+        mode: "active",
+      },
+    } as CredentialRequestOptions)) as IdentityCredentialResult | null;
+
+    if (!credential || typeof credential.token !== "string") {
+      return null;
+    }
+
+    const result = parseHandleAssistToken(credential.token);
+    if (options.targetInput) {
+      fillInputValue(options.targetInput, result.handle);
+    }
+    return result;
+  } catch (error) {
+    options.onError?.(error);
+    const errorName = typeof error === "object" && error !== null && "name" in error
+      ? String(error.name)
+      : "";
+    const shouldFallback =
+      error instanceof TypeError ||
+      errorName === "NotSupportedError" ||
+      errorName === "NetworkError";
+    if (shouldFallback && options.fallback) {
+      return await options.fallback();
+    }
+    return null;
+  }
+}
+
 const RESERVED_CALLBACK_PARAM_KEYS = ["handle", "did", "pdsurl", "atpstate"] as const;
 
 type ReservedCallbackParamKey = typeof RESERVED_CALLBACK_PARAM_KEYS[number];
