@@ -44,6 +44,11 @@ export async function POST(request: Request) {
 
   return NextResponse.json(
     { ready: Boolean(uuid || fedCmUuid) },
-    { headers: NO_STORE_HEADERS },
+    {
+      headers: {
+        ...NO_STORE_HEADERS,
+        "Set-Login": Boolean(uuid || fedCmUuid) ? "logged-in" : "logged-out",
+      },
+    },
   );
 }

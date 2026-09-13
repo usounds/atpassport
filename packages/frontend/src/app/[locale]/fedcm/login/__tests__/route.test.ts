@@ -23,7 +23,7 @@ describe("FedCM login endpoint", () => {
     expect(setFedCmSessionCookie).not.toHaveBeenCalled();
   });
 
-  it("establishes the dedicated session and redirects to @passport when web session exists", async () => {
+  it("establishes the dedicated session and closes the FedCM window when web session exists with accounts", async () => {
     vi.mocked(getSessionUuid).mockResolvedValue("uuid");
     vi.mocked(getAssociations).mockResolvedValue([
       {
@@ -39,9 +39,23 @@ describe("FedCM login endpoint", () => {
       { params: Promise.resolve({ locale: "en" }) },
     );
 
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Set-Login")).toBe("logged-in");
+    expect(await response.text()).toContain("IdentityProvider.close()");
+    expect(setFedCmSessionCookie).toHaveBeenCalledWith("uuid");
+  });
+
+  it("establishes session but redirects to @passport when web session has no registered accounts", async () => {
+    vi.mocked(getSessionUuid).mockResolvedValue("uuid");
+    vi.mocked(getAssociations).mockResolvedValue([]);
+    const response = await GET(
+      new NextRequest("https://atpassport.net/en/fedcm/login"),
+      { params: Promise.resolve({ locale: "en" }) },
+    );
+
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe("https://atpassport.net/en?fedcm=1");
-    expect(response.headers.get("Set-Login")).toBe("logged-in");
+    expect(response.headers.get("Set-Login")).toBe("logged-out");
     expect(setFedCmSessionCookie).toHaveBeenCalledWith("uuid");
   });
 

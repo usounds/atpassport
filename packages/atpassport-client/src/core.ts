@@ -166,7 +166,8 @@ export async function requestHandleAssist(
     const shouldFallback =
       error instanceof TypeError ||
       errorName === "NotSupportedError" ||
-      errorName === "NetworkError";
+      errorName === "NetworkError" ||
+      errorName === "IdentityCredentialError";
     if (shouldFallback && options.fallback) {
       return await options.fallback();
     }
