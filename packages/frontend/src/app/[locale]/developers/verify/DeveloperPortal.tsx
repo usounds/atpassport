@@ -284,16 +284,38 @@ export function DeveloperPortal({
     // Reset action loading when switching tabs to prevent spinners from sticking
     setTimeout(() => setActionLoading(false), 0);
   }, [activeTab]);
-  const handlePassportLogin = () => {
+  const handlePassportLogin = useCallback(async () => {
     setActionLoading(true);
     const atp = new AtPassport({
       callbackUrl: window.location.origin + `/${locale}/developers/verify/callback`,
       baseUrl: window.location.origin,
-      lang: locale as 'en' | 'ja' | 'pt' | 'de' | 'fr' | 'es'
+      lang: locale as 'en' | 'ja' | 'pt' | 'de' | 'fr' | 'es',
+      fedcm: true,
     });
-    const { url } = atp.generateAuthUrl();
-    window.location.href = url;
-  };
+
+    let redirecting = false;
+    const redirectToPassport = async () => {
+      redirecting = true;
+      const { url } = atp.generateAuthUrl();
+      window.location.assign(url);
+      return null;
+    };
+
+    try {
+      const result = await atp.requestHandleAssist({
+        fallback: redirectToPassport,
+        onError: (error) => console.debug('[Developer Portal] FedCM login ended:', error),
+      });
+
+      if (result) {
+        await handleLogin(result.username);
+      }
+    } finally {
+      if (!redirecting) {
+        setActionLoading(false);
+      }
+    }
+  }, [handleLogin, locale]);
 
   const handleVerifyOAuth = useCallback(async (isPublic: boolean) => {
     if (!session) return;

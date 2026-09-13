@@ -130,4 +130,74 @@ test.describe('Developer Portal E2E', () => {
     // Check if the new domain is visible
     await expect(page.getByText('e2e-test.com', { exact: true })).toBeVisible();
   });
+
+  test('should pass the handle selected through FedCM to OAuth login', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'FedCM is tested in Chromium');
+
+    await page.addInitScript(() => {
+      Object.defineProperty(window, 'IdentityCredential', { value: class IdentityCredential {} });
+      Object.defineProperty(navigator, 'credentials', {
+        configurable: true,
+        value: {
+          get: async () => ({
+            token: JSON.stringify({
+              v: 1,
+              did: 'did:plc:fedcm-developer',
+              username: 'selected.example',
+            }),
+          }),
+        },
+      });
+    });
+
+    await page.goto('/ja/developers/verify');
+    await page.getByRole('button', { name: '@passportでログイン' }).click();
+
+    await expect(page.getByText(/ログインの開始に失敗しました/)).toBeVisible();
+    await expect(page.getByRole('button', { name: '@passportでログイン' })).toBeEnabled();
+  });
+
+  test('should keep the developer portal intact when FedCM is dismissed', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'FedCM is tested in Chromium');
+
+    await page.addInitScript(() => {
+      Object.defineProperty(window, 'IdentityCredential', { value: class IdentityCredential {} });
+      Object.defineProperty(navigator, 'credentials', {
+        configurable: true,
+        value: {
+          get: async () => {
+            throw new DOMException('Dismissed', 'AbortError');
+          },
+        },
+      });
+    });
+
+    await page.goto('/ja/developers/verify');
+    const loginButton = page.getByRole('button', { name: '@passportでログイン' });
+    await loginButton.click();
+
+    await expect(page).toHaveURL(/\/ja\/developers\/verify$/);
+    await expect(loginButton).toBeEnabled();
+  });
+
+  test('should use redirect login after a FedCM network failure', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'FedCM is tested in Chromium');
+
+    await page.addInitScript(() => {
+      Object.defineProperty(window, 'IdentityCredential', { value: class IdentityCredential {} });
+      Object.defineProperty(navigator, 'credentials', {
+        configurable: true,
+        value: {
+          get: async () => {
+            throw new DOMException('Network failed', 'NetworkError');
+          },
+        },
+      });
+    });
+
+    await page.goto('/ja/developers/verify');
+    await page.getByRole('button', { name: '@passportでログイン' }).click();
+
+    await expect(page).toHaveURL(/\/ja\/authentication\?callback=/);
+  });
 });
