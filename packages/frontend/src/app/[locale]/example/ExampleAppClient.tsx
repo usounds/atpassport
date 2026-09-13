@@ -10,7 +10,7 @@ import { AtPassportIcon, AtPassportUI } from '@atpassport/client/ui';
 import { CustomBadge } from '@/components/CustomBadge';
 
 interface AuthResult {
-  handle: string | null;
+  username: string | null;
   did: string | null;
   pdsUrl: string | null;
   atpstate?: string | null;
@@ -82,7 +82,7 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
     });
 
     if (assistResult) {
-      setAssistedHandle(assistResult.handle);
+      setAssistedHandle(assistResult.username);
     }
   };
 
@@ -288,8 +288,8 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
                 <Table verticalSpacing="sm">
                   <Table.Tbody>
                     <Table.Tr>
-                      <Table.Td fw={600} w={140}>handle</Table.Td>
-                      <Table.Td><Text span ff="monospace" size="sm">{result.handle}</Text></Table.Td>
+                      <Table.Td fw={600} w={140}>username</Table.Td>
+                      <Table.Td><Text span ff="monospace" size="sm">{result.username}</Text></Table.Td>
                     </Table.Tr>
                     <Table.Tr>
                       <Table.Td fw={600}>did</Table.Td>

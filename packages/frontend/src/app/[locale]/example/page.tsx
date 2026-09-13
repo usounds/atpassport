@@ -19,7 +19,7 @@ export default async function ExamplePage({
   const callbackUrl = `${baseUrl}${pathname}`;
 
   let initialResult = null;
-  if (sParams.handle) {
+  if (sParams.username || sParams.handle) {
     const atp = new AtPassport({
       callbackUrl,
       baseUrl,

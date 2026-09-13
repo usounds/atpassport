@@ -20,7 +20,7 @@ export const AT_PASSPORT_MAINNET = "https://atpassport.net";
 
 export interface HandleAssistResult {
   did: AtprotoDid | string;
-  handle: Handle | string;
+  username: Handle | string;
   token: string;
 }
 
@@ -69,16 +69,16 @@ export function parseHandleAssistToken(token: string): HandleAssistResult {
     !("did" in payload) ||
     typeof payload.did !== "string" ||
     !DID_PATTERN.test(payload.did) ||
-    !("handle" in payload) ||
-    typeof payload.handle !== "string" ||
-    !HANDLE_PATTERN.test(payload.handle)
+    !("username" in payload) ||
+    typeof payload.username !== "string" ||
+    !HANDLE_PATTERN.test(payload.username)
   ) {
     throw new Error("Invalid @passport handle assist token.");
   }
 
   return {
     did: payload.did,
-    handle: payload.handle.toLowerCase(),
+    username: payload.username.toLowerCase(),
     token,
   };
 }
@@ -155,7 +155,7 @@ export async function requestHandleAssist(
 
     const result = parseHandleAssistToken(credential.token);
     if (options.targetInput) {
-      fillInputValue(options.targetInput, result.handle);
+      fillInputValue(options.targetInput, result.username);
     }
     return result;
   } catch (error) {
@@ -174,7 +174,7 @@ export async function requestHandleAssist(
   }
 }
 
-const RESERVED_CALLBACK_PARAM_KEYS = ["handle", "did", "pdsurl", "atpstate"] as const;
+const RESERVED_CALLBACK_PARAM_KEYS = ["username", "handle", "did", "pdsurl", "atpstate"] as const;
 
 type ReservedCallbackParamKey = typeof RESERVED_CALLBACK_PARAM_KEYS[number];
 
@@ -406,7 +406,7 @@ export class AtPassport {
    *                 or required custom parameters are missing.
    */
   parseCallback(currentUrl: string, expectedState?: string | null): {
-    handle: Handle | string | null;
+    username: Handle | string | null;
     did: AtprotoDid | string | null;
     pdsUrl: string | null;
     atpstate: string;
@@ -424,7 +424,7 @@ export class AtPassport {
       throw new Error(`Callback URL pathname mismatch. Expected: ${expectedBase.pathname}, Got: ${url.pathname}`);
     }
 
-    const handle = url.searchParams.get("handle");
+    const username = url.searchParams.get("username") ?? url.searchParams.get("handle");
     const did = url.searchParams.get("did");
     const pdsUrl = url.searchParams.get("pdsurl");
     const atpstate = url.searchParams.get("atpstate");
@@ -447,7 +447,7 @@ export class AtPassport {
     this._validateCustomParams(customParams);
 
     return { 
-      handle: handle as Handle | null, 
+      username: username as Handle | null, 
       did: did as AtprotoDid | null, 
       pdsUrl, 
       atpstate, 

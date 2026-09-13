@@ -52,6 +52,7 @@ describe("FedCM accounts endpoint", () => {
     expect(await response.json()).toEqual({
       accounts: [{
         id: "did:plc:1",
+        name: "Alice",
         username: "@alice.bsky.social",
         picture: "https://cdn.bsky.app/avatar/alice",
         approved_clients: [],
@@ -77,6 +78,7 @@ describe("FedCM accounts endpoint", () => {
     expect(await response.json()).toEqual({
       accounts: [{
         id: "did:plc:1",
+        name: "alice.bsky.social",
         username: "@alice.bsky.social",
         approved_clients: [],
       }],

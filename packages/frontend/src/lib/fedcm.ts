@@ -3,7 +3,7 @@ import { getVerifiedDomainFromDb, type VerifiedDomain } from "./security";
 export type FedCmHandleAssistPayload = {
   v: 1;
   did: string;
-  handle: string;
+  username: string;
 };
 
 export function getPublicRequestOrigin(request: Request): string {
@@ -116,8 +116,8 @@ export async function validateFedCmClient(
   return registration ? { origin, registration } : null;
 }
 
-export function createHandleAssistToken(did: string, handle: string): string {
-  return JSON.stringify({ v: 1, did, handle } satisfies FedCmHandleAssistPayload);
+export function createHandleAssistToken(did: string, username: string): string {
+  return JSON.stringify({ v: 1, did, username } satisfies FedCmHandleAssistPayload);
 }
 
 export function fedCmCorsHeaders(origin: string): Record<string, string> {

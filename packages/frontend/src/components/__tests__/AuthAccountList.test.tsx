@@ -140,7 +140,7 @@ describe('AuthAccountList', () => {
     
     // Should have called window.location.replace with combined search params
     expect(window.location.replace).toHaveBeenCalledWith(expect.stringContaining('existing=1'));
-    expect(window.location.replace).toHaveBeenCalledWith(expect.stringContaining('handle=user1.test'));
+    expect(window.location.replace).toHaveBeenCalledWith(expect.stringContaining('username=user1.test'));
   });
 
   it('shows different messages based on domain match', () => {
