@@ -77,6 +77,7 @@
     "expiryNotice": "このリンクは5分間のみ有効です。",
     "rateLimitExceeded": "短時間に多くの共有リンクが作成されました。1分ほど待ってから再度お試しください。",
     "copyUrl": "URLをコピー",
+    "shareUrl": "URLを共有",
     "copied": "コピーしました",
     "qrAlt": "共有用QRコード",
     "scanInstruction": "スマートフォンのカメラ等でスキャンしてください。"

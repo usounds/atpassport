@@ -77,6 +77,7 @@
     "expiryNotice": "Ce lien est valide pendant 5 minutes.",
     "rateLimitExceeded": "Trop de liens de partage créés en peu de temps. Veuillez patienter une minute et réessayer.",
     "copyUrl": "Copier l'URL",
+    "shareUrl": "Partager l'URL",
     "copied": "Copié !",
     "qrAlt": "Code QR de partage",
     "scanInstruction": "Scannez ceci avec l'appareil photo de votre smartphone."
