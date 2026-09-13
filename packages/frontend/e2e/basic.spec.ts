@@ -154,7 +154,7 @@ test.describe('Basic UI Flow', () => {
     await shareBtn.click();
     await expect(page.getByRole('heading', { name: 'デバイス間で共有', exact: true })).toBeVisible();
     await expect(page.getByText(/e2e-mock-token/)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('button', { name: 'URLをコピー' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'URLを共有' })).toBeVisible();
     
     // 15. Close modal
     const modal = page.getByRole('dialog', { name: 'デバイス間で共有', exact: true });
