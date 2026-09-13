@@ -8,6 +8,13 @@ export interface VerifiedDomain {
   verifiedAt: string;
   isPublic?: string; // "true" or "false"
   method?: 'oauth' | 'file';
+  privacyPolicyUrl?: string | null;
+  termsOfServiceUrl?: string | null;
+}
+
+export interface VerifiedDomainMetadata {
+  privacyPolicyUrl?: string | null;
+  termsOfServiceUrl?: string | null;
 }
 
 // List of domains that are explicitly banned
@@ -89,7 +96,8 @@ export async function verifyDomainInDb(
   domain: string, 
   did: string, 
   isPublic: boolean = false,
-  method: 'oauth' | 'file' = 'oauth'
+  method: 'oauth' | 'file' = 'oauth',
+  metadata: VerifiedDomainMetadata = {},
 ): Promise<void> {
   await db.send(new PutCommand({
     TableName: VERIFIED_DOMAINS_TABLE_NAME,
@@ -99,7 +107,9 @@ export async function verifyDomainInDb(
       status: 'approved',
       isPublic: isPublic ? "true" : "false",
       verifiedAt: new Date().toISOString(),
-      method: method
+      method: method,
+      privacyPolicyUrl: metadata.privacyPolicyUrl ?? null,
+      termsOfServiceUrl: metadata.termsOfServiceUrl ?? null,
     }
   }));
 }

@@ -16,7 +16,12 @@ import {
   getVerificationStatus,
   getVerifiedDomains
 } from '../actions';
-import { getSessionUuid, createSessionToken, SESSION_COOKIE_NAME } from '../session';
+import {
+  getSessionUuid,
+  createSessionToken,
+  SESSION_COOKIE_NAME,
+  setFedCmSessionCookie,
+} from '../session';
 import { getAssociations, addAssociation, updateAssociation, deleteAssociation, type AssociationWithProfile } from '../models';
 import { resolveIdentity, resolveDidDocument } from '../atproto-server';
 import { getUuidByShareToken, deleteShareToken } from '../share';
@@ -148,7 +153,56 @@ describe('Actions Library', () => {
       const result = await updateDomainSettings(domain, mockDid, false);
 
       expect(result.success).toBe(true);
-      expect(verifyDomainInDb).toHaveBeenCalledWith(domain, mockDid, false, 'file');
+      expect(verifyDomainInDb).toHaveBeenCalledWith(domain, mockDid, false, 'file', {
+        privacyPolicyUrl: undefined,
+        termsOfServiceUrl: undefined,
+      });
+    });
+
+    it('should update optional FedCM policy URLs', async () => {
+      const domain = 'example.com';
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: mockDid } as unknown as AssociationWithProfile
+      ]);
+      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
+        domain, verifiedByDid: mockDid, status: 'approved', verifiedAt: 't', method: 'oauth'
+      });
+
+      const result = await updateDomainSettings(
+        domain,
+        mockDid,
+        true,
+        'https://legal.example.com/privacy',
+        'https://example.com/legal/terms',
+      );
+
+      expect(result.success).toBe(true);
+      expect(verifyDomainInDb).toHaveBeenCalledWith(domain, mockDid, true, 'oauth', {
+        privacyPolicyUrl: 'https://legal.example.com/privacy',
+        termsOfServiceUrl: 'https://example.com/legal/terms',
+      });
+    });
+
+    it('should reject policy URLs outside the verified domain', async () => {
+      const domain = 'example.com';
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([
+        { did: mockDid } as unknown as AssociationWithProfile
+      ]);
+      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
+        domain, verifiedByDid: mockDid, status: 'approved', verifiedAt: 't', method: 'oauth'
+      });
+
+      const result = await updateDomainSettings(
+        domain,
+        mockDid,
+        true,
+        'https://example.net/privacy',
+      );
+
+      expect(result).toEqual({ success: false, error: 'invalid_policy_url' });
+      expect(verifyDomainInDb).not.toHaveBeenCalled();
     });
 
     it('should fail if no session in updateDomainSettings', async () => {
@@ -418,6 +472,7 @@ describe('Actions Library', () => {
       vi.mocked(cookies).mockResolvedValue(cookieStore as any);
       await initializeSession();
       expect(cookieStore.set).not.toHaveBeenCalled();
+      expect(setFedCmSessionCookie).toHaveBeenCalledWith('existing');
     });
 
     it('should retry if UUID collision occurs and eventually succeed', async () => {

@@ -27,6 +27,20 @@ npm install @atpassport/client
 
 Reactコンポーネントや連携用のヘルパークラスが含まれており、アプリケーションに直接組み込むことができます。詳細は [@atpassport/client (npm)](https://www.npmjs.com/package/@atpassport/client) および [GitHub リポジトリ](https://github.com/usounds/atpassport) をご確認ください。
 
+### FedCMによるハンドル入力支援
+
+ChromeおよびChromium 141以降では、`requestHandleAssist` を使ってブラウザ標準のアカウント選択UIを表示できます。返されたハンドルは入力候補であり、本人確認の証明として扱ってはいけません。ログインやPDSアクセスを行う場合は、このハンドルからatproto OAuthの完全なフローを開始してください。
+
+```typescript
+import { requestHandleAssist } from '@atpassport/client/core';
+
+const result = await requestHandleAssist({
+  targetInput: document.querySelector<HTMLInputElement>('[name="handle"]') ?? undefined,
+});
+```
+
+RPのOriginがclient IDになります。事前に@passportのドメイン確認を完了してください。確認済みドメインの設定では、任意のプライバシーポリシーと利用規約リンクを登録できます。それぞれ、そのドメインまたはサブドメイン上のHTTPS URLを指定します。非対応ブラウザでは、後述するリダイレクト方式を引き続き利用できます。
+
 ## 1-2. ライブラリを使わない場合
 
 ライブラリを使用せず、HTTPリダイレクトを通じて直接ハンドル情報を連携させることが可能です。

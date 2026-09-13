@@ -37,7 +37,9 @@
         "status": { "type": "string", "knownValues": ["approved", "pending", "rejected"] },
         "verifiedAt": { "type": "string", "format": "datetime" },
         "isPublic": { "type": "boolean" },
-        "method": { "type": "string", "knownValues": ["oauth", "file"] }
+        "method": { "type": "string", "knownValues": ["oauth", "file"] },
+        "privacyPolicyUrl": { "type": "string", "format": "uri" },
+        "termsOfServiceUrl": { "type": "string", "format": "uri" }
       }
     }
   }

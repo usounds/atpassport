@@ -115,7 +115,7 @@ button.addEventListener('click', async () => {
 });
 ```
 
-RPのOriginをFedCMのclient IDとして使用します。本番Originは事前に@passportのドメイン確認を完了し、`/privacy` と `/terms` を公開する必要があります。利用者がブラウザの選択UIを閉じた場合はフォールバックを自動表示せず、既存ページとフォームの状態を維持します。
+RPのOriginをFedCMのclient IDとして使用します。本番Originは事前に@passportのドメイン確認を完了してください。任意のプライバシーポリシーと利用規約リンクを確認済みドメインに登録できます。URLには、そのドメインまたはサブドメイン上のHTTPS URLを使用します。利用者がブラウザの選択UIを閉じた場合はフォールバックを自動表示せず、既存ページとフォームの状態を維持します。
 
 ---
 

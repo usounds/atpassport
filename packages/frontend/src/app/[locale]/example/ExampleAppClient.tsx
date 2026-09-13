@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Container, Title, Text, Stack, TextInput, ActionIcon, Group, Button, Paper, Divider, Table, Box, Tabs } from '@mantine/core';
 import { IconPlus, IconTrash, IconUserCircle, IconUserPlus, IconSettings, IconRefresh } from '@tabler/icons-react';
 import { useTranslations } from 'next-intl';
 import { useRouter, usePathname } from 'next/navigation';
-import { AtPassport } from '@atpassport/client/core';
+import { AtPassport, requestHandleAssist } from '@atpassport/client/core';
 import { AtPassportIcon, AtPassportUI } from '@atpassport/client/ui';
 import { CustomBadge } from '@/components/CustomBadge';
 
@@ -34,6 +34,8 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
   ]);
 
   const [suggestHandle, setSuggestHandle] = useState('');
+  const [assistedHandle, setAssistedHandle] = useState('');
+  const assistedHandleRef = useRef<HTMLInputElement>(null);
   const [result, setResult] = useState<AuthResult | null>(initialResult || null);
 
   const addParam = () => setCustomParams([...customParams, { key: '', value: '' }]);
@@ -64,6 +66,23 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
       window.location.href = url;
     } else {
       console.error('Invalid redirect URL (HTTPS required):', url);
+    }
+  };
+
+  const handleInputAssist = async () => {
+    const isLocal = window.location.hostname === 'localhost';
+    const assistResult = await requestHandleAssist({
+      targetInput: assistedHandleRef.current ?? undefined,
+      configURL: isLocal ? `${window.location.origin}/fedcm/config.json` : undefined,
+      fallback: async () => {
+        handleLogin();
+        return null;
+      },
+      onError: (error) => console.debug('[Example] FedCM handle assist ended:', error),
+    });
+
+    if (assistResult) {
+      setAssistedHandle(assistResult.handle);
     }
   };
 
@@ -172,6 +191,33 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
                       <Text fw={600} size="sm" mb={4}>{t('auth_flow_title')}</Text>
                       <Text size="xs" c="dimmed">{t('auth_flow_description')}</Text>
                     </Box>
+
+                    <TextInput
+                      ref={assistedHandleRef}
+                      label={t('fedcm_input_label')}
+                      description={t('fedcm_input_description')}
+                      placeholder="example.bsky.social"
+                      value={assistedHandle}
+                      onChange={(event) => setAssistedHandle(event.currentTarget.value)}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      radius="md"
+                    />
+
+                    <Button
+                      variant="light"
+                      color="blue"
+                      onClick={handleInputAssist}
+                      leftSection={<AtPassportIcon size={22} />}
+                      fullWidth
+                      radius="md"
+                      size="md"
+                    >
+                      {t('fedcm_input_button')}
+                    </Button>
+
+                    <Divider label={t('redirect_fallback')} labelPosition="center" />
                     
                     <Button
                       variant="filled"

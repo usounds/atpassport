@@ -62,6 +62,13 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
         }
         return;
       }
+      try {
+        await (navigator as Navigator & {
+          login?: { setStatus: (status: 'logged-in' | 'logged-out') => Promise<void> };
+        }).login?.setStatus('logged-in');
+      } catch {
+        // Login Status API is optional and does not affect registration success.
+      }
       setHandle('');
       setAgreed(false);
       close();

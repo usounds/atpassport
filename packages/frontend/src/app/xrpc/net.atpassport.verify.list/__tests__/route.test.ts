@@ -23,7 +23,16 @@ describe('XRPC: net.atpassport.verify.list', () => {
   it('should return list of domains if authorized', async () => {
     vi.mocked(verifyServiceAuth).mockResolvedValue('did:plc:123');
     vi.mocked(getVerifiedDomainsByDid).mockResolvedValue([
-      { domain: 'example.com', status: 'approved', verifiedAt: 'now', isPublic: 'true', method: 'oauth', verifiedByDid: 'did:plc:123' }
+      {
+        domain: 'example.com',
+        status: 'approved',
+        verifiedAt: 'now',
+        isPublic: 'true',
+        method: 'oauth',
+        verifiedByDid: 'did:plc:123',
+        privacyPolicyUrl: 'https://example.com/legal/privacy',
+        termsOfServiceUrl: 'https://example.com/legal/terms',
+      }
     ]);
 
     const request = new Request('http://localhost');
@@ -34,7 +43,12 @@ describe('XRPC: net.atpassport.verify.list', () => {
       expect.objectContaining({
         success: true,
         domains: expect.arrayContaining([
-          expect.objectContaining({ domain: 'example.com', isPublic: true })
+          expect.objectContaining({
+            domain: 'example.com',
+            isPublic: true,
+            privacyPolicyUrl: 'https://example.com/legal/privacy',
+            termsOfServiceUrl: 'https://example.com/legal/terms',
+          })
         ])
       })
     );
