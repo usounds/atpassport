@@ -9,12 +9,12 @@ import {
 vi.mock("@/lib/session");
 
 const request = (headers: HeadersInit = {}) => new Request(
-  "https://atpassport.net/api/fedcm/migrate",
-  { method: "POST", headers },
+  "http://0.0.0.0:3001/api/fedcm/migrate",
+  { method: "POST", headers: { host: "localhost:3001", ...headers } },
 );
 
 const sameOriginHeaders = {
-  origin: "https://atpassport.net",
+  origin: "http://localhost:3001",
   "sec-fetch-site": "same-origin",
 };
 
@@ -25,6 +25,16 @@ describe("FedCM session migration endpoint", () => {
     const response = await POST(request({
       origin: "https://rp.example",
       "sec-fetch-site": "cross-site",
+    }));
+
+    expect(response.status).toBe(403);
+    expect(getSessionUuid).not.toHaveBeenCalled();
+  });
+
+  it("rejects an Origin that does not match the public request host", async () => {
+    const response = await POST(request({
+      origin: "https://evil.example",
+      "sec-fetch-site": "same-origin",
     }));
 
     expect(response.status).toBe(403);

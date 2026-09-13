@@ -18,10 +18,20 @@ export function FedCmStatusBadge() {
 
   return (
     <Badge
-      color="green"
-      variant="light"
-      size="lg"
-      leftSection={<IconShieldCheck size={14} />}
+      variant="transparent"
+      color="gray"
+      size="xs"
+      p={0}
+      leftSection={<IconShieldCheck size={11} style={{ opacity: 0.6 }} />}
+      styles={{
+        root: {
+          fontWeight: 400,
+          textTransform: 'none',
+          color: 'var(--mantine-color-dimmed)',
+          opacity: 0.5,
+          cursor: 'default',
+        },
+      }}
     >
       {t('fedcm_ready')}
     </Badge>

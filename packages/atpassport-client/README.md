@@ -6,7 +6,7 @@ Using this client library, you can integrate a @passport-powered "handle input a
 *For the Japanese documentation, please see [README_ja.md](./README_ja.md).*
 
 ## Features
-- **Zero dependencies**
+- **Single package-root API**
 - **OAuth-like secure integration flow** (Built-in CSRF protection via `atpstate`)
 - **Custom parameter passthrough** (Query parameters attached to the callback URL are automatically returned)
 
@@ -21,7 +21,7 @@ pnpm add @atpassport/client
 ## Usage
 
 ```typescript
-import { AtPassport } from '@atpassport/client/core';
+import { AtPassport } from '@atpassport/client';
 
 // 1. Initialize the client
 const passport = new AtPassport({
@@ -70,7 +70,7 @@ export async function GET(req: Request) {
 To make it easy for developers to build consistent "Login with @passport" buttons, the client library exports multi-language standard texts and an SVG icon constant `AtPassportUI`.
 
 ```typescript
-import { AtPassportUI } from '@atpassport/client/ui';
+import { AtPassportIcon, AtPassportUI } from '@atpassport/client';
 
 // English translations
 console.log(AtPassportUI.en.title); // "Login with @passport"
@@ -83,39 +83,71 @@ console.log(AtPassportUI.ja.description); // "@passportは、各atprotoアプリ
 // Standard Icon (SVG String)
 const svgString = AtPassportUI.iconSvg;
 
-// React Component
-import { AtPassportIcon } from '@atpassport/client/ui';
-
 // Use it in your React component
 // <AtPassportIcon size={24} />
 ```
 
-## FedCM handle input assist
+## FedCM (Native Browser Account Chooser) Handle Input Assist
 
-Chrome and Chromium 141 or later can use the browser's native account chooser. The returned handle is an input suggestion, not proof that the user controls the account. Start and complete the full atproto OAuth flow when authentication or PDS access is required.
+On Chrome and Chromium 141+, you can use the W3C standard **FedCM (Federated Credential Management API)** to display a native, seamless browser account chooser.
+Users can select their registered @passport handle with a single tap, without installing extensions or opening modal redirects.
+
+### 1. Basic Usage
+
+By providing a `fallback` to `requestHandleAssist()`, supported browsers (Chrome, Edge) use the native FedCM sheet, while unsupported browsers (Safari, Firefox) automatically trigger the web redirect flow.
 
 ```typescript
-import { requestHandleAssist } from '@atpassport/client/core';
+import { AtPassport } from '@atpassport/client';
 
-const input = document.querySelector<HTMLInputElement>('[name="handle"]');
+const passport = new AtPassport({
+  callbackUrl: 'https://myapp.com/api/atpassport/callback',
+  fedcm: true,
+});
 
 button.addEventListener('click', async () => {
-  const result = await requestHandleAssist({
+  const input = document.querySelector<HTMLInputElement>('input[name="handle"]');
+
+  const result = await passport.requestHandleAssist({
     targetInput: input ?? undefined,
     fallback: async () => {
-      // Open your existing @passport redirect flow when FedCM is unavailable.
+      // Fallback for browsers without FedCM
+      const { url, atpstate } = passport.generateAuthUrl();
+      document.cookie = `atpstate=${atpstate}; path=/; max-age=600; SameSite=Lax`;
+      window.location.href = url;
       return null;
     },
   });
 
   if (result) {
-    // Treat result.handle as a login hint and resolve it again in atproto OAuth.
-    console.log(result.handle);
+    console.log('Handle:', result.handle);
+    console.log('DID:', result.did);
   }
 });
 ```
 
-The RP origin is used as its FedCM client ID. Production origins must first be registered through @passport domain verification. Optional privacy policy and terms of service links can be registered with the verified domain and must use HTTPS on that domain or one of its subdomains. User dismissal does not automatically open the fallback, so closing the browser chooser leaves the existing page and form unchanged.
+> [!TIP]
+> **When to use `passport.isHandleAssistSupported()`**:
+> For standard login/assist buttons, keeping the button visible and relying on `fallback` is recommended. Use `isHandleAssistSupported()` only if you want to conditionally render an optional inline browser-autofill icon inside the input element.
+
+### 2. Result Data (`HandleAssistResult`)
+
+When `requestHandleAssist()` succeeds, it returns the following object (or `null` if the user dismissed the chooser):
+
+| Property | Type | Description |
+| :--- | :--- | :--- |
+| `handle` | `string` | The selected Bluesky / atproto handle (e.g. `alice.bsky.social`) |
+| `did` | `string` | The Decentralized Identifier (e.g. `did:plc:12345...`) |
+| `token` | `string` | The serialized FedCM assertion token |
+
+> [!NOTE]
+> - **Automatic Input Fill (`targetInput`)**: If `targetInput` is provided, the selected handle is automatically inserted into the input field, firing native `input` and `change` events (compatible with React, Vue, etc.).
+> - **User Dismissal Behavior**: If the user closes the browser chooser (via Escape or backdrop click), `fallback` is NOT triggered and `null` is returned silently, preventing unwanted popups when canceled.
+> - **Security Boundary**: The returned handle is an input hint. To verify that the user actually owns the account or to gain PDS access, always initiate and complete the full atproto OAuth flow using the returned handle.
+
+### 3. Production Domain Verification
+
+To use FedCM in production, your Relying Party origin must be verified in the [@passport Developer Portal](https://atpassport.net/developers/verify) via DNS TXT record or HTTP well-known file verification.
+Verified domains can also display custom Privacy Policy and Terms of Service links directly in the browser's native chooser dialog.
 
 ---
 

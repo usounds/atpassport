@@ -3,7 +3,7 @@ import { GET } from "../route";
 
 describe("FedCM config endpoint", () => {
   it("publishes the required IdP endpoints and active-mode branding", async () => {
-    const response = GET();
+    const response = GET(new Request("https://dev.atpassport.net/fedcm/config.json"));
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -15,7 +15,7 @@ describe("FedCM config endpoint", () => {
       supports_use_other_account: true,
     });
     expect(body.branding.icons[0]).toEqual({
-      url: "https://atpassport.net/icon128.png",
+      url: "https://dev.atpassport.net/fedcm-icon128.png",
       size: 128,
     });
   });

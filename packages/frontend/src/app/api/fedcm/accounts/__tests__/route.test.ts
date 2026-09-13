@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "../route";
+import { getProfiles } from "@/lib/atproto";
 import { getAssociations } from "@/lib/models";
 import { getFedCmSessionUuid } from "@/lib/session";
 
 vi.mock("@/lib/models");
 vi.mock("@/lib/session");
+vi.mock("@/lib/atproto");
 
 const request = (headers?: HeadersInit) => new Request("https://atpassport.net/api/fedcm/accounts", { headers });
 
@@ -24,7 +26,7 @@ describe("FedCM accounts endpoint", () => {
     expect(response.headers.get("Set-Login")).toBe("logged-out");
   });
 
-  it("returns handles as usernames without fake email addresses", async () => {
+  it("returns @handles and user avatars without fake email addresses", async () => {
     vi.mocked(getFedCmSessionUuid).mockResolvedValue("uuid");
     vi.mocked(getAssociations).mockResolvedValue([
       {
@@ -35,6 +37,14 @@ describe("FedCM accounts endpoint", () => {
         createdAt: "now",
       },
     ]);
+    vi.mocked(getProfiles).mockResolvedValue({
+      "did:plc:1": {
+        did: "did:plc:1",
+        handle: "alice.bsky.social",
+        displayName: "Alice",
+        avatar: "https://cdn.bsky.app/avatar/alice",
+      },
+    });
 
     const response = await GET(request({ "sec-fetch-dest": "webidentity" }));
     expect(response.status).toBe(200);
@@ -42,7 +52,32 @@ describe("FedCM accounts endpoint", () => {
     expect(await response.json()).toEqual({
       accounts: [{
         id: "did:plc:1",
-        username: "alice.bsky.social",
+        username: "@alice.bsky.social",
+        picture: "https://cdn.bsky.app/avatar/alice",
+        approved_clients: [],
+      }],
+    });
+  });
+
+  it("returns accounts without pictures when profile lookup fails", async () => {
+    vi.mocked(getFedCmSessionUuid).mockResolvedValue("uuid");
+    vi.mocked(getAssociations).mockResolvedValue([
+      {
+        uuid: "uuid",
+        did: "did:plc:1",
+        handle: "alice.bsky.social",
+        pdsUrl: "https://pds.example",
+        createdAt: "now",
+      },
+    ]);
+    vi.mocked(getProfiles).mockRejectedValue(new Error("AppView unavailable"));
+
+    const response = await GET(request({ "sec-fetch-dest": "webidentity" }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      accounts: [{
+        id: "did:plc:1",
+        username: "@alice.bsky.social",
         approved_clients: [],
       }],
     });
@@ -51,6 +86,7 @@ describe("FedCM accounts endpoint", () => {
   it("returns an empty account list without inventing an account", async () => {
     vi.mocked(getFedCmSessionUuid).mockResolvedValue("uuid");
     vi.mocked(getAssociations).mockResolvedValue([]);
+    vi.mocked(getProfiles).mockResolvedValue({});
     const response = await GET(request({ "sec-fetch-dest": "webidentity" }));
     expect(await response.json()).toEqual({ accounts: [] });
     expect(response.headers.get("Set-Login")).toBe("logged-out");

@@ -13,10 +13,20 @@ const NO_STORE_HEADERS = {
 };
 
 export async function POST(request: Request) {
-  const requestOrigin = new URL(request.url).origin;
+  const origin = request.headers.get("origin");
+  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const requestHost = forwardedHost || request.headers.get("host");
+  let originHost: string | null = null;
+  try {
+    originHost = origin ? new URL(origin).host : null;
+  } catch {
+    originHost = null;
+  }
+
   if (
-    request.headers.get("origin") !== requestOrigin ||
-    request.headers.get("sec-fetch-site") !== "same-origin"
+    request.headers.get("sec-fetch-site") !== "same-origin" ||
+    !requestHost ||
+    originHost !== requestHost
   ) {
     return NextResponse.json(
       { error: "invalid_request" },
