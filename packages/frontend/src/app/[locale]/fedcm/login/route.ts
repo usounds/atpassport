@@ -13,17 +13,17 @@ export async function GET(
   const safeLocale = SUPPORTED_LOCALES.has(locale) ? locale : "en";
   const uuid = await getSessionUuid();
 
-  if (!uuid || (await getAssociations(uuid)).length === 0) {
-    const response = NextResponse.redirect(new URL(`/${safeLocale}`, request.url));
-    response.headers.set("Set-Login", "logged-out");
-    return response;
+  const userLocale = request.cookies.get("NEXT_LOCALE")?.value;
+  const effectiveLocale = userLocale && SUPPORTED_LOCALES.has(userLocale) ? userLocale : safeLocale;
+
+  if (uuid) {
+    await setFedCmSessionCookie(uuid);
   }
 
-  await setFedCmSessionCookie(uuid);
-
-  return new NextResponse(
-    `<!doctype html>
-<html lang="${safeLocale}">
+  if (request.nextUrl.searchParams.get("close") === "1") {
+    return new NextResponse(
+      `<!doctype html>
+<html lang="${effectiveLocale}">
   <head><meta charset="utf-8"><title>@passport</title></head>
   <body>
     <script>
@@ -34,13 +34,24 @@ export async function GET(
     </script>
   </body>
 </html>`,
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "private, no-store, max-age=0",
-        "Set-Login": "logged-in",
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "private, no-store, max-age=0",
+          "Set-Login": uuid ? "logged-in" : "logged-out",
+        },
       },
-    },
-  );
+    );
+  }
+
+  const redirectUrl = new URL(`/${effectiveLocale}`, request.url);
+  redirectUrl.searchParams.set("fedcm", "1");
+  const response = NextResponse.redirect(redirectUrl);
+  if (uuid && (await getAssociations(uuid)).length > 0) {
+    response.headers.set("Set-Login", "logged-in");
+  } else {
+    response.headers.set("Set-Login", "logged-out");
+  }
+  return response;
 }
