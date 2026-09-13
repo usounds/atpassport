@@ -90,6 +90,33 @@ import { AtPassportIcon } from '@atpassport/client/ui';
 // <AtPassportIcon size={24} />
 ```
 
+## FedCMによるハンドル入力支援
+
+ChromeおよびChromium 141以降では、ブラウザ標準のアカウント選択UIを利用できます。返されたハンドルは入力候補であり、利用者がそのアカウントを操作できることの証明ではありません。本人確認やPDSアクセスが必要な場合は、atproto OAuthの完全なフローを実行してください。
+
+```typescript
+import { requestHandleAssist } from '@atpassport/client/core';
+
+const input = document.querySelector<HTMLInputElement>('[name="handle"]');
+
+button.addEventListener('click', async () => {
+  const result = await requestHandleAssist({
+    targetInput: input ?? undefined,
+    fallback: async () => {
+      // FedCM非対応時は既存の@passportリダイレクトフローを開きます。
+      return null;
+    },
+  });
+
+  if (result) {
+    // result.handleはlogin hintとして扱い、atproto OAuthで再解決します。
+    console.log(result.handle);
+  }
+});
+```
+
+RPのOriginをFedCMのclient IDとして使用します。本番Originは事前に@passportのドメイン確認を完了し、`/privacy` と `/terms` を公開する必要があります。利用者がブラウザの選択UIを閉じた場合はフォールバックを自動表示せず、既存ページとフォームの状態を維持します。
+
 ---
 
 ## パラメータ・プレースホルダーの解説

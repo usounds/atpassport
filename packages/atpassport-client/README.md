@@ -90,6 +90,33 @@ import { AtPassportIcon } from '@atpassport/client/ui';
 // <AtPassportIcon size={24} />
 ```
 
+## FedCM handle input assist
+
+Chrome and Chromium 141 or later can use the browser's native account chooser. The returned handle is an input suggestion, not proof that the user controls the account. Start and complete the full atproto OAuth flow when authentication or PDS access is required.
+
+```typescript
+import { requestHandleAssist } from '@atpassport/client/core';
+
+const input = document.querySelector<HTMLInputElement>('[name="handle"]');
+
+button.addEventListener('click', async () => {
+  const result = await requestHandleAssist({
+    targetInput: input ?? undefined,
+    fallback: async () => {
+      // Open your existing @passport redirect flow when FedCM is unavailable.
+      return null;
+    },
+  });
+
+  if (result) {
+    // Treat result.handle as a login hint and resolve it again in atproto OAuth.
+    console.log(result.handle);
+  }
+});
+```
+
+The RP origin is used as its FedCM client ID. Production origins must first be registered through @passport domain verification and must publish `/privacy` and `/terms` pages. User dismissal does not automatically open the fallback, so closing the browser chooser leaves the existing page and form unchanged.
+
 ---
 
 ## Explained: Parameters and Placeholders
