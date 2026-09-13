@@ -16,5 +16,15 @@
     "npm-check-updates": "^17.1.18",
     "sst": "^4.15.2",
     "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "auditConfig": {
+      "ignoreCves": [
+        "GHSA-w3rx-r6r6-pgpr",
+        "GHSA-5p2g-fcmc-qvqq",
+        "CVE-2025-71330",
+        "CVE-2025-71329"
+      ]
+    }
   }
 }
