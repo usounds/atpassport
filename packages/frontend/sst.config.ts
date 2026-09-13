@@ -79,9 +79,14 @@ export default $config({
           "https://dev.atpassport.net",
       },
       transform: {
-        server: {
-          memory: "1024 MB",
-          timeout: "30 seconds",
+        server: (args) => {
+          args.memory = "1024 MB";
+          args.timeout = "30 seconds";
+          if (args.url && typeof args.url === "object") {
+            args.url.cors = false;
+          } else {
+            args.url = { cors: false };
+          }
         },
       },
       domain: $app.stage === "production" ? {
