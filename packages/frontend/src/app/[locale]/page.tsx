@@ -58,9 +58,6 @@ export default async function HomePage({
           <Text size="sm" className="text-pretty" style={{ lineHeight: 1.6, maxWidth: 460, margin: '0 auto' }}>
             {t('description')}
           </Text>
-          <div style={{ marginTop: 12 }}>
-            <FedCmStatusBadge />
-          </div>
         </header>
 
         <Divider label={t('registered_handles')} labelPosition="center" />
@@ -72,6 +69,10 @@ export default async function HomePage({
         <RegisterForm handleCount={handleCount} />
 
         <ShareSection handleCount={handleCount} />
+
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: -8 }}>
+          <FedCmStatusBadge />
+        </div>
       </Stack>
     </Container>
   );

@@ -1,14 +1,19 @@
 import { getVerifiedDomainFromDb, type VerifiedDomain } from "./security";
 
-export const FEDCM_CONFIG_URL = "https://atpassport.net/fedcm/config.json";
-export const FEDCM_ACCOUNTS_URL = "https://atpassport.net/api/fedcm/accounts";
-export const FEDCM_LOGIN_URL = "https://atpassport.net/en/fedcm/login";
-
 export type FedCmHandleAssistPayload = {
   v: 1;
   did: string;
   handle: string;
 };
+
+export function getPublicRequestOrigin(request: Request): string {
+  const requestUrl = new URL(request.url);
+  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const host = forwardedHost || request.headers.get("host") || requestUrl.host;
+  const forwardedProtocol = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const protocol = forwardedProtocol || requestUrl.protocol.replace(":", "");
+  return `${protocol}://${host}`;
+}
 
 export function isFedCmRequest(request: Request): boolean {
   return request.headers.get("sec-fetch-dest")?.toLowerCase() === "webidentity";

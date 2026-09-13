@@ -2,9 +2,10 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import {
   AtPassport,
   fillInputValue,
+  isHandleAssistSupported,
   parseHandleAssistToken,
   requestHandleAssist,
-} from '../core';
+} from '../index';
 
 describe('AtPassport', () => {
   const baseUrl = 'https://passport.atproto.com';
@@ -206,6 +207,33 @@ describe('AtPassport', () => {
       input.remove();
     });
 
+    it('reports whether FedCM handle assist is available', () => {
+      expect(isHandleAssistSupported()).toBe(false);
+
+      vi.stubGlobal('window', {
+        IdentityCredential: class {},
+        location: { origin: 'https://app.com' },
+      });
+      vi.stubGlobal('navigator', { credentials: { get: vi.fn() } });
+
+      expect(isHandleAssistSupported()).toBe(true);
+    });
+
+    it('treats a Permissions Policy rejection as unsupported', () => {
+      vi.stubGlobal('window', {
+        IdentityCredential: class {},
+        location: { origin: 'https://app.com' },
+      });
+      vi.stubGlobal('navigator', { credentials: { get: vi.fn() } });
+      Object.defineProperty(document, 'permissionsPolicy', {
+        configurable: true,
+        value: { allowsFeature: vi.fn().mockReturnValue(false) },
+      });
+
+      expect(isHandleAssistSupported()).toBe(false);
+      Reflect.deleteProperty(document, 'permissionsPolicy');
+    });
+
     it('uses the explicit fallback when FedCM is unavailable', async () => {
       const fallback = vi.fn().mockResolvedValue(null);
       await expect(requestHandleAssist({ fallback })).resolves.toBeNull();
@@ -227,8 +255,44 @@ describe('AtPassport', () => {
       });
       expect(input.value).toBe('alice.bsky.social');
       expect(get).toHaveBeenCalledWith(expect.objectContaining({
-        identity: expect.objectContaining({ mode: 'active' }),
+        identity: expect.objectContaining({
+          mode: 'active',
+          providers: [expect.objectContaining({ fields: ['username', 'picture'] })],
+        }),
       }));
+    });
+
+    it('configures FedCM through the AtPassport client instance', async () => {
+      const get = vi.fn().mockResolvedValue({ token: validToken });
+      vi.stubGlobal('window', {
+        IdentityCredential: class {},
+        location: { origin: 'https://app.com' },
+      });
+      vi.stubGlobal('navigator', { credentials: { get } });
+      const passport = new AtPassport({
+        baseUrl,
+        callbackUrl,
+        fedcm: { clientId: 'https://client.example' },
+      });
+
+      expect(passport.isHandleAssistSupported()).toBe(true);
+      await expect(passport.requestHandleAssist()).resolves.toMatchObject({
+        handle: 'alice.bsky.social',
+      });
+      expect(get).toHaveBeenCalledWith(expect.objectContaining({
+        identity: expect.objectContaining({
+          providers: [expect.objectContaining({
+            configURL: `${baseUrl}/fedcm/config.json`,
+            clientId: 'https://client.example',
+          })],
+        }),
+      }));
+    });
+
+    it('keeps instance handle assist disabled unless fedcm is configured', async () => {
+      const passport = new AtPassport({ baseUrl, callbackUrl });
+      expect(passport.isHandleAssistSupported()).toBe(false);
+      await expect(passport.requestHandleAssist()).resolves.toBeNull();
     });
 
     it('does not open a fallback or alter the input after user dismissal', async () => {

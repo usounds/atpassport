@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getVerifiedDomainFromDb } from "../security";
 import {
   createHandleAssistToken,
+  getPublicRequestOrigin,
   isFedCmRequest,
   isRegisteredFedCmClient,
   normalizeClientOrigin,
@@ -20,6 +21,18 @@ describe("FedCM helpers", () => {
       headers: { "sec-fetch-dest": "webidentity" },
     }))).toBe(true);
     expect(isFedCmRequest(new Request("https://atpassport.net"))).toBe(false);
+  });
+
+  it("uses the public forwarded host for generated FedCM URLs", () => {
+    const request = new Request("http://0.0.0.0:3001/fedcm/config.json", {
+      headers: {
+        host: "internal:3001",
+        "x-forwarded-host": "dev.atpassport.net",
+        "x-forwarded-proto": "https",
+      },
+    });
+
+    expect(getPublicRequestOrigin(request)).toBe("https://dev.atpassport.net");
   });
 
   it.each([

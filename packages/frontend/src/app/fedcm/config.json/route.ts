@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { getPublicRequestOrigin } from "@/lib/fedcm";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
-export function GET() {
+export function GET(request: Request) {
+  const origin = getPublicRequestOrigin(request);
   return NextResponse.json(
     {
       accounts_endpoint: "/api/fedcm/accounts",
@@ -15,7 +17,7 @@ export function GET() {
         color: "#ffffff",
         icons: [
           {
-            url: "https://atpassport.net/icon128.png",
+            url: `${origin}/fedcm-icon128.png`,
             size: 128,
           },
         ],

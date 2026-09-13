@@ -1,18 +1,15 @@
 import { NextResponse } from "next/server";
-import {
-  FEDCM_ACCOUNTS_URL,
-  FEDCM_CONFIG_URL,
-  FEDCM_LOGIN_URL,
-} from "@/lib/fedcm";
+import { getPublicRequestOrigin } from "@/lib/fedcm";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
-export function GET() {
+export function GET(request: Request) {
+  const origin = getPublicRequestOrigin(request);
   return NextResponse.json(
     {
-      provider_urls: [FEDCM_CONFIG_URL],
-      accounts_endpoint: FEDCM_ACCOUNTS_URL,
-      login_url: FEDCM_LOGIN_URL,
+      provider_urls: [`${origin}/fedcm/config.json`],
+      accounts_endpoint: `${origin}/api/fedcm/accounts`,
+      login_url: `${origin}/en/fedcm/login`,
     },
     {
       headers: {
