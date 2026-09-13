@@ -332,6 +332,24 @@ describe('AtPassport', () => {
       expect(fallback).toHaveBeenCalledOnce();
     });
 
+    it('uses the explicit fallback on IdentityCredentialError', async () => {
+      const get = vi.fn().mockRejectedValue(new DOMException('Failed', 'IdentityCredentialError'));
+      const fallbackResult = {
+        did: 'did:plc:fallback',
+        username: 'fallback.example',
+        token: JSON.stringify({ v: 1, did: 'did:plc:fallback', username: 'fallback.example' }),
+      };
+      const fallback = vi.fn().mockResolvedValue(fallbackResult);
+      vi.stubGlobal('window', {
+        IdentityCredential: class {},
+        location: { origin: 'https://app.com' },
+      });
+      vi.stubGlobal('navigator', { credentials: { get } });
+
+      await expect(requestHandleAssist({ fallback })).resolves.toEqual(fallbackResult);
+      expect(fallback).toHaveBeenCalledOnce();
+    });
+
     it('uses the explicit fallback when Permissions Policy blocks FedCM', async () => {
       const fallback = vi.fn().mockResolvedValue(null);
       Object.defineProperty(document, 'permissionsPolicy', {

@@ -21,7 +21,9 @@ export async function GET(
     await setFedCmSessionCookie(uuid);
   }
 
-  if (request.nextUrl.searchParams.get("close") === "1") {
+  const hasAssociations = uuid ? (await getAssociations(uuid)).length > 0 : false;
+
+  if (request.nextUrl.searchParams.get("close") === "1" || hasAssociations) {
     return new NextResponse(
       `<!doctype html>
 <html lang="${effectiveLocale}">
@@ -40,7 +42,7 @@ export async function GET(
         headers: {
           "Content-Type": "text/html; charset=utf-8",
           "Cache-Control": "private, no-store, max-age=0",
-          "Set-Login": uuid ? "logged-in" : "logged-out",
+          "Set-Login": hasAssociations ? "logged-in" : (uuid ? "logged-in" : "logged-out"),
         },
       },
     );
@@ -50,10 +52,7 @@ export async function GET(
   const redirectUrl = new URL(`/${effectiveLocale}`, origin);
   redirectUrl.searchParams.set("fedcm", "1");
   const response = NextResponse.redirect(redirectUrl);
-  if (uuid && (await getAssociations(uuid)).length > 0) {
-    response.headers.set("Set-Login", "logged-in");
-  } else {
-    response.headers.set("Set-Login", "logged-out");
-  }
+  response.headers.set("Set-Login", "logged-out");
   return response;
 }
+
