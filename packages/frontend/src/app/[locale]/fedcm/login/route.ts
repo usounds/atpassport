@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAssociations } from "@/lib/models";
+import { getPublicRequestOrigin } from "@/lib/fedcm";
 import { getSessionUuid, setFedCmSessionCookie } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +46,8 @@ export async function GET(
     );
   }
 
-  const redirectUrl = new URL(`/${effectiveLocale}`, request.url);
+  const origin = getPublicRequestOrigin(request);
+  const redirectUrl = new URL(`/${effectiveLocale}`, origin);
   redirectUrl.searchParams.set("fedcm", "1");
   const response = NextResponse.redirect(redirectUrl);
   if (uuid && (await getAssociations(uuid)).length > 0) {

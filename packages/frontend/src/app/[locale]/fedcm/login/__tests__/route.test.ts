@@ -45,6 +45,22 @@ describe("FedCM login endpoint", () => {
     expect(setFedCmSessionCookie).toHaveBeenCalledWith("uuid");
   });
 
+  it("uses the public host for redirects when bound to 0.0.0.0:3001", async () => {
+    vi.mocked(getSessionUuid).mockResolvedValue(null);
+    const response = await GET(
+      new NextRequest("http://0.0.0.0:3001/en/fedcm/login", {
+        headers: {
+          host: "dev.atpassport.net",
+          "x-forwarded-proto": "https",
+        },
+      }),
+      { params: Promise.resolve({ locale: "en" }) },
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://dev.atpassport.net/en?fedcm=1");
+  });
+
   it("closes the FedCM login window when explicitly requested with close=1", async () => {
     vi.mocked(getSessionUuid).mockResolvedValue("uuid");
     const response = await GET(
