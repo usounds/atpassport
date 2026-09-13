@@ -48,6 +48,7 @@ describe("FedCM session migration endpoint", () => {
     const response = await POST(request(sameOriginHeaders));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ready: false });
+    expect(response.headers.get("Set-Login")).toBe("logged-out");
     expect(setFedCmSessionCookie).not.toHaveBeenCalled();
   });
 
@@ -58,6 +59,7 @@ describe("FedCM session migration endpoint", () => {
     const response = await POST(request(sameOriginHeaders));
 
     expect(await response.json()).toEqual({ ready: true });
+    expect(response.headers.get("Set-Login")).toBe("logged-in");
     expect(setFedCmSessionCookie).not.toHaveBeenCalled();
   });
 
@@ -68,6 +70,7 @@ describe("FedCM session migration endpoint", () => {
     const response = await POST(request(sameOriginHeaders));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ready: true });
+    expect(response.headers.get("Set-Login")).toBe("logged-in");
     expect(setFedCmSessionCookie).not.toHaveBeenCalled();
   });
 
@@ -80,6 +83,7 @@ describe("FedCM session migration endpoint", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ready: true });
     expect(response.headers.get("Cache-Control")).toContain("no-store");
+    expect(response.headers.get("Set-Login")).toBe("logged-in");
     expect(setFedCmSessionCookie).toHaveBeenCalledWith("uuid");
   });
 });
