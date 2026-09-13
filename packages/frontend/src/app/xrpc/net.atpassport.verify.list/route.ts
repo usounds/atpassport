@@ -25,7 +25,13 @@ export async function GET(request: Request) {
         status: d.status as NetAtpassportVerifyList.Domain['status'],
         verifiedAt: d.verifiedAt,
         isPublic: d.isPublic === 'true',
-        method: d.method as NetAtpassportVerifyList.Domain['method']
+        method: d.method as NetAtpassportVerifyList.Domain['method'],
+        ...(d.privacyPolicyUrl
+          ? { privacyPolicyUrl: d.privacyPolicyUrl as NetAtpassportVerifyList.Domain['privacyPolicyUrl'] }
+          : {}),
+        ...(d.termsOfServiceUrl
+          ? { termsOfServiceUrl: d.termsOfServiceUrl as NetAtpassportVerifyList.Domain['termsOfServiceUrl'] }
+          : {}),
       }))
     };
     

@@ -9,9 +9,15 @@ const _domainSchema = /*#__PURE__*/ v.object({
   domain: /*#__PURE__*/ v.actorIdentifierString(),
   isPublic: /*#__PURE__*/ v.boolean(),
   method: /*#__PURE__*/ v.string<"file" | "oauth" | (string & {})>(),
+  privacyPolicyUrl: /*#__PURE__*/ v.optional(
+    /*#__PURE__*/ v.genericUriString(),
+  ),
   status: /*#__PURE__*/ v.string<
     "approved" | "pending" | "rejected" | (string & {})
   >(),
+  termsOfServiceUrl: /*#__PURE__*/ v.optional(
+    /*#__PURE__*/ v.genericUriString(),
+  ),
   verifiedAt: /*#__PURE__*/ v.datetimeString(),
 });
 const _mainSchema = /*#__PURE__*/ v.query("net.atpassport.verify.list", {

@@ -10,6 +10,7 @@ import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server
 import { Header } from '@/components/Header';
 import { MantineScript } from '@/components/MantineScript';
 import { Footer } from '@/components/Footer';
+import { FedCmSessionMigration } from '@/components/FedCmSessionMigration';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import "./globals.css";
@@ -122,6 +123,7 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <NextIntlClientProvider messages={messages}>
           <MantineThemeProvider defaultColorScheme={colorScheme}>
+            <FedCmSessionMigration />
             <NextTopLoader color="#58A7F6" showSpinner={false} height={3} />
             <Notifications position="top-right" zIndex={1000} />
             <Stack gap={0} style={{ minHeight: '100vh' }}>

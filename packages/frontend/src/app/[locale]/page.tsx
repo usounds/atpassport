@@ -8,6 +8,7 @@ import { getAssociations } from '@/lib/models';
 import { getSessionUuid } from '@/lib/session';
 import { createPageMetadata } from '@/lib/seo';
 import { IconInfoCircle } from '@tabler/icons-react';
+import { FedCmStatusBadge } from '@/components/FedCmStatusBadge';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,6 +58,9 @@ export default async function HomePage({
           <Text size="sm" className="text-pretty" style={{ lineHeight: 1.6, maxWidth: 460, margin: '0 auto' }}>
             {t('description')}
           </Text>
+          <div style={{ marginTop: 12 }}>
+            <FedCmStatusBadge />
+          </div>
         </header>
 
         <Divider label={t('registered_handles')} labelPosition="center" />

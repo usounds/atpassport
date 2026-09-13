@@ -27,6 +27,20 @@ npm install @atpassport/client
 
 This library includes React components and helper classes for integration that can be directly integrated into your application. For more details, please check [@atpassport/client (npm)](https://www.npmjs.com/package/@atpassport/client) and the [GitHub repository](https://github.com/usounds/atpassport).
 
+### FedCM handle input assist
+
+Chrome and Chromium 141 or later can display the browser's native account chooser through `requestHandleAssist`. The returned handle is an input suggestion and must not be treated as authentication proof. Use it to start the complete atproto OAuth flow when signing a user in or accessing their PDS.
+
+```typescript
+import { requestHandleAssist } from '@atpassport/client/core';
+
+const result = await requestHandleAssist({
+  targetInput: document.querySelector<HTMLInputElement>('[name="handle"]') ?? undefined,
+});
+```
+
+The RP origin is its client ID. Complete @passport domain verification first. You can optionally register privacy policy and terms of service links in the verified domain settings; each link must use HTTPS on that domain or one of its subdomains. Unsupported browsers can continue to use the redirect flow below.
+
 ## 1-2. Without Using the Library
 
 It is also possible to link handle information directly via HTTP redirect without using the library.

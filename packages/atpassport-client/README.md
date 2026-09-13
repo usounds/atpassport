@@ -115,7 +115,7 @@ button.addEventListener('click', async () => {
 });
 ```
 
-The RP origin is used as its FedCM client ID. Production origins must first be registered through @passport domain verification and must publish `/privacy` and `/terms` pages. User dismissal does not automatically open the fallback, so closing the browser chooser leaves the existing page and form unchanged.
+The RP origin is used as its FedCM client ID. Production origins must first be registered through @passport domain verification. Optional privacy policy and terms of service links can be registered with the verified domain and must use HTTPS on that domain or one of its subdomains. User dismissal does not automatically open the fallback, so closing the browser chooser leaves the existing page and form unchanged.
 
 ---
 

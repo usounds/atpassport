@@ -68,9 +68,14 @@ describe('Security Library', () => {
 
     it('should verify and retrieve a domain', async () => {
       const domain = 'test.com';
-      await verifyDomainInDb(domain, 'did:1', true, 'oauth');
+      await verifyDomainInDb(domain, 'did:1', true, 'oauth', {
+        privacyPolicyUrl: 'https://test.com/privacy',
+        termsOfServiceUrl: 'https://test.com/legal/terms',
+      });
       const result = await getVerifiedDomainFromDb(domain);
       expect(result?.domain).toBe(domain);
+      expect(result?.privacyPolicyUrl).toBe('https://test.com/privacy');
+      expect(result?.termsOfServiceUrl).toBe('https://test.com/legal/terms');
     });
 
     it('should handle production mode (real DB call)', async () => {

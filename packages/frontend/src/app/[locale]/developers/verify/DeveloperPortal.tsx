@@ -474,16 +474,36 @@ export function DeveloperPortal({
     }
   };
 
-  const handleUpdatePublic = async (domain: string, isPublic: boolean) => {
-    if (!session) return;
+  const handleUpdateSettings = async (
+    domain: string,
+    isPublic: boolean,
+    privacyPolicyUrl?: string | null,
+    termsOfServiceUrl?: string | null,
+  ): Promise<boolean> => {
+    if (!session) return false;
     setActionLoading(true);
     const id = notifications.show({ title: t('processing'), message: '', loading: true, autoClose: false, withCloseButton: false });
     try {
-      await updateDomainSettings(domain, session.info.sub, isPublic);
+      const result = await updateDomainSettings(
+        domain,
+        session.info.sub,
+        isPublic,
+        privacyPolicyUrl,
+        termsOfServiceUrl,
+      );
+      if (!result.success) {
+        const message = result.error === 'invalid_policy_url'
+          ? t('invalid_policy_url')
+          : t('failed_to_update_settings');
+        notifications.update({ id, title: t('error_title'), message, color: 'red', loading: false, autoClose: true, withCloseButton: true });
+        return false;
+      }
       await fetchData(session, { skipProfile: true });
       notifications.update({ id, title: t('success_title'), message: t('update_success'), color: 'green', loading: false, autoClose: true, withCloseButton: true });
+      return true;
     } catch {
       notifications.update({ id, title: t('error_title'), message: t('failed_to_update_settings'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
+      return false;
     } finally {
       setActionLoading(false);
     }
@@ -692,7 +712,7 @@ export function DeveloperPortal({
             <DomainList
               domains={domains}
               onWithdraw={handleWithdraw}
-              onUpdatePublic={handleUpdatePublic}
+              onUpdateSettings={handleUpdateSettings}
               loading={actionLoading}
               listLoading={listLoading}
             />

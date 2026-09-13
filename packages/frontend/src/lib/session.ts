@@ -4,6 +4,10 @@ import { jwtVerify, SignJWT, type JWTPayload } from "jose";
 export const SESSION_COOKIE_NAME = process.env.NODE_ENV === 'production' 
   ? "__Host-atpassport_session_v2" 
   : "atpassport_session_v2";
+export const FEDCM_SESSION_COOKIE_NAME = "__Secure-atpassport_fedcm_v1";
+export const FEDCM_SESSION_COOKIE_PATH = "/api/fedcm";
+const SESSION_MAX_AGE = 60 * 60 * 24 * 365;
+const FEDCM_SESSION_PURPOSE = "fedcm";
 const DEVELOPMENT_SECRET =
   "dev-only-insecure-secret-key-at-least-32-chars-long";
 let hasWarnedAboutDevelopmentSecret = false;
@@ -61,6 +65,26 @@ export async function getSessionUuid(): Promise<string | null> {
   }
 }
 
+export async function getFedCmSessionUuid(): Promise<string | null> {
+  const secretKey = getSecretKey();
+
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get(FEDCM_SESSION_COOKIE_NAME);
+    if (!sessionCookie) return null;
+
+    const { payload } = await jwtVerify(sessionCookie.value, secretKey);
+    if (payload.purpose !== FEDCM_SESSION_PURPOSE || typeof payload.uuid !== "string") {
+      return null;
+    }
+
+    return payload.uuid;
+  } catch (e) {
+    console.warn('[FedCM Session] jwtVerify failed:', e);
+    return null;
+  }
+}
+
 export async function createSessionToken(uuid: string): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const payload: JWTPayload = { uuid, lastTouched: now };
@@ -70,6 +94,45 @@ export async function createSessionToken(uuid: string): Promise<string> {
     .setIssuedAt(now)
     .setExpirationTime("365d")
     .sign(getSecretKey());
+}
+
+export async function createFedCmSessionToken(uuid: string): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
+  const payload: JWTPayload = {
+    uuid,
+    purpose: FEDCM_SESSION_PURPOSE,
+    lastTouched: now,
+  };
+
+  return await new SignJWT(payload)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt(now)
+    .setExpirationTime("365d")
+    .sign(getSecretKey());
+}
+
+export async function setFedCmSessionCookie(uuid: string) {
+  const cookieStore = await cookies();
+  const sessionToken = await createFedCmSessionToken(uuid);
+
+  cookieStore.set(FEDCM_SESSION_COOKIE_NAME, sessionToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    path: FEDCM_SESSION_COOKIE_PATH,
+    maxAge: SESSION_MAX_AGE,
+  });
+}
+
+export async function clearFedCmSessionCookie() {
+  const cookieStore = await cookies();
+  cookieStore.set(FEDCM_SESSION_COOKIE_NAME, "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    path: FEDCM_SESSION_COOKIE_PATH,
+    maxAge: 0,
+  });
 }
 
 /**
@@ -90,6 +153,8 @@ export async function refreshSession() {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 365,
+    maxAge: SESSION_MAX_AGE,
   });
+
+  await setFedCmSessionCookie(uuid);
 }
