@@ -34,7 +34,7 @@ test.describe("FedCM handle input assist", () => {
             token: JSON.stringify({
               v: 1,
               did: "did:plc:fedcm-test",
-              handle: "selected.bsky.social",
+              username: "selected.bsky.social",
             }),
           }),
         },
