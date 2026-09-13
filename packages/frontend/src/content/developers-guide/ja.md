@@ -65,6 +65,7 @@ RPのOriginがclient IDになります。事前に@passportのドメイン確認
 
 2. **コールバックの処理**
    認証完了後、指定した `callback` URLに以下のクエリパラメータを伴ってリダイレクトされます。
+   - `handle`: `username` と同じハンドル名
    - `username`: 認証されたハンドル / ユーザー名
    - `did`: ハンドルのDID
    - `pdsurl`: PDSのURL
@@ -72,7 +73,7 @@ RPのOriginがclient IDになります。事前に@passportのドメイン確認
 
    **コールバック例:**
    ```url
-   https://your-app.com/callback?username=alice.atproto.site&did=did%3Aplc%3Axxx&pdsurl=https%3A%2F%2Fpds.example.com&atpstate=xyz123
+   https://your-app.com/callback?username=alice.atproto.site&handle=alice.atproto.site&did=did%3Aplc%3Axxx&pdsurl=https%3A%2F%2Fpds.example.com&atpstate=xyz123
    ```
 
 これらを利用して、ユーザーにハンドルの入力を強いることなく、スムーズなログイン体験を提供することが可能です。

@@ -59,6 +59,9 @@ describe('AuthAccountItem', () => {
     });
     expect(onSelect).toHaveBeenCalledWith(mockItem);
     expect(window.location.replace).toHaveBeenCalled();
+    const callback = new URL(vi.mocked(window.location.replace).mock.calls[0][0]);
+    expect(callback.searchParams.get('handle')).toBe('user.test');
+    expect(callback.searchParams.get('username')).toBe('user.test');
   });
 
   it('triggers refresh metadata action', async () => {

@@ -421,6 +421,7 @@ export class AtPassport {
    */
   parseCallback(currentUrl: string, expectedState?: string | null): {
     username: Handle | string | null;
+    handle: Handle | string | null;
     did: AtprotoDid | string | null;
     pdsUrl: string | null;
     atpstate: string;
@@ -461,7 +462,8 @@ export class AtPassport {
     this._validateCustomParams(customParams);
 
     return { 
-      username: username as Handle | null, 
+      username: username as Handle | null,
+      handle: username as Handle | null,
       did: did as AtprotoDid | null, 
       pdsUrl, 
       atpstate, 

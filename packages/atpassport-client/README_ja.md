@@ -155,6 +155,7 @@ button.addEventListener('click', async () => {
 @passport からコールバック URL にリダイレクトされる際、以下の情報が URL パラメータとして付与されます。
 
 ### 基本パラメータ（`parseCallback` で自動取得されるもの）
+- **`handle`**: `username` と同じ値。`parseCallback()` の戻り値にも含まれます。
 - **`username`**: 認証されたユーザーの Bluesky / atproto ハンドル名・ユーザー名（例: `alice.bsky.social`）
 - **`did`**: ユーザーの分散型識別子（DID）。（例: `did:plc:xxxxxxxx`。ハンドルの解決やPDSとの通信に利用します）
 - **`pdsurl`**: ユーザーのデータが保存されている PDS (Personal Data Server) のエンドポイント URL。
