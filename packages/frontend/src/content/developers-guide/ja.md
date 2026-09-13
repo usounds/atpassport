@@ -37,7 +37,13 @@ import { requestHandleAssist } from '@atpassport/client/core';
 const result = await requestHandleAssist({
   targetInput: document.querySelector<HTMLInputElement>('[name="handle"]') ?? undefined,
 });
+
+if (result) {
+  await startAtprotoOAuth(result.username);
+}
 ```
+
+返される`username`、`did`、`token`はハンドル選択を補助する情報であり、認証情報ではありません。これらを使ってセッションを確立したり、APIリクエストを認可したりしないでください。`token`はBearerトークンやアクセストークンではありません。atproto OAuthを完了し、その検証済み結果を使用してください。
 
 RPのOriginがclient IDになります。事前に@passportのドメイン確認を完了してください。確認済みドメインの設定では、任意のプライバシーポリシーと利用規約リンクを登録できます。それぞれ、そのドメインまたはサブドメイン上のHTTPS URLを指定します。非対応ブラウザでは、後述するリダイレクト方式を引き続き利用できます。
 

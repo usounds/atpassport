@@ -37,7 +37,13 @@ import { requestHandleAssist } from '@atpassport/client/core';
 const result = await requestHandleAssist({
   targetInput: document.querySelector<HTMLInputElement>('[name="handle"]') ?? undefined,
 });
+
+if (result) {
+  await startAtprotoOAuth(result.username);
+}
 ```
+
+The returned `username`, `did`, and `token` are handle-selection hints, not authentication credentials. Do not use them to establish a session or authorize API requests. The `token` is not a bearer token or access token. Complete atproto OAuth and rely on its verified result.
 
 The RP origin is its client ID. Complete @passport domain verification first. You can optionally register privacy policy and terms of service links in the verified domain settings; each link must use HTTPS on that domain or one of its subdomains. Unsupported browsers can continue to use the redirect flow below.
 

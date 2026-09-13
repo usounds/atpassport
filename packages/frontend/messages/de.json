@@ -77,6 +77,7 @@
     "expiryNotice": "Dieser Link ist 5 Minuten lang gültig.",
     "rateLimitExceeded": "Zu viele Freigabelinks in kurzer Zeit erstellt. Bitte warten Sie eine Minute und versuchen Sie es erneut.",
     "copyUrl": "URL kopieren",
+    "shareUrl": "URL teilen",
     "copied": "Kopiert!",
     "qrAlt": "Freigabe-QR-Code",
     "scanInstruction": "Scannen Sie dies mit Ihrer Smartphone-Kamera."

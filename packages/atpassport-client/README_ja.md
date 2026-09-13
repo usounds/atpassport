@@ -119,8 +119,7 @@ button.addEventListener('click', async () => {
   });
 
   if (result) {
-    console.log('選択されたユーザー名:', result.username);
-    console.log('DID:', result.did);
+    await startAtprotoOAuth(result.username);
   }
 });
 ```
@@ -136,13 +135,13 @@ button.addEventListener('click', async () => {
 | プロパティ | 型 | 説明 |
 | :--- | :--- | :--- |
 | `username` | `string` | 選択された Bluesky / atproto ハンドル名・ユーザー名（例: `alice.bsky.social`） |
-| `did` | `string` | ユーザーの Decentralized Identifier（例: `did:plc:12345...`） |
-| `token` | `string` | FedCM アサーション文字列（シリアライズされたJSON） |
+| `did` | `string` | 選択されたハンドルに関連するDID。OAuth完了までは未検証の候補として扱います。 |
+| `token` | `string` | シリアライズされたFedCM入力アシスト用データ。Bearerトークン、アクセストークン、認証情報ではありません。 |
 
 > [!NOTE]
 > - **自動入力 (`targetInput`)**: `targetInput` に `<input>` 要素を指定した場合、選択完了時にユーザー名（ハンドル）の入力および `input` / `change` イベントの発行が自動で行われます（React等のステート管理とも正しく同期されます）。
 > - **キャンセル時の挙動**: ユーザーがブラウザのアカウント選択ダイアログを閉じた場合（Escキーやダイアログ外クリック）、`fallback` は発火せず静かに `null` を返します。これにより、キャンセル時に不要なフォールバック画面が勝手に開くのを防ぎます。
-> - **セキュリティ境界**: 返却されるユーザー名は入力支援（ログインヒント）です。利用者がそのアカウントを正当に所持しているかの最終確認や PDS アクセスが必要な場合は、必ず返されたユーザー名を起点に atproto OAuth フローを完了させてください。
+> - **セキュリティ境界**: FedCMの結果はハンドル選択を補助する情報であり、認証情報ではありません。`username`、`did`、`token`を使ってログインセッションを確立したり、APIリクエストを認可したりしないでください。返された`username`からatproto OAuthを完了し、その検証済み結果を使用してください。`token`はBearerトークンやアクセストークンではありません。
 
 ### 3. 本番利用におけるドメイン確認
 

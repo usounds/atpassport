@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Modal, Button, Stack, Text, Group, ActionIcon, Tooltip, Center, Box, Loader, Paper } from '@mantine/core';
 import { QRCodeSVG } from 'qrcode.react';
-import { IconCopy, IconCheck, IconDeviceMobile } from '@tabler/icons-react';
+import { IconShare, IconCheck, IconDeviceMobile } from '@tabler/icons-react';
 import { useTranslations, useLocale } from 'next-intl';
 
 export interface ShareModalProps {
@@ -88,6 +88,22 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
     } else {
       fallbackCopy();
     }
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ url: shareUrl });
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
+        }
+        console.error('Failed to open the share menu:', error);
+      }
+    }
+
+    handleCopy();
   };
 
   const fallbackCopy = () => {
@@ -191,17 +207,17 @@ export function ShareModal({ opened, onClose }: ShareModalProps) {
                     {shareUrl}
                   </Text>
                 </Box>
-                <Tooltip label={copied ? t('copied') : t('copyUrl')} withArrow>
+                <Tooltip label={copied ? t('copied') : t('shareUrl')} withArrow>
                   <ActionIcon 
                     variant="filled" 
                     color={copied ? 'teal' : 'blue'} 
-                    onClick={handleCopy} 
+                    onClick={handleShare} 
                     size="lg"
                     radius={0}
-                    aria-label={t('copyUrl')}
+                    aria-label={t('shareUrl')}
                     style={{ height: '36px', width: '44px' }}
                   >
-                    {copied ? <IconCheck size={18} /> : <IconCopy size={18} />}
+                    {copied ? <IconCheck size={18} /> : <IconShare size={18} />}
                   </ActionIcon>
                 </Tooltip>
               </Group>

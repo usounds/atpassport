@@ -8,6 +8,7 @@
 
 - **UUID-based Session Management**: Multiple DIDs can be linked to a single browser session (UUID).
 - **Signed Cookies**: Secure session cookies (`HttpOnly`, `Secure`) to prevent tampering.
+- **FedCM Handle Assist**: Browser-native handle selection for supported clients. Returned values are input hints only; authentication must be completed with atproto OAuth.
 - **Multilingual Support (i18n)**: Support for English, Japanese, Portuguese, German, French, and Spanish.
 - **Mantine UI**: Modern user interface for handle management.
 
