@@ -94,7 +94,7 @@ describe("FedCM helpers", () => {
     expect(JSON.parse(createHandleAssistToken("did:plc:1", "alice.example"))).toEqual({
       v: 1,
       did: "did:plc:1",
-      handle: "alice.example",
+      username: "alice.example",
     });
   });
 });

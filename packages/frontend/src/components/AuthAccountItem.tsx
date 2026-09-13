@@ -70,7 +70,7 @@ export function AuthAccountItem({
     try {
       // Callback mode (default)
       const url = new URL(callback);
-      url.searchParams.set('handle', item.handle);
+      url.searchParams.set('username', item.handle);
       url.searchParams.set('did', item.did);
       url.searchParams.set('pdsurl', item.pdsUrl);
       if (atpstate) {

@@ -119,7 +119,7 @@ button.addEventListener('click', async () => {
   });
 
   if (result) {
-    console.log('選択されたハンドル:', result.handle);
+    console.log('選択されたユーザー名:', result.username);
     console.log('DID:', result.did);
   }
 });
@@ -135,14 +135,14 @@ button.addEventListener('click', async () => {
 
 | プロパティ | 型 | 説明 |
 | :--- | :--- | :--- |
-| `handle` | `string` | 選択された Bluesky / atproto ハンドル名（例: `alice.bsky.social`） |
+| `username` | `string` | 選択された Bluesky / atproto ハンドル名・ユーザー名（例: `alice.bsky.social`） |
 | `did` | `string` | ユーザーの Decentralized Identifier（例: `did:plc:12345...`） |
 | `token` | `string` | FedCM アサーション文字列（シリアライズされたJSON） |
 
 > [!NOTE]
-> - **自動入力 (`targetInput`)**: `targetInput` に `<input>` 要素を指定した場合、選択完了時にハンドルの入力および `input` / `change` イベントの発行が自動で行われます（React等のステート管理とも正しく同期されます）。
+> - **自動入力 (`targetInput`)**: `targetInput` に `<input>` 要素を指定した場合、選択完了時にユーザー名（ハンドル）の入力および `input` / `change` イベントの発行が自動で行われます（React等のステート管理とも正しく同期されます）。
 > - **キャンセル時の挙動**: ユーザーがブラウザのアカウント選択ダイアログを閉じた場合（Escキーやダイアログ外クリック）、`fallback` は発火せず静かに `null` を返します。これにより、キャンセル時に不要なフォールバック画面が勝手に開くのを防ぎます。
-> - **セキュリティ境界**: 返却されるハンドルは入力支援（ログインヒント）です。利用者がそのアカウントを正当に所持しているかの最終確認や PDS アクセスが必要な場合は、必ず返されたハンドルを起点に atproto OAuth フローを完了させてください。
+> - **セキュリティ境界**: 返却されるユーザー名は入力支援（ログインヒント）です。利用者がそのアカウントを正当に所持しているかの最終確認や PDS アクセスが必要な場合は、必ず返されたユーザー名を起点に atproto OAuth フローを完了させてください。
 
 ### 3. 本番利用におけるドメイン確認
 
@@ -156,9 +156,9 @@ button.addEventListener('click', async () => {
 @passport からコールバック URL にリダイレクトされる際、以下の情報が URL パラメータとして付与されます。
 
 ### 基本パラメータ（`parseCallback` で自動取得されるもの）
-- **`handle`**: 認証されたユーザーの Bluesky / atproto ハンドル名（例: `alice.bsky.social`）
+- **`username`**: 認証されたユーザーの Bluesky / atproto ハンドル名・ユーザー名（例: `alice.bsky.social`）
 - **`did`**: ユーザーの分散型識別子（DID）。（例: `did:plc:xxxxxxxx`。ハンドルの解決やPDSとの通信に利用します）
 - **`pdsurl`**: ユーザーのデータが保存されている PDS (Personal Data Server) のエンドポイント URL。
 - **`atpstate`**: `generateAuthUrl()` で自動生成された CSRF 防止用のステート文字列。リクエスト元の検証に用います。
 
-※ `@atpassport/client` を使った標準の `generateAuthUrl` → `parseCallback` フローでは、@passport は安全に `&handle=...` のように標準的なクエリパラメータとして追記する形を採っているため、`parseCallback()` を使うことで、全ての情報を簡単に受け取ることができます。
+※ `@atpassport/client` を使った標準の `generateAuthUrl` → `parseCallback` フローでは、@passport は安全に `&username=...` のように標準的なクエリパラメータとして追記する形を採っているため、`parseCallback()` を使うことで、全ての情報を簡単に受け取ることができます。
