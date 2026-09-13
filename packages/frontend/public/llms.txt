@@ -1,23 +1,68 @@
 # @passport
 
-> Handle (user ID) management and authentication assistant for the atproto ecosystem.
+> Handle (user ID) manager and input assist for the AT Protocol (atproto) ecosystem.
 
 ## Summary
 
-@passport allows users to register their atproto handles once and use them across multiple supported applications. It provides a seamless login experience and assists with handle input on unsupported sites via a browser extension.
+@passport allows users to manage multiple atproto handles and securely assist with handle input across relying party (RP) applications.
+In modern Chromium browsers (141+), @passport serves as a W3C Federated Credential Management (FedCM) Identity Provider (IdP) for browser-native handle selection without DOM injection or invasive permissions. For unsupported browsers and environments, it provides seamless Web redirect callbacks and browser extension tools.
+
+> **Security Boundary**: Information returned by @passport (`username`, `did`, and `token`) represents handle-selection and input hints rather than authentication credentials. The `token` is not a bearer token or access token. Relying parties must complete standard atproto OAuth using the selected `username` to authenticate the user and establish sessions.
 
 ## Core Features
 
-- **Handle Management**: Register and manage multiple atproto handles.
-- **Authentication Assist**: One-tap login for integrated atproto applications.
-- **Browser Extension**: Auto-fill handles on any atproto-related website.
-- **Device Sync**: Share registered handles across multiple devices using QR codes.
-- **Developer Portal**: Verify domain ownership to remove security warnings.
+- **FedCM Handle Input Assist**: Browser-native account selection UI (`IdentityCredential`) in Chrome/Chromium 141+ via `requestHandleAssist()`.
+- **Web Redirect & Callback**: HTTP redirect flow (`/authentication`, `/add`) returning `username` (standard), `handle` (backward-compatible alias), `did`, `pdsurl`, and CSRF `atpstate`.
+- **Client SDK (`@atpassport/client`)**: TypeScript library supporting FedCM assist (`requestHandleAssist`), callback parsing (`parseCallback`), and pre-built UI components.
+- **Handle Management**: Register, reorder, and manage multiple atproto handles linked to a signed, secure session (`HttpOnly`, `SameSite=Lax`).
+- **Device Sync**: Transfer handles across devices using secure QR codes.
+- **Developer Portal**: Domain verification for FedCM client IDs and registration of privacy policy and terms of service URLs.
+- **Browser Extension**: Fallback assistant and toolbar manager for Chrome and Firefox.
+
+## Quick Integration
+
+### 1. FedCM Handle Assist (`@atpassport/client`)
+
+```typescript
+import { requestHandleAssist } from '@atpassport/client/core';
+
+// Request native account chooser
+const result = await requestHandleAssist({
+  targetInput: document.querySelector<HTMLInputElement>('input[name="handle"]') ?? undefined,
+});
+
+if (result) {
+  // Use the input hint to initiate atproto OAuth
+  await startAtprotoOAuth(result.username);
+}
+```
+
+### 2. Web Redirect Callback (`parseCallback`)
+
+When redirecting to @passport (`/authentication?callback=...&atpstate=...`), the user is redirected back with query parameters: `username`, `handle`, `did`, `pdsurl`, `atpstate`.
+
+```typescript
+import { AtPassport } from '@atpassport/client/core';
+
+const passport = new AtPassport({
+  callbackUrl: 'https://your-app.com/callback',
+});
+
+const result = passport.parseCallback(window.location.href, expectedState);
+// result.username - Authenticated handle / username (e.g., 'alice.bsky.social')
+// result.handle   - Alias of username for backward compatibility
+// result.did      - Account DID
+// result.pdsUrl   - User PDS URL
+// result.customParams - Any pass-through custom query parameters
+```
 
 ## Key Links
 
+- [Website](https://atpassport.net) - Official website.
 - [About](https://atpassport.net/en/about) - Detailed information and FAQ.
-- [Developer Portal](https://atpassport.net/en/developers) - Domain verification and API docs.
+- [Developer Guide (EN)](https://atpassport.net/en/developers/guide) - Integration guide for relying parties.
+- [Developer Guide (JA)](https://atpassport.net/ja/developers/guide) - 日本語開発者向け導入ガイド.
+- [Developer Portal](https://atpassport.net/en/developers) - Domain verification and FedCM settings.
 - [Directory](https://atpassport.net/en/directory) - List of verified domains.
-- [GitHub](https://github.com/usounds/atpassport) - Source code and client libraries.
+- [GitHub Repository](https://github.com/usounds/atpassport) - Source code and client libraries.
 - [NPM (@atpassport/client)](https://www.npmjs.com/package/@atpassport/client) - Client library for developers.

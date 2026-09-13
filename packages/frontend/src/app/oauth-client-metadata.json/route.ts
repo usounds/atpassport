@@ -34,5 +34,9 @@ export async function GET() {
     "dpop_bound_access_tokens": true
   };
 
-  return NextResponse.json(metadata);
+  return NextResponse.json(metadata, {
+    headers: {
+      "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400",
+    },
+  });
 }
