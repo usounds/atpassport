@@ -93,6 +93,20 @@ const nextConfig: NextConfig = {
       },
     ];
 
+    const publicMetadataHeaders = [
+      {
+        key: "Cache-Control",
+        value: "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400",
+      },
+    ];
+
+    const publicAssetHeaders = [
+      {
+        key: "Cache-Control",
+        value: "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400",
+      },
+    ];
+
     return [
       {
         source: "/:path*",
@@ -101,6 +115,42 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: noCacheHeaders,
+      },
+      {
+        source: "/llms.txt",
+        headers: publicMetadataHeaders,
+      },
+      {
+        source: "/.well-known/did.json",
+        headers: publicMetadataHeaders,
+      },
+      {
+        source: "/.well-known/web-identity",
+        headers: publicMetadataHeaders,
+      },
+      {
+        source: "/fedcm/config.json",
+        headers: publicMetadataHeaders,
+      },
+      {
+        source: "/oauth-client-metadata.json",
+        headers: publicMetadataHeaders,
+      },
+      {
+        source: "/icon128.png",
+        headers: publicAssetHeaders,
+      },
+      {
+        source: "/icon128.svg",
+        headers: publicAssetHeaders,
+      },
+      {
+        source: "/fedcm-icon128.png",
+        headers: publicAssetHeaders,
+      },
+      {
+        source: "/atpassportOgp.png",
+        headers: publicAssetHeaders,
       },
     ];
   },
