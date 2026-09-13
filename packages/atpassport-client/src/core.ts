@@ -18,9 +18,18 @@ export type Handle = `${string}.${string}`;
  */
 export const AT_PASSPORT_MAINNET = "https://atpassport.net";
 
+/**
+ * Handle-selection hints returned by FedCM.
+ * These values are not authentication credentials and must not be used to
+ * establish sessions or authorize requests. Complete atproto OAuth and rely
+ * on its verified result.
+ */
 export interface HandleAssistResult {
+  /** DID associated with the selected handle. Unverified until OAuth completes. */
   did: AtprotoDid | string;
+  /** Selected handle to use as an input hint for atproto OAuth. */
   username: Handle | string;
+  /** Serialized handle-assist payload. Not a bearer token or access token. */
   token: string;
 }
 
@@ -127,6 +136,10 @@ export function isHandleAssistSupported(): boolean {
   );
 }
 
+/**
+ * Requests a browser-mediated handle-selection hint.
+ * A successful result does not authenticate the user.
+ */
 export async function requestHandleAssist(
   options: HandleAssistOptions = {},
 ): Promise<HandleAssistResult | null> {

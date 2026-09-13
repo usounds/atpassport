@@ -119,8 +119,7 @@ button.addEventListener('click', async () => {
   });
 
   if (result) {
-    console.log('Username:', result.username);
-    console.log('DID:', result.did);
+    await startAtprotoOAuth(result.username);
   }
 });
 ```
@@ -136,13 +135,13 @@ When `requestHandleAssist()` succeeds, it returns the following object (or `null
 | Property | Type | Description |
 | :--- | :--- | :--- |
 | `username` | `string` | The selected Bluesky / atproto handle / username (e.g. `alice.bsky.social`) |
-| `did` | `string` | The Decentralized Identifier (e.g. `did:plc:12345...`) |
-| `token` | `string` | The serialized FedCM assertion token |
+| `did` | `string` | The DID associated with the selected handle. Treat it as an unverified hint until OAuth completes. |
+| `token` | `string` | The serialized FedCM handle-assist payload. It is not a bearer token, access token, or authentication credential. |
 
 > [!NOTE]
 > - **Automatic Input Fill (`targetInput`)**: If `targetInput` is provided, the selected username is automatically inserted into the input field, firing native `input` and `change` events (compatible with React, Vue, etc.).
 > - **User Dismissal Behavior**: If the user closes the browser chooser (via Escape or backdrop click), `fallback` is NOT triggered and `null` is returned silently, preventing unwanted popups when canceled.
-> - **Security Boundary**: The returned username is an input hint. To verify that the user actually owns the account or to gain PDS access, always initiate and complete the full atproto OAuth flow using the returned username.
+> - **Security Boundary**: FedCM results are handle-selection hints, not authentication credentials. Do not use `username`, `did`, or `token` to establish a login session or authorize API requests. Complete atproto OAuth with the returned username and rely on its verified result. The returned `token` is not a bearer token or access token.
 
 ### 3. Production Domain Verification
 
