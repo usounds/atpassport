@@ -65,13 +65,13 @@
     }
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.22.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^25.9.3",
     "@types/react": "19.2.14",
     "@vitest/coverage-v8": "^4.1.11",
-    "eslint": "^9.39.4",
+    "eslint": "^9.39.5",
     "eslint-plugin-react": "^7.37.5",
     "jsdom": "^29.1.1",
     "picomatch": "4.0.4",

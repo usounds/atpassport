@@ -1,18 +1,64 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Loader2, AlertCircle, Copy, User, CheckCircle } from 'lucide-react';
-import { HandleManager } from '@/lib/HandleManager';
+import { Loader2, AlertCircle, Copy, User, CheckCircle, RefreshCw } from 'lucide-react';
+import { HandleManager, type AccountItem } from '@/lib/HandleManager';
 import './popup.css';
+
+interface ErrorState {
+  message: string;
+  isLogin: boolean;
+}
 
 export const Popup = () => {
   const manager = useMemo(() => new HandleManager(), []);
-  const [handles, setHandles] = useState<string[]>([]);
+  const [accounts, setAccounts] = useState<AccountItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [errorState, setErrorState] = useState<ErrorState | null>(null);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const [toastExiting, setToastExiting] = useState(false);
   const [toastKey, setToastKey] = useState(0);
+  const [reloadTrigger, setReloadTrigger] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const exitTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const formatError = (err: unknown): ErrorState => {
+    if (!(err instanceof Error)) {
+      return { message: String(err), isLogin: false };
+    }
+    const code = err.message;
+    if (code === 'loginRequired') {
+      return { message: chrome.i18n.getMessage('loginRequired'), isLogin: true };
+    }
+    if (code === 'networkError') {
+      return {
+        message: chrome.i18n.getMessage('networkError') || 'Network error',
+        isLogin: false,
+      };
+    }
+    if (code === 'rateLimited') {
+      return {
+        message: chrome.i18n.getMessage('rateLimited') || 'Too many requests',
+        isLogin: false,
+      };
+    }
+    if (code === 'invalidResponse') {
+      return {
+        message: chrome.i18n.getMessage('invalidResponse') || 'Invalid response',
+        isLogin: false,
+      };
+    }
+    if (code.startsWith('serverError_')) {
+      const status = code.replace('serverError_', '');
+      const localized = chrome.i18n.getMessage('serverError', [status]);
+      return { message: localized || `Server error (${status})`, isLogin: false };
+    }
+    if (code.startsWith('httpError_')) {
+      const status = code.replace('httpError_', '');
+      const localized = chrome.i18n.getMessage('httpError', [status]);
+      return { message: localized || `HTTP error (${status})`, isLogin: false };
+    }
+    const localized = chrome.i18n.getMessage(code);
+    return { message: localized || code, isLogin: false };
+  };
 
   // Fetch handles from AtPassport API
   useEffect(() => {
@@ -20,16 +66,11 @@ export const Popup = () => {
       const startTime = Date.now();
       try {
         setLoading(true);
-        const result = await manager.fetchHandles();
-        setHandles(result);
+        setErrorState(null);
+        const result = await manager.fetchAccounts();
+        setAccounts(result);
       } catch (err) {
-        if (err instanceof Error && err.message === 'loginRequired') {
-          setError(chrome.i18n.getMessage('loginRequired'));
-        } else if (err instanceof Error && err.message === 'fetchError') {
-          setError(chrome.i18n.getMessage('fetchError'));
-        } else {
-          setError(err instanceof Error ? err.message : String(err));
-        }
+        setErrorState(formatError(err));
       } finally {
         const elapsed = Date.now() - startTime;
         if (elapsed < 500) {
@@ -46,7 +87,7 @@ export const Popup = () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (exitTimeoutRef.current) clearTimeout(exitTimeoutRef.current);
     };
-  }, [manager]);
+  }, [manager, reloadTrigger]);
 
   const handleSelect = async (handle: string) => {
     // Clear existing timeouts to prevent animation conflicts
@@ -78,8 +119,6 @@ export const Popup = () => {
     chrome.tabs.create({ url: 'https://atpassport.net' });
   };
 
-  const isLoginError = error === chrome.i18n.getMessage('loginRequired');
-
   return (
     <div className="popup-container">
       <div 
@@ -91,7 +130,7 @@ export const Popup = () => {
         <h2>@passport</h2>
       </div>
 
-      {loading && !error && (
+      {loading && !errorState && (
         <div className="loading-container">
           <Loader2 className="spinner" size={32} />
           <div className="loading-text">
@@ -100,41 +139,88 @@ export const Popup = () => {
         </div>
       )}
 
-      {error && (
+      {errorState && (
         <div 
-          className={`error-box ${isLoginError ? 'clickable' : ''}`}
-          onClick={() => isLoginError ? openAtPassport() : null}
+          className={`error-box ${errorState.isLogin ? 'clickable' : ''}`}
+          onClick={() => errorState.isLogin ? openAtPassport() : null}
         >
           <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
-          <span>{error}</span>
+          <div className="error-content">
+            <span className="error-message">{errorState.message}</span>
+            {!errorState.isLogin && (
+              <button
+                type="button"
+                className="retry-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setReloadTrigger(prev => prev + 1);
+                }}
+              >
+                <RefreshCw size={13} />
+                <span>{chrome.i18n.getMessage('retry') || 'Retry'}</span>
+              </button>
+            )}
+          </div>
         </div>
       )}
 
-      {!loading && !error && handles.length === 0 && (
+      {!loading && !errorState && accounts.length === 0 && (
         <div className="empty-state">
           {chrome.i18n.getMessage('noHandles')}
         </div>
       )}
 
-      {!loading && !error && handles.length > 0 && (
-        <div className="handle-list">
-          {handles.map((handle, index) => (
-            <button
-              key={handle}
-              className={`handle-item stagger-${Math.min(index + 1, 5)}`}
-              onClick={() => handleSelect(handle)}
-            >
-              <div className="handle-content">
-                <User className="handle-icon" size={18} />
-                <span className="handle-text">{handle}</span>
-              </div>
-              <Copy className="copy-icon" size={16} />
-            </button>
-          ))}
+      {!loading && !errorState && accounts.length > 0 && (
+        <div className="handle-list" onWheel={(e) => e.stopPropagation()}>
+          {accounts.map((account, index) => {
+            const formattedHandle = account.handle.startsWith('@')
+              ? account.handle
+              : `@${account.handle}`;
+
+            return (
+              <button
+                key={account.handle}
+                className={`handle-item stagger-${Math.min(index + 1, 5)}`}
+                onClick={() => handleSelect(account.handle.replace(/^@/, ''))}
+              >
+                <div className="handle-content">
+                  {account.avatar ? (
+                    <img
+                      src={account.avatar}
+                      alt=""
+                      className="handle-avatar"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = 'none';
+                        const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className="handle-avatar-fallback"
+                    style={{ display: account.avatar ? 'none' : 'flex' }}
+                  >
+                    <User className="handle-icon" size={18} />
+                  </div>
+                  <div className="handle-text-group">
+                    {account.displayName ? (
+                      <span className="handle-display-name">{account.displayName}</span>
+                    ) : null}
+                    <span
+                      className={`handle-text ${!account.displayName ? 'no-display-name' : ''}`}
+                    >
+                      {formattedHandle}
+                    </span>
+                  </div>
+                </div>
+                <Copy className="copy-icon" size={16} />
+              </button>
+            );
+          })}
         </div>
       )}
 
-      {!loading && !error && (
+      {!loading && !errorState && (
         <div className="footer">
           <span className="footer-link" onClick={openAtPassport}>
             {chrome.i18n.getMessage('footerNote')}

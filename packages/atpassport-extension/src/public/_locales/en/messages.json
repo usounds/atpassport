@@ -11,8 +11,26 @@
   "fetchError": {
     "message": "Failed to fetch handles"
   },
+  "networkError": {
+    "message": "Could not connect to the server. Please check your network or server settings."
+  },
+  "rateLimited": {
+    "message": "Too many requests. Please wait a moment and try again."
+  },
+  "invalidResponse": {
+    "message": "Received an unexpected response from the server."
+  },
+  "serverError": {
+    "message": "Server error occurred ($1)"
+  },
+  "httpError": {
+    "message": "Connection error occurred ($1)"
+  },
   "noHandles": {
     "message": "No handles registered"
+  },
+  "retry": {
+    "message": "Retry"
   },
   "filledSuccess": {
     "message": "Handle entered"

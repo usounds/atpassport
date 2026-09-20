@@ -11,6 +11,32 @@ describe('HandleManager', () => {
     vi.stubGlobal('fetch', vi.fn());
   });
 
+  describe('fetchAccounts', () => {
+    it('should return accounts when accounts field is present', async () => {
+      const mockAccounts = [
+        { handle: 'user1.test', displayName: 'User One', avatar: 'https://example.com/avatar.jpg' }
+      ];
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        json: async () => ({ accounts: mockAccounts, handles: ['user1.test'] }),
+      } as Response);
+
+      const result = await manager.fetchAccounts();
+      expect(result).toEqual(mockAccounts);
+      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/user/handles'), expect.anything());
+    });
+
+    it('should fallback to handles when accounts field is missing', async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        json: async () => ({ handles: ['user1.test'] }),
+      } as Response);
+
+      const result = await manager.fetchAccounts();
+      expect(result).toEqual([{ handle: 'user1.test' }]);
+    });
+  });
+
   describe('fetchHandles', () => {
     it('should return handles on successful fetch', async () => {
       const mockHandles = ['user1.test', 'user2.test'];
@@ -33,10 +59,63 @@ describe('HandleManager', () => {
       await expect(manager.fetchHandles()).rejects.toThrow('loginRequired');
     });
 
-    it('should throw fetchError on network failure', async () => {
+    it('should throw networkError on network failure', async () => {
       vi.mocked(fetch).mockRejectedValue(new Error('Failed to fetch'));
 
-      await expect(manager.fetchHandles()).rejects.toThrow('fetchError');
+      await expect(manager.fetchHandles()).rejects.toThrow('networkError');
+    });
+
+    it('should throw networkError on Firefox NetworkError', async () => {
+      vi.mocked(fetch).mockRejectedValue(new Error('NetworkError when attempting to fetch resource.'));
+
+      await expect(manager.fetchHandles()).rejects.toThrow('networkError');
+    });
+
+    it('should throw rateLimited on 429 status', async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: false,
+        status: 429,
+      } as Response);
+
+      await expect(manager.fetchHandles()).rejects.toThrow('rateLimited');
+    });
+
+    it('should throw serverError_500 on 500 status code', async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      await expect(manager.fetchHandles()).rejects.toThrow('serverError_500');
+    });
+
+    it('should throw httpError_403 on 403 status code', async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: false,
+        status: 403,
+      } as Response);
+
+      await expect(manager.fetchHandles()).rejects.toThrow('httpError_403');
+    });
+
+    it('should throw invalidResponse on malformed response structure', async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        json: async () => ({ unexpected: true }),
+      } as Response);
+
+      await expect(manager.fetchHandles()).rejects.toThrow('invalidResponse');
+    });
+
+    it('should throw invalidResponse on JSON parse error', async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        json: async () => {
+          throw new Error('Unexpected token < in JSON at position 0');
+        },
+      } as Response);
+
+      await expect(manager.fetchHandles()).rejects.toThrow('invalidResponse');
     });
 
     it('should throw original error if not fetch failure', async () => {
@@ -47,15 +126,6 @@ describe('HandleManager', () => {
     it('should throw string error if thrown from fetch', async () => {
       vi.mocked(fetch).mockRejectedValue('Generic error');
       await expect(manager.fetchHandles()).rejects.toBe('Generic error');
-    });
-
-    it('should throw fetchError_xxx on other status codes', async () => {
-      vi.mocked(fetch).mockResolvedValue({
-        ok: false,
-        status: 500,
-      } as Response);
-
-      await expect(manager.fetchHandles()).rejects.toThrow('fetchError_500');
     });
   });
 
