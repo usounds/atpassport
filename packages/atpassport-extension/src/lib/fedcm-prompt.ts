@@ -708,7 +708,7 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
     }, 50);
   };
 
-  if (options.accounts.length === 1) {
+  if (options.accounts.length === 1 && options.accounts[0]) {
     renderConfirm(options.accounts[0]);
   } else {
     renderChooser();

@@ -113,7 +113,7 @@ describe('HandleManager', () => {
         json: async () => {
           throw new Error('Unexpected token < in JSON at position 0');
         },
-      } as Response);
+      } as unknown as Response);
 
       await expect(manager.fetchHandles()).rejects.toThrow('invalidResponse');
     });

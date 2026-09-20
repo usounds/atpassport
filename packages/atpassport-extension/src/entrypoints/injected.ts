@@ -84,7 +84,7 @@ export default defineUnlistedScript({
               resolve({
                 token: event.detail.token,
                 type: 'identity',
-              });
+              } as unknown as Credential);
             }
           };
 
