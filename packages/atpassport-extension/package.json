@@ -1,6 +1,6 @@
 {
   "name": "atpassport-extension",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "author": "usounds.work",
   "type": "module",
   "description": "@passport handle auto-filler and clipboard copier.",

@@ -69,8 +69,35 @@ const INLINE_POLYFILL_CODE = `
       console.log('[@passport] navigator.credentials.get called with:', options);
       var identity = options && options.identity;
       var providers = identity && identity.providers;
+      function isAtPassportConfigUrl(configURL) {
+        if (!configURL || typeof configURL !== 'string') return false;
+        try {
+          var url = new URL(configURL, window.location.href);
+          var hostname = url.hostname.toLowerCase();
+          var isLoopback =
+            hostname === 'localhost' ||
+            hostname === '127.0.0.1' ||
+            hostname === '0.0.0.0' ||
+            hostname === '[::1]';
+
+          if (isLoopback) {
+            if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+          } else {
+            if (url.protocol !== 'https:') return false;
+            var isAtPassportDomain =
+              hostname === 'atpassport.net' ||
+              hostname.endsWith('.atpassport.net');
+            if (!isAtPassportDomain) return false;
+          }
+
+          return url.pathname === '/fedcm/config.json';
+        } catch (e) {
+          return false;
+        }
+      }
+
       var isAtPassport = providers && providers.some(function(p) {
-        return p && p.configURL && (p.configURL.includes('atpassport.net') || p.configURL.includes('/fedcm/config.json'));
+        return p && isAtPassportConfigUrl(p.configURL);
       });
 
       if (!isAtPassport) {

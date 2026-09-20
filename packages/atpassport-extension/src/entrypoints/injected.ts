@@ -1,3 +1,5 @@
+import { isAtPassportConfigUrl } from '@/lib/fedcm-url';
+
 export default defineUnlistedScript({
   include: ['firefox'],
   main() {
@@ -50,9 +52,7 @@ export default defineUnlistedScript({
         // Check if this request is for AtPassport FedCM
         const identity = (options as unknown as { identity?: { providers?: Array<{ configURL?: string }> } })?.identity;
         const providers = identity?.providers;
-        const isAtPassport = providers?.some(
-          p => p.configURL && (p.configURL.includes('atpassport.net') || p.configURL.includes('/fedcm/config.json'))
-        );
+        const isAtPassport = providers?.some(p => isAtPassportConfigUrl(p?.configURL));
 
         if (!isAtPassport) {
           // If not AtPassport, delegate to original get if it existed
