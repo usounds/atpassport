@@ -3,9 +3,11 @@ import { GET, OPTIONS } from '../route';
 import { NextRequest } from 'next/server';
 import { getSessionUuid } from '@/lib/session';
 import { getAssociations, IdentityAssociation } from '@/lib/models';
+import { getProfiles } from '@/lib/atproto';
 
 vi.mock('@/lib/session');
 vi.mock('@/lib/models');
+vi.mock('@/lib/atproto');
 
 describe('API: /api/user/handles', () => {
   const mockUuid = 'test-uuid';
@@ -15,12 +17,20 @@ describe('API: /api/user/handles', () => {
   });
 
   describe('GET', () => {
-    it('should return handles if authorized', async () => {
+    it('should return handles and accounts if authorized', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
       vi.mocked(getAssociations).mockResolvedValue([
-        { handle: 'user1.test' } as Partial<IdentityAssociation> as IdentityAssociation,
-        { handle: 'user2.test' } as Partial<IdentityAssociation> as IdentityAssociation
+        { did: 'did:plc:1', handle: 'user1.test' } as Partial<IdentityAssociation> as IdentityAssociation,
+        { did: 'did:plc:2', handle: 'user2.test' } as Partial<IdentityAssociation> as IdentityAssociation
       ]);
+      vi.mocked(getProfiles).mockResolvedValue({
+        'did:plc:1': {
+          did: 'did:plc:1',
+          handle: 'user1.test',
+          displayName: 'User One',
+          avatar: 'https://example.com/avatar1.jpg'
+        } as any
+      });
 
       const request = new NextRequest('https://atpassport.net/api/user/handles');
       const response = await GET(request);
@@ -28,6 +38,20 @@ describe('API: /api/user/handles', () => {
 
       expect(response.status).toBe(200);
       expect(data.handles).toEqual(['user1.test', 'user2.test']);
+      expect(data.accounts).toEqual([
+        {
+          did: 'did:plc:1',
+          handle: 'user1.test',
+          displayName: 'User One',
+          avatar: 'https://example.com/avatar1.jpg'
+        },
+        {
+          did: 'did:plc:2',
+          handle: 'user2.test',
+          displayName: undefined,
+          avatar: undefined
+        }
+      ]);
     });
 
     it('should return 401 if unauthorized', async () => {
