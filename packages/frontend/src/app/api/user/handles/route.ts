@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionUuid } from "@/lib/session";
 import { getAssociations } from "@/lib/models";
 import { isRateLimited } from "@/lib/rate-limit";
+import { getProfiles } from "@/lib/atproto";
 
 export const dynamic = 'force-dynamic';
 
@@ -24,9 +25,26 @@ export async function GET(request: NextRequest) {
     }
 
     const associations = await getAssociations(uuid);
-    const handles = associations.map(a => a.handle);
+    let profiles: Awaited<ReturnType<typeof getProfiles>> = {};
+    try {
+      profiles = await getProfiles(associations.map(({ did }) => did));
+    } catch (error) {
+      console.warn("[Handles API] Failed to fetch account avatars:", error);
+    }
 
-    const response = NextResponse.json({ handles });
+    const handles = associations.map(a => a.handle);
+    const accounts = associations.map(({ did, handle }) => {
+      const displayName = profiles[did]?.displayName?.trim();
+      const avatar = profiles[did]?.avatar;
+      return {
+        did,
+        handle,
+        displayName: displayName || undefined,
+        avatar: avatar || undefined,
+      };
+    });
+
+    const response = NextResponse.json({ handles, accounts });
 
     // CORSの処理
     const origin = request.headers.get("origin");
