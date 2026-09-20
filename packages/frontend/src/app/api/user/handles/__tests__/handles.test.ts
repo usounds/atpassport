@@ -54,13 +54,32 @@ describe('API: /api/user/handles', () => {
       ]);
     });
 
-    it('should return 401 if unauthorized', async () => {
+    it('should return 401 if unauthorized and still set CORS headers', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(null);
 
-      const request = new NextRequest('https://atpassport.net/api/user/handles');
+      const origin = 'chrome-extension://ollhnghmplgpoebaceomdaigpkihpfkn';
+      const request = new NextRequest('https://atpassport.net/api/user/handles', {
+        headers: { origin }
+      });
       const response = await GET(request);
       
       expect(response.status).toBe(401);
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(origin);
+      expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
+    });
+
+    it('should handle CORS for moz-extension UUID origin', async () => {
+      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+      vi.mocked(getAssociations).mockResolvedValue([]);
+
+      const origin = 'moz-extension://c3b88d8b-4b14-4340-9a40-d9d107a61d8a';
+      const request = new NextRequest('https://atpassport.net/api/user/handles', {
+        headers: { origin }
+      });
+      const response = await GET(request);
+
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(origin);
+      expect(response.headers.get('Access-Control-Allow-Credentials')).toBe('true');
     });
 
     it('should handle CORS for extension origin', async () => {

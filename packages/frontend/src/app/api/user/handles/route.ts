@@ -6,22 +6,45 @@ import { getProfiles } from "@/lib/atproto";
 
 export const dynamic = 'force-dynamic';
 
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  return (
+    origin === "https://atpassport.net" ||
+    origin === "https://preview.atpassport.net" ||
+    origin === "http://localhost:3000" ||
+    origin === "http://localhost:3001" ||
+    origin === "chrome-extension://ollhnghmplgpoebaceomdaigpkihpfkn" ||
+    origin.startsWith("moz-extension://")
+  );
+}
+
+function applyCors(response: NextResponse, origin: string | null): NextResponse {
+  if (isAllowedOrigin(origin)) {
+    response.headers.set("Access-Control-Allow-Origin", origin!);
+    response.headers.set("Access-Control-Allow-Credentials", "true");
+    response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  }
+  return response;
+}
+
 export async function GET(request: NextRequest) {
+  const origin = request.headers.get("origin");
   try {
     const ip = request.headers.get("x-forwarded-for") || "anonymous";
     // IPベースのレート制限 (1分間に20リクエストまで)
     if (isRateLimited(`api:handles:ip:${ip}`, 20, 60000)) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+      return applyCors(NextResponse.json({ error: "Too many requests" }, { status: 429 }), origin);
     }
 
     const uuid = await getSessionUuid();
     if (!uuid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return applyCors(NextResponse.json({ error: "Unauthorized" }, { status: 401 }), origin);
     }
 
     // セッションUUIDベースのレート制限 (1分間に20リクエストまで)
     if (isRateLimited(`api:handles:uuid:${uuid}`, 20, 60000)) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+      return applyCors(NextResponse.json({ error: "Too many requests" }, { status: 429 }), origin);
     }
 
     const associations = await getAssociations(uuid);
@@ -44,55 +67,14 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    const response = NextResponse.json({ handles, accounts });
-
-    // CORSの処理
-    const origin = request.headers.get("origin");
-    if (origin) {
-      const ALLOWED_ORIGINS = [
-        "https://atpassport.net",
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "chrome-extension://ollhnghmplgpoebaceomdaigpkihpfkn",
-        "moz-extension://extension@atpassport.net"
-      ];
-
-      if (ALLOWED_ORIGINS.includes(origin)) {
-        response.headers.set("Access-Control-Allow-Origin", origin);
-        response.headers.set("Access-Control-Allow-Credentials", "true");
-        response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-        response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-      }
-    }
-
-    return response;
+    return applyCors(NextResponse.json({ handles, accounts }), origin);
   } catch (e) {
     console.error("Handles API error:", e);
-    const response = NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-    return response;
+    return applyCors(NextResponse.json({ error: "Internal Server Error" }, { status: 500 }), origin);
   }
 }
 
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get("origin");
-  const response = new NextResponse(null, { status: 204 });
-
-  if (origin) {
-    const ALLOWED_ORIGINS = [
-      "https://atpassport.net",
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "chrome-extension://ollhnghmplgpoebaceomdaigpkihpfkn",
-      "moz-extension://extension@atpassport.net"
-    ];
-
-    if (ALLOWED_ORIGINS.includes(origin)) {
-      response.headers.set("Access-Control-Allow-Origin", origin);
-      response.headers.set("Access-Control-Allow-Credentials", "true");
-      response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-      response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    }
-  }
-
-  return response;
+  return applyCors(new NextResponse(null, { status: 204 }), origin);
 }
