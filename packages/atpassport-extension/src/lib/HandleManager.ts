@@ -1,3 +1,10 @@
+export interface AccountItem {
+  handle: string;
+  displayName?: string;
+  avatar?: string;
+  did?: string;
+}
+
 /**
  * Handles the core logic for fetching and applying handles in the extension.
  */
@@ -5,9 +12,9 @@ export class HandleManager {
   private apiEndpoint = 'https://atpassport.net/api/user/handles';
 
   /**
-   * Fetches handles from the AtPassport API.
+   * Fetches full account information from the AtPassport API.
    */
-  async fetchHandles(): Promise<string[]> {
+  async fetchAccounts(): Promise<AccountItem[]> {
     try {
       const response = await fetch(this.apiEndpoint, {
         credentials: 'include',
@@ -17,17 +24,53 @@ export class HandleManager {
         if (response.status === 401) {
           throw new Error('loginRequired');
         }
-        throw new Error(`fetchError_${response.status}`);
+        if (response.status === 429) {
+          throw new Error('rateLimited');
+        }
+        if (response.status >= 500) {
+          throw new Error(`serverError_${response.status}`);
+        }
+        throw new Error(`httpError_${response.status}`);
       }
 
-      const data = await response.json();
-      return data.handles || [];
+      let data: unknown;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error('invalidResponse');
+      }
+
+      if (data && typeof data === 'object') {
+        const obj = data as Record<string, unknown>;
+        if (Array.isArray(obj.accounts)) {
+          return obj.accounts as AccountItem[];
+        }
+        if (Array.isArray(obj.handles)) {
+          return (obj.handles as string[]).map((handle: string) => ({ handle }));
+        }
+      }
+      throw new Error('invalidResponse');
     } catch (error) {
-      if (error instanceof Error && error.message === 'Failed to fetch') {
-        throw new Error('fetchError');
+      if (error instanceof Error) {
+        const msg = error.message.toLowerCase();
+        if (
+          msg === 'failed to fetch' ||
+          msg.includes('networkerror') ||
+          msg.includes('network error')
+        ) {
+          throw new Error('networkError');
+        }
       }
       throw error;
     }
+  }
+
+  /**
+   * Fetches handles from the AtPassport API.
+   */
+  async fetchHandles(): Promise<string[]> {
+    const accounts = await this.fetchAccounts();
+    return accounts.map(a => a.handle);
   }
 
   /**

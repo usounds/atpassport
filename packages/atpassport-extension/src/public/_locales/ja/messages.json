@@ -6,13 +6,31 @@
     "message": "@passportで管理しているハンドルを簡単に自動入力・コピーできます。"
   },
   "loginRequired": {
-    "message": "@passportのサイトにて利用登録をしてください。"
+    "message": "@passportのサイトにて利用登録・ログインをしてください。"
   },
   "fetchError": {
     "message": "ハンドルの取得に失敗しました"
   },
+  "networkError": {
+    "message": "サーバーに接続できませんでした。ネットワークまたはサーバー設定をご確認ください。"
+  },
+  "rateLimited": {
+    "message": "アクセスが一時的に集中しています。少し待ってから再度お試しください。"
+  },
+  "invalidResponse": {
+    "message": "サーバーから予期しない形式の応答を受け取りました。"
+  },
+  "serverError": {
+    "message": "サーバーエラーが発生しました ($1)"
+  },
+  "httpError": {
+    "message": "通信エラーが発生しました ($1)"
+  },
   "noHandles": {
     "message": "ハンドルが登録されていません"
+  },
+  "retry": {
+    "message": "再試行"
   },
   "filledSuccess": {
     "message": "ハンドルを入力しました"

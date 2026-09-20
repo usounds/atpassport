@@ -3,14 +3,15 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { Popup } from '../Popup';
 
-const mockFetchHandles = vi.fn();
+const mockFetchAccounts = vi.fn();
 const mockApplyHandle = vi.fn();
 
 // Mock HandleManager
 vi.mock('@/lib/HandleManager', () => {
   return {
     HandleManager: class {
-      fetchHandles = mockFetchHandles;
+      fetchAccounts = mockFetchAccounts;
+      fetchHandles = mockFetchAccounts;
       applyHandle = mockApplyHandle;
     },
   };
@@ -19,7 +20,10 @@ vi.mock('@/lib/HandleManager', () => {
 describe('Popup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFetchHandles.mockResolvedValue(['user1.test', 'user2.test']);
+    mockFetchAccounts.mockResolvedValue([
+      { handle: 'user1.test' },
+      { handle: 'user2.test' }
+    ]);
     mockApplyHandle.mockResolvedValue('filledSuccess');
     
     vi.stubGlobal('fetch', vi.fn());
@@ -36,38 +40,71 @@ describe('Popup', () => {
     now.mockReturnValueOnce(0);
     now.mockReturnValueOnce(600);
     
-    mockFetchHandles.mockResolvedValue(['test.handle']);
+    mockFetchAccounts.mockResolvedValue([{ handle: 'test.handle' }]);
     
     render(<Popup />);
     await waitForLoadingToFinish();
     
-    expect(screen.getByText('test.handle')).toBeDefined();
+    expect(screen.getByText('@test.handle')).toBeDefined();
     now.mockRestore();
   });
 
-  it('should not open site or change color if error is not loginRequired', async () => {
-    mockFetchHandles.mockRejectedValue(new Error('otherError'));
+  it('should render display name and avatar if provided', async () => {
+    mockFetchAccounts.mockResolvedValue([
+      {
+        handle: 'charlie.test',
+        displayName: 'Charlie Brown',
+        avatar: 'https://example.com/charlie.png',
+      },
+    ]);
 
     render(<Popup />);
     await waitForLoadingToFinish();
 
-    const errorDiv = screen.getByText('otherError').closest('div')!;
-    
-    fireEvent.mouseOver(errorDiv);
-    // Style check removed as it's now handled by CSS
-    
-    fireEvent.click(errorDiv);
+    expect(screen.getByText('Charlie Brown')).toBeDefined();
+    expect(screen.getByText('@charlie.test')).toBeDefined();
+  });
+
+  it('should not open site or change color if error is not loginRequired and allow retry', async () => {
+    mockFetchAccounts.mockRejectedValueOnce(new Error('networkError'));
+
+    render(<Popup />);
+    await waitForLoadingToFinish();
+
+    const errorBox = screen.getByText('networkError').closest('.error-box')!;
+    fireEvent.click(errorBox);
     expect(chrome.tabs.create).not.toHaveBeenCalled();
+
+    // Clicking retry button should refetch
+    mockFetchAccounts.mockResolvedValueOnce([{ handle: 'retried.user' }]);
+    const retryBtn = screen.getByText('retry');
+    fireEvent.click(retryBtn);
+
+    await waitForLoadingToFinish();
+    expect(screen.getByText('@retried.user')).toBeDefined();
+  });
+
+  it('should open site when clicking loginRequired error', async () => {
+    mockFetchAccounts.mockRejectedValue(new Error('loginRequired'));
+
+    render(<Popup />);
+    await waitForLoadingToFinish();
+
+    const errorBox = screen.getByText('loginRequired').closest('.error-box')!;
+    expect(screen.queryByText('retry')).toBeNull();
+
+    fireEvent.click(errorBox);
+    expect(chrome.tabs.create).toHaveBeenCalledWith({ url: 'https://atpassport.net' });
   });
 
   it('should handle applyHandle throwing an exception', async () => {
-    mockFetchHandles.mockResolvedValue(['alice.test']);
+    mockFetchAccounts.mockResolvedValue([{ handle: 'alice.test' }]);
     mockApplyHandle.mockRejectedValue(new Error('Internal error'));
 
     render(<Popup />);
     await waitForLoadingToFinish();
 
-    fireEvent.click(screen.getByText('alice.test'));
+    fireEvent.click(screen.getByText('@alice.test'));
     
     await waitFor(() => {
       expect(screen.getByText('copiedIncompatible')).toBeDefined();
@@ -75,7 +112,7 @@ describe('Popup', () => {
   });
 
   it('should handle generic errors in fetchHandles', async () => {
-    mockFetchHandles.mockRejectedValue('String error');
+    mockFetchAccounts.mockRejectedValue('String error');
 
     render(<Popup />);
     await waitForLoadingToFinish();
@@ -84,7 +121,7 @@ describe('Popup', () => {
   });
 
   it('should show empty state when no handles are returned', async () => {
-    mockFetchHandles.mockResolvedValue([]);
+    mockFetchAccounts.mockResolvedValue([]);
 
     render(<Popup />);
     await waitForLoadingToFinish();
