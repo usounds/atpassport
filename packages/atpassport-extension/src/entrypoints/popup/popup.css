@@ -296,8 +296,8 @@ body {
 }
 
 .handle-display-name {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 400;
   color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -306,7 +306,7 @@ body {
 
 .handle-text {
   min-width: 0;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 400;
   overflow-wrap: anywhere;
   text-align: left;
@@ -314,8 +314,8 @@ body {
 }
 
 .handle-text.no-display-name {
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.8125rem;
+  font-weight: 400;
   color: var(--text-primary);
 }
 
@@ -339,9 +339,7 @@ body {
 /* Footer */
 .footer {
   flex-shrink: 0;
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-color);
+  margin-top: 10px;
   text-align: center;
 }
 

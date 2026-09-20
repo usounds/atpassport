@@ -334,7 +334,7 @@ const STYLES = `
 
 .atp-display-name {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -351,7 +351,7 @@ const STYLES = `
 
 .atp-handle.no-display-name {
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--text-primary);
 }
 
@@ -363,8 +363,6 @@ const STYLES = `
 
 .atp-footer {
   margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-color);
   text-align: center;
   flex-shrink: 0;
 }
@@ -404,32 +402,100 @@ const STYLES = `
 }
 `;
 
-const USER_SVG = `
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-  <circle cx="12" cy="7" r="4"></circle>
-</svg>
-`;
+const SVG_NS = 'http://www.w3.org/2000/svg';
 
-const CLOSE_SVG = `
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <line x1="18" y1="6" x2="6" y2="18"></line>
-  <line x1="6" y1="6" x2="18" y2="18"></line>
-</svg>
-`;
+function createSvgElement(width: number, height: number, strokeWidth: number, children: SVGElement[]): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('width', String(width));
+  svg.setAttribute('height', String(height));
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', String(strokeWidth));
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  for (const child of children) {
+    svg.appendChild(child);
+  }
+  return svg;
+}
 
-const ARROW_SVG = `
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <polyline points="9 18 15 12 9 6"></polyline>
-</svg>
-`;
+function createPath(d: string): SVGPathElement {
+  const path = document.createElementNS(SVG_NS, 'path');
+  path.setAttribute('d', d);
+  return path;
+}
 
-const BACK_SVG = `
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-  <line x1="19" y1="12" x2="5" y2="12"></line>
-  <polyline points="12 19 5 12 12 5"></polyline>
-</svg>
-`;
+function createCircle(cx: number, cy: number, r: number): SVGCircleElement {
+  const circle = document.createElementNS(SVG_NS, 'circle');
+  circle.setAttribute('cx', String(cx));
+  circle.setAttribute('cy', String(cy));
+  circle.setAttribute('r', String(r));
+  return circle;
+}
+
+function createLine(x1: number, y1: number, x2: number, y2: number): SVGLineElement {
+  const line = document.createElementNS(SVG_NS, 'line');
+  line.setAttribute('x1', String(x1));
+  line.setAttribute('y1', String(y1));
+  line.setAttribute('x2', String(x2));
+  line.setAttribute('y2', String(y2));
+  return line;
+}
+
+function createPolyline(points: string): SVGPolylineElement {
+  const polyline = document.createElementNS(SVG_NS, 'polyline');
+  polyline.setAttribute('points', points);
+  return polyline;
+}
+
+function createUserIcon(): SVGSVGElement {
+  return createSvgElement(18, 18, 2, [
+    createPath('M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'),
+    createCircle(12, 7, 4),
+  ]);
+}
+
+function createCloseIcon(): SVGSVGElement {
+  return createSvgElement(16, 16, 2, [
+    createLine(18, 6, 6, 18),
+    createLine(6, 6, 18, 18),
+  ]);
+}
+
+function createArrowIcon(): SVGSVGElement {
+  return createSvgElement(16, 16, 2, [
+    createPolyline('9 18 15 12 9 6'),
+  ]);
+}
+
+function createBackIcon(): SVGSVGElement {
+  return createSvgElement(16, 16, 2.5, [
+    createLine(19, 12, 5, 12),
+    createPolyline('12 19 5 12 12 5'),
+  ]);
+}
+
+function createAvatarFallback(): HTMLDivElement {
+  const fallback = document.createElement('div');
+  fallback.className = 'atp-avatar-fallback';
+  fallback.appendChild(createUserIcon());
+  return fallback;
+}
+
+function createAvatarElement(avatarUrl?: string): HTMLElement {
+  if (avatarUrl) {
+    const imgEl = document.createElement('img');
+    imgEl.src = avatarUrl;
+    imgEl.alt = '';
+    imgEl.className = 'atp-avatar';
+    imgEl.addEventListener('error', () => {
+      imgEl.replaceWith(createAvatarFallback());
+    });
+    return imgEl;
+  }
+  return createAvatarFallback();
+}
 
 export function showFedCmPrompt(options: PromptOptions): () => void {
   // Remove existing container if any
@@ -447,14 +513,23 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
   const i18n = {
     chooserSubtitle: isJa ? 'ハンドルを選択してログイン' : 'Sign in with your handle',
     confirmSubtitle: (domain: string) => (isJa ? `${domain} にログイン` : `Sign in to ${domain}`),
-    disclosure: (domain: string) =>
-      isJa
-        ? `続行すると、@passport はあなたの名前とハンドルを <strong>${domain}</strong> と共有します。`
-        : `To continue, @passport will share your name and handle with <strong>${domain}</strong>.`,
+    disclosurePrefix: isJa ? '続行すると、@passport はあなたの名前とハンドルを ' : 'To continue, @passport will share your name and handle with ',
+    disclosureSuffix: isJa ? ' と共有します。' : '.',
     continueBtn: (name: string) => (isJa ? `「${name}」として続行` : `Continue as ${name}`),
     backAria: isJa ? '戻る' : 'Back',
     closeAria: isJa ? '閉じる' : 'Close',
     learnMore: isJa ? '@passport について詳しく' : 'Learn more about @passport',
+  };
+
+  const createDisclosure = (domain: string) => {
+    const disclosure = document.createElement('div');
+    disclosure.className = 'atp-disclosure';
+    disclosure.appendChild(document.createTextNode(i18n.disclosurePrefix));
+    const strong = document.createElement('strong');
+    strong.textContent = domain;
+    disclosure.appendChild(strong);
+    disclosure.appendChild(document.createTextNode(i18n.disclosureSuffix));
+    return disclosure;
   };
 
   const host = document.createElement('div');
@@ -514,10 +589,13 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
   const createBrand = () => {
     const brand = document.createElement('div');
     brand.className = 'atp-brand';
-    brand.innerHTML = `
-      <img src="${options.iconUrl}" alt="@passport" />
-      <span>@passport</span>
-    `;
+    const img = document.createElement('img');
+    img.src = options.iconUrl;
+    img.alt = '@passport';
+    const span = document.createElement('span');
+    span.textContent = '@passport';
+    brand.appendChild(img);
+    brand.appendChild(span);
     return brand;
   };
 
@@ -525,13 +603,13 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
     const closeBtn = document.createElement('button');
     closeBtn.className = 'atp-close-btn';
     closeBtn.setAttribute('aria-label', i18n.closeAria);
-    closeBtn.innerHTML = CLOSE_SVG;
+    closeBtn.appendChild(createCloseIcon());
     closeBtn.addEventListener('click', () => dismiss(true));
     return closeBtn;
   };
 
   const renderChooser = () => {
-    card.innerHTML = '';
+    card.replaceChildren();
 
     // Header
     const header = document.createElement('div');
@@ -559,13 +637,6 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
 
       const formattedHandle = account.handle.startsWith('@') ? account.handle : `@${account.handle}`;
 
-      let avatarHtml = '';
-      if (account.avatar) {
-        avatarHtml = `<img src="${account.avatar}" alt="" class="atp-avatar" />`;
-      } else {
-        avatarHtml = `<div class="atp-avatar-fallback">${USER_SVG}</div>`;
-      }
-
       const textGroup = document.createElement('div');
       textGroup.className = 'atp-text-group';
       if (account.displayName) {
@@ -579,21 +650,12 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
       handleSpan.textContent = formattedHandle;
       textGroup.appendChild(handleSpan);
 
-      content.innerHTML = avatarHtml;
-      const imgEl = content.querySelector('img');
-      if (imgEl) {
-        imgEl.addEventListener('error', () => {
-          const fallback = document.createElement('div');
-          fallback.className = 'atp-avatar-fallback';
-          fallback.innerHTML = USER_SVG;
-          imgEl.replaceWith(fallback);
-        });
-      }
+      content.appendChild(createAvatarElement(account.avatar));
       content.appendChild(textGroup);
 
       const arrow = document.createElement('div');
       arrow.className = 'atp-action-arrow';
-      arrow.innerHTML = ARROW_SVG;
+      arrow.appendChild(createArrowIcon());
 
       item.appendChild(content);
       item.appendChild(arrow);
@@ -612,7 +674,7 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
   };
 
   const renderConfirm = (account: AccountItem) => {
-    card.innerHTML = '';
+    card.replaceChildren();
 
     // Header
     const header = document.createElement('div');
@@ -625,7 +687,7 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
       const backBtn = document.createElement('button');
       backBtn.className = 'atp-back-btn';
       backBtn.setAttribute('aria-label', i18n.backAria);
-      backBtn.innerHTML = BACK_SVG;
+      backBtn.appendChild(createBackIcon());
       backBtn.addEventListener('click', () => {
         renderChooser();
       });
@@ -652,13 +714,6 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
 
     const formattedHandle = account.handle.startsWith('@') ? account.handle : `@${account.handle}`;
 
-    let avatarHtml = '';
-    if (account.avatar) {
-      avatarHtml = `<img src="${account.avatar}" alt="" class="atp-avatar" />`;
-    } else {
-      avatarHtml = `<div class="atp-avatar-fallback">${USER_SVG}</div>`;
-    }
-
     const textGroup = document.createElement('div');
     textGroup.className = 'atp-text-group';
     if (account.displayName) {
@@ -672,24 +727,12 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
     handleSpan.textContent = formattedHandle;
     textGroup.appendChild(handleSpan);
 
-    selectedBox.innerHTML = avatarHtml;
-    const imgEl = selectedBox.querySelector('img');
-    if (imgEl) {
-      imgEl.addEventListener('error', () => {
-        const fallback = document.createElement('div');
-        fallback.className = 'atp-avatar-fallback';
-        fallback.innerHTML = USER_SVG;
-        imgEl.replaceWith(fallback);
-      });
-    }
+    selectedBox.appendChild(createAvatarElement(account.avatar));
     selectedBox.appendChild(textGroup);
     body.appendChild(selectedBox);
 
     // Disclosure
-    const disclosure = document.createElement('div');
-    disclosure.className = 'atp-disclosure';
-    disclosure.innerHTML = i18n.disclosure(rpDomain);
-    body.appendChild(disclosure);
+    body.appendChild(createDisclosure(rpDomain));
 
     // Primary Confirm Button
     const confirmBtn = document.createElement('button');
