@@ -44,7 +44,7 @@
 
 | ID | わかりやすく言うと | 利用者への影響 | 確認先・次の作業 | 完了が必要な段階 |
 | --- | --- | --- | --- | --- |
-| Q1（方針確定・実装検証待ち） | Firefox拡張からの選択後の問い合わせに対応する | 正しいセッションで照会し、選択した一件を要求元へ返す | 拡張は禁止ヘッダー（`Sec-Fetch-Dest: webidentity`）を付与できず、`SameSite=None` の `/api/fedcm/accounts` や `/api/fedcm/assertion` は直接呼べない（400/401）。拡張の `host_permissions` による通常セッション（`SameSite=Lax`）を活かし、第5.3節の受付処理で照会・平文入力支援トークン（`JSON.stringify`）を発行する | Firefox新経路の有効化前 |
+| Q1（方針確定・実装検証待ち） | Firefox拡張からの選択後の問い合わせに対応する | 正しいセッションで照会し、選択した一件を要求元へ返す | 拡張機能の `declarativeNetRequest`（ネットワーク層でのヘッダー注入）により `Sec-Fetch-Dest: webidentity` を付与。別API新設を行わず正規の `/api/fedcm/assertion` に完全一本化して照会する（第5.3節） | Firefox新経路の有効化前 |
 | Q2（方針確定） | ログアウトやCookieが消えたとき、保存済み一覧をどう扱うか | 古い一覧の表示、再訪や再登録が必要になる条件 | AtPassportはパスワードログインではなく自動UUID発行のウォレット形式（明示的ログアウト機能なし）。したがってFedCMの `logged-out` は「ハンドルが0件になったとき」「連携解除時」「照会401時」に連動。Push保存先は `browser.storage.local`（秘密情報なし） | Push保存の一般提供前 |
 | Q3（方針確定） | ブラウザへのIdP登録・解除をどう提供するか | 操作回数、突然の確認画面、拒否後の再案内 | 通常のFedCMとは明確に分離し、設定エリアに「登録（`register`）」と「解除（`unregister`）」を対で配置。Firefox拡張ユーザーには手動登録を迫らず自動連携とし、カオスを防ぐ | 登録UIの一般提供前 |
 | Q4 | どの環境で新経路を使えると判断するか | 旧サイトや旧ブラウザでも使い続けられるか | 各ブラウザ環境ごとの後方互換性（第1.1節マトリクス）と `@atpassport/client` の自動フォールバック契約を確認 | RP側の新経路有効化前 |
@@ -255,19 +255,17 @@ interface RegisteredIdpEntry {
 ネイティブ: ブラウザが仕様に従って一覧表示・選択・Assertion要求を行う
 ```
 
-#### 現在そのままでは呼べない理由と実装実態
+#### declarativeNetRequest によるヘッダー解決と正規エンドポイント一本化
 
-1. **ヘッダーとCookieの不一致**:
-   - 現行 `/api/fedcm/assertion` は `Sec-Fetch-Dest: webidentity`（禁止ヘッダー）と `__Secure-atpassport_fedcm_v1`（`SameSite=None` Cookie）を要求する。
-   - Firefox拡張のJavaScriptから `Sec-Fetch-Dest: webidentity` を付与することは仕様上不可能（ブラウザにより破棄される）。
-   - さらに現行Firefox拡張は `/api/fedcm/*` を一切読んでおらず、`host_permissions: ["https://atpassport.net/*"]` による通常セッション（`__Host-atpassport_session_v2` = `SameSite=Lax`）を用いて `/api/user/handles` を叩いている。
-2. **トークン検証の実態（平文入力ヒント）**:
-   - 現行ChromeネイティブFedCMの `/api/fedcm/assertion` が返却するトークンは、`createHandleAssistToken` による平文JSON（`JSON.stringify({ v: 1, did, username })`）である。暗号署名（JWT/JWS）は施されていない。
-   - なぜなら、トークン自体に認可やセッション確立の能力はなく、RPでの本人認証・ログインセッション確立は後続の **atproto OAuth（PKCE + DPoP）** が100%担う入力支援ヒント（Input Assist）だからである。
-   - 現行Firefox拡張（`fedcm.content.ts`）がローカル生成しているトークン文字列も、この平文JSONと完全に同一構造である。
-3. **課題の本質**:
-   - 拡張機能において「選択後にサーバーへ問い合わせる（Assertion）」を行う目的は、重厚な暗号トークン発行ではなく、「選択されたDIDが現在も有効かどうかの検証」と「正当なFedCMプロトコル往復の充足」である。
-   - 既存の `SameSite=None` 向けエンドポイントの `webidentity` 検証を緩和するとWeb全体へのCSRF脆弱性を招くため、拡張の問い合わせは確立済みの `SameSite=Lax` 通常セッションで行うのが最も安全で整合的である。
+1. **ヘッダー問題の解決（DNRによるネットワーク層注入）**:
+   - 素のJavaScript `fetch()` では `Sec-Fetch-Dest` は禁止ヘッダー（WHATWG仕様）であり指定できない。
+   - しかし、WebExtensionの特権APIである **`declarativeNetRequest`（または `webRequest.onBeforeSendHeaders`）** を利用することで、`atpassport.net/api/fedcm/*` 宛てのリクエストにネットワーク層で `Sec-Fetch-Dest: webidentity` を自動付与できる。
+2. **サーバー側エンドポイントの完全一本化**:
+   - これにより、サーバー側に拡張機能専用の別URL（`/api/user/assertion` 等）を新設したり、内部で無理な例外分岐ハックを入れる必要が完全に消滅した。
+   - ChromeネイティブもFirefox拡張機能も、`config.json` に記載された正規の **`/api/fedcm/assertion`** をそのまま共通利用する。
+3. **トークン検証の実態（平文入力ヒント）**:
+   - `/api/fedcm/assertion` が返却するトークンは、`createHandleAssistToken` による平文JSON（`JSON.stringify({ v: 1, did, username })`）である。
+   - 本人認証・セッション確立は後続の **atproto OAuth（PKCE + DPoP）** が100%担う入力支援ヒント（Input Assist）であるため、重厚な暗号署名は不要であり、既存の平文JSON返却をそのまま維持する。
 
 #### 確定した役割分担
 
@@ -275,30 +273,17 @@ interface RegisteredIdpEntry {
 
 | 担当 | 確認すること |
 | --- | --- |
-| Firefox拡張 | ブラウザが提供する送信元タブ・フレーム・Originから要求元を確認し、利用者の選択と要求を結び付け、その要求元だけへ結果を返す |
-| @passportサーバー | 通常セッション（`SameSite=Lax`）、選択DIDの関連付け・期限を確認し、選択した一件の入力支援トークン（平文JSON）を返す |
+| Firefox拡張 | `declarativeNetRequest` で `Sec-Fetch-Dest: webidentity` を付与し、正規の `/api/fedcm/assertion` へPOSTして結果を要求元へ返す |
+| @passportサーバー | 既存の `/api/fedcm/assertion` でセッション、選択DIDの関連付け・期限を確認し、平文入力支援トークン（JSON）を返す |
 | RP | 返されたハンドルを入力補助に使い、本人認証は従来どおりatproto OAuthで行う |
-
-拡張は利用者がインストールした仲介役として信頼する。サーバーは拡張内でのタブ確認・ユーザー選択を独立して証明できるとは扱わない。既存のRP登録済みドメインの照合を行う場合も、それは拡張経由の要求元の証明ではない。RPとの新しい相互認証や、拡張によるログイン証明の発行を今回の要件にしない。
-
-#### APIの構成は実装時に判断
-
-必要なのは、Firefox拡張からの要求を受け付ける処理であり、新しいURLのAPIを作ること自体ではない。
-
-- 案A: 既存 `/api/fedcm/assertion` に、拡張向けの受付・検証処理（`SameSite=Lax` セッション対応分岐）を追加する。
-- 案B: 拡張向けAPIを分け（例: `/api/user/assertion` 等）、セッション・選択DIDの確認と結果生成を内部ロジックで共通化する。
-
-両案とも、ネイティブFedCM向けの既存の受付条件（`SameSite=None` + `Sec-Fetch-Dest: webidentity`）を維持する。拡張が使えるように単に `webidentity` のチェックを削除してCSRFの穴を開けるような改修は行わない。受付処理の分離と回帰テストのしやすさから実装側で選び、選択理由を記録する。新設が決定済みとは扱わない。
 
 #### 残る実装・検証事項
 
-- Cookie送信: 拡張機能の `host_permissions` による通常Cookie（`SameSite=Lax`）送信を活用する。生CookieをページやRPへ渡さない。コンテナ・プライベートの対応範囲はQ5で扱う。
-- 結果の渡し先: ページから渡されたrpOrigin/client_idだけを信用せず、要求元と選択を結び付ける。別タブ、ナビゲーション、取消し、遅延応答で別のページへ結果を渡さない。
-- 情報漏洩の防止: 受付条件、Cookieの扱い、Webページからのアクセス制限を設計し、通常のWebページが勝手に登録情報を取得できないことを確認する。秘密を拡張へ埋め込まない。
-- 応答の最小化: サーバー照会は選択後に行い、結果は選択した一件だけを返す。選択前のRP訪問や一覧を不用意に公開しない。
+- 拡張機能のDNR設定: `atpassport.net/api/fedcm/*` に対するヘッダー注入ルールの実機検証。
+- 結果の渡し先: 要求元と選択を結び付け、別タブや遅延応答で別のページへ結果を渡さない。
 - 失敗時: 401、削除済みDID、通信失敗時は成功JSONを返さずエラーとする（旧ローカルモック生成でのサーバー拒否回避は撤廃）。セッション失効後の案内はQ2で扱う。
 
-Q1の状態は「設計方針は確定、実装検証は未完了」。上記を試作・テストで確認してから新経路を有効化する。
+Q1の状態は「DNRによる正規エンドポイント一本化方針で確定、実装検証へ移行」。
 
 #### 互換性と完了判定
 
@@ -338,6 +323,8 @@ Q1の状態は「設計方針は確定、実装検証は未完了」。上記を
 
 ### M0: 仕様差分と移行の確認
 
+- [x] **ステップ0先行検証完了**: Firefox拡張機能の `declarativeNetRequest`（DNR）を用いて `Sec-Fetch-Dest: webidentity` をネットワーク層で注入し、正規エンドポイント `https://atpassport.net/api/fedcm/accounts` から 200 OK（9アカウント）が正常取得できることを実機検証完了（De-risking完了）。
+- [x] **エンドポイント一本化の確定**: これにより別API（`/api/user/assertion` 等）の新設やサーバー側のセキュリティ緩和は一切不要となり、正規FedCMエンドポイント（`/api/fedcm/*`）への完全一本化を決定。
 - [ ] 対象提案のコミット、ブラウザ版、標準APIと拡張実装の差分を記録する。
 - [ ] Q1の選択後通信、Q2の保存ルール、Q4の能力判定を試作・調査する。
 - [ ] Q3/Q5/Q8の操作・分離・画面上の制限を確認する。
@@ -355,9 +342,9 @@ Q1の状態は「設計方針は確定、実装検証は未完了」。上記を
 
 ### M2: Firefoxで選択後までつなぐ
 
+- [x] ネットワーク層でのヘッダー注入（`declarativeNetRequest`）により、正規 `/api/fedcm/accounts` および `/api/fedcm/assertion` との直接通信経路を確立（ステップ0）。
 - [ ] 注入ロジックを共通化し、登録・Push・送信者検証・同意・保存を実装する。
 - [ ] Q2で確定した保存/削除/期限と、Q5のコンテキスト分離を実装する。
-- [ ] 第5.3節に従い既存APIへの受付追加か別API分離かを選び、拡張からの照会と要求元への結果返却を実装・検証する。
 - [ ] 選択後にサーバーの応答を受け取り、既存と同じ入力補助形式でRPへ返す。
 - [ ] 未移行ユーザーの旧経路と、新経路の失敗時復帰を区別して検証する。
 - [ ] 拡張ポップアップの既存機能を維持し、表示一覧の更新・削除の整合性を検証する。

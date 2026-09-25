@@ -15,7 +15,12 @@ export default defineConfig({
     name: '__MSG_extensionName__',
     description: '__MSG_extensionDescription__',
     default_locale: 'en',
-    permissions: ['activeTab', 'scripting', 'clipboardWrite'],
+    permissions: [
+      'activeTab',
+      'scripting',
+      'clipboardWrite',
+      ...(env.browser === 'firefox' ? ['declarativeNetRequest'] : []),
+    ],
     host_permissions: [
       'https://atpassport.net/*',
       ...(env.browser === 'firefox' ? ['<all_urls>'] : []),

@@ -1,6 +1,12 @@
 import { HandleManager } from '@/lib/HandleManager';
+import { setupFedCmHeaderRule } from '@/lib/fedcmHeaderRule';
 
 export default defineBackground(() => {
+  // Initialize declarativeNetRequest rule for Firefox FedCM polyfill
+  setupFedCmHeaderRule().catch((err) => {
+    console.error('[AtPassport] Failed to setup FedCM header rule:', err);
+  });
+
   chrome.runtime.onInstalled.addListener(() => {
     // AtPassport Extension installed.
   });
