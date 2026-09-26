@@ -72,17 +72,25 @@ export default defineUnlistedScript({
           }, 60000);
 
           const responseListener = (event: CustomEvent) => {
-            if (event.detail?.requestId !== requestId) return;
+            let data = event.detail;
+            if (typeof data === 'string') {
+              try {
+                data = JSON.parse(data);
+              } catch {
+                return;
+              }
+            }
+            if (!data || data.requestId !== requestId) return;
             clearTimeout(timeoutId);
             window.removeEventListener('atpassport-fedcm-response', responseListener as EventListener);
 
-            if (event.detail.error) {
-              const errName = event.detail.error.name || 'AbortError';
-              const errMsg = event.detail.error.message || 'The user aborted the request.';
+            if (data.error) {
+              const errName = data.error.name || 'AbortError';
+              const errMsg = data.error.message || 'The user aborted the request.';
               reject(new DOMException(errMsg, errName));
             } else {
               resolve({
-                token: event.detail.token,
+                token: data.token,
                 type: 'identity',
               } as unknown as Credential);
             }
@@ -92,15 +100,61 @@ export default defineUnlistedScript({
 
           window.dispatchEvent(
             new CustomEvent('atpassport-fedcm-request', {
-              detail: {
+              detail: JSON.stringify({
                 requestId,
                 options,
-              },
+              }),
             })
           );
         });
       };
     }
+
+    try {
+      if (typeof navigator !== 'undefined') {
+        const navProto = Object.getPrototypeOf(navigator) || (typeof Navigator !== 'undefined' ? Navigator.prototype : null);
+        const origSetStatus = (navigator as unknown as { login?: { setStatus?: unknown } })?.login?.setStatus;
+        const origSetStatusFn = typeof origSetStatus === 'function' ? origSetStatus.bind((navigator as any).login) : null;
+
+        const loginObj = {
+          setStatus: async function (status: string, options?: unknown) {
+            try {
+              window.dispatchEvent(
+                new CustomEvent('atpassport-fedcm-setstatus', {
+                  detail: JSON.stringify({ status, options }),
+                })
+              );
+            } catch {
+              // ignore
+            }
+            if (origSetStatusFn) {
+              try {
+                return await origSetStatusFn(status, options);
+              } catch {
+                return;
+              }
+            }
+          },
+        };
+
+        if (navProto) {
+          try {
+            Object.defineProperty(navProto, 'login', {
+              get: () => loginObj,
+              configurable: true,
+              enumerable: true,
+            });
+          } catch {
+            try { (navigator as any).login = loginObj; } catch {}
+          }
+        } else {
+          try { (navigator as any).login = loginObj; } catch {}
+        }
+      }
+    } catch {
+      // ignore
+    }
   }
 },
 });
+

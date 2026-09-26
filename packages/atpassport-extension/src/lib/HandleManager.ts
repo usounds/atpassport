@@ -6,10 +6,30 @@ export interface AccountItem {
 }
 
 /**
+ * Returns the default IdP origin based on environment.
+ * Targets https://dev.atpassport.net in development mode or when WXT_IDP_ORIGIN is specified.
+ */
+export const getDefaultIdpOrigin = (): string => {
+  if (import.meta.env.WXT_IDP_ORIGIN) {
+    return import.meta.env.WXT_IDP_ORIGIN;
+  }
+  if (import.meta.env.DEV || import.meta.env.MODE === 'development') {
+    return 'https://dev.atpassport.net';
+  }
+  return 'https://atpassport.net';
+};
+
+/**
  * Handles the core logic for fetching and applying handles in the extension.
  */
 export class HandleManager {
-  private apiEndpoint = 'https://atpassport.net/api/user/handles';
+  private apiEndpoint = `${getDefaultIdpOrigin()}/api/user/handles`;
+
+  constructor(endpoint?: string) {
+    if (endpoint) {
+      this.apiEndpoint = endpoint;
+    }
+  }
 
   /**
    * Fetches full account information from the AtPassport API.

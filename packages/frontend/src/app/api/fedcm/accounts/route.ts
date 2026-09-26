@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { isFedCmRequest } from "@/lib/fedcm";
 import { getProfiles } from "@/lib/atproto";
 import { getAssociations } from "@/lib/models";
-import { getFedCmSessionUuid } from "@/lib/session";
+import { getFedCmSessionUuid, getSessionUuid } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -13,14 +13,16 @@ const NO_STORE_HEADERS = {
 
 export async function GET(request: Request) {
   if (!isFedCmRequest(request)) {
+    console.warn("[FedCM Accounts] Rejected: not a FedCM request");
     return NextResponse.json(
       { error: "invalid_request" },
       { status: 400, headers: NO_STORE_HEADERS },
     );
   }
 
-  const uuid = await getFedCmSessionUuid();
+  const uuid = (await getFedCmSessionUuid()) || (await getSessionUuid());
   if (!uuid) {
+    console.warn("[FedCM Accounts] Rejected: unauthorized (no session)");
     return NextResponse.json(
       { error: "unauthorized" },
       {

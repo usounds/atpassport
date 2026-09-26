@@ -85,4 +85,87 @@ test.describe("FedCM handle input assist", () => {
     await page.getByRole("button", { name: "Choose with @passport" }).click();
     await expect(page).toHaveURL(/\/en\/authentication\?callback=/);
   });
+
+  test("allows registering and unregistering IdP in supported browsers", async ({ page }) => {
+    await page.addInitScript(() => {
+      (window as unknown as { IdentityProvider: unknown }).IdentityProvider = {
+        register: async () => {},
+        unregister: async () => {},
+      };
+    });
+
+    await page.goto("/en");
+
+    // Click accordion to expand IdP registration control
+    const controlTitle = page.getByText("IdP Registration");
+    await expect(controlTitle).toBeVisible();
+    await controlTitle.click();
+
+    // Verify buttons are visible
+    const registerButton = page.getByRole("button", { name: "Register IdP", exact: true });
+    const unregisterButton = page.getByRole("button", { name: "Unregister IdP", exact: true });
+    await expect(registerButton).toBeVisible();
+    await expect(unregisterButton).toBeVisible();
+
+    // Click register and verify notification
+    await registerButton.click();
+    await expect(page.getByText("Successfully registered in browser as an IdP")).toBeVisible();
+
+    // Click unregister and verify notification
+    await unregisterButton.click();
+    await expect(page.getByText("Successfully unregistered from browser")).toBeVisible();
+  });
+
+  test("hides IdP registration control when IdentityProvider is not available in browser", async ({ page }) => {
+    await page.goto("/en");
+
+    await expect(page.getByText("IdP Registration")).not.toBeVisible();
+  });
+
+  test("synchronizes status to navigator.login.setStatus when available", async ({ page }) => {
+    await page.route("**/api/fedcm/migrate", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ready: true }),
+      });
+    });
+    await page.route("**/api/fedcm/status", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ready: true }),
+      });
+    });
+
+    await page.addInitScript(() => {
+      (window as unknown as { __setStatusCalls: Array<{ status: string; options?: unknown }> }).__setStatusCalls = [];
+      Object.defineProperty(navigator, "login", {
+        configurable: true,
+        value: {
+          setStatus: async (status: string, options?: unknown) => {
+            (window as unknown as { __setStatusCalls: Array<{ status: string; options?: unknown }> }).__setStatusCalls.push({
+              status,
+              options,
+            });
+          },
+        },
+      });
+    });
+
+    await page.goto("/en");
+
+    // Wait until navigator.login.setStatus has been called
+    await expect.poll(async () => {
+      return await page.evaluate(
+        () => (window as unknown as { __setStatusCalls?: unknown[] }).__setStatusCalls?.length ?? 0
+      );
+    }).toBeGreaterThanOrEqual(1);
+
+    const firstCallStatus = await page.evaluate(
+      () => (window as unknown as { __setStatusCalls: Array<{ status: string }> }).__setStatusCalls[0]?.status
+    );
+    expect(firstCallStatus).toBe("logged-in");
+  });
 });
+

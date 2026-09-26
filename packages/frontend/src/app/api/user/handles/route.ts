@@ -8,11 +8,19 @@ export const dynamic = 'force-dynamic';
 
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false;
+  try {
+    const url = new URL(origin);
+    const hostname = url.hostname.toLowerCase();
+    if (
+      hostname === "atpassport.net" ||
+      hostname.endsWith(".atpassport.net") ||
+      hostname === "localhost" ||
+      hostname === "127.0.0.1"
+    ) {
+      return true;
+    }
+  } catch {}
   return (
-    origin === "https://atpassport.net" ||
-    origin === "https://preview.atpassport.net" ||
-    origin === "http://localhost:3000" ||
-    origin === "http://localhost:3001" ||
     origin === "chrome-extension://ollhnghmplgpoebaceomdaigpkihpfkn" ||
     origin.startsWith("moz-extension://")
   );

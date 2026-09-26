@@ -9,6 +9,7 @@ import { getSessionUuid } from '@/lib/session';
 import { createPageMetadata } from '@/lib/seo';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { FedCmStatusBadge } from '@/components/FedCmStatusBadge';
+import { IdpRegistrationControl } from '@/components/IdpRegistrationControl';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,6 +70,8 @@ export default async function HomePage({
         <RegisterForm handleCount={handleCount} />
 
         <ShareSection handleCount={handleCount} />
+
+        <IdpRegistrationControl />
 
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: -8 }}>
           <FedCmStatusBadge />

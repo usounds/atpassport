@@ -3,15 +3,34 @@ import {
   createHandleAssistToken,
   fedCmCorsHeaders,
   isFedCmRequest,
+  normalizeClientOrigin,
   validateFedCmClient,
 } from "@/lib/fedcm";
 import { getAssociations } from "@/lib/models";
-import { getFedCmSessionUuid } from "@/lib/session";
+import { getFedCmSessionUuid, getSessionUuid } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
+export async function OPTIONS(request: Request) {
+  const origin = request.headers.get("origin");
+  const normalizedOrigin = normalizeClientOrigin(origin);
+  if (!normalizedOrigin) {
+    return new Response(null, { status: 400 });
+  }
+  return new Response(null, {
+    status: 200,
+    headers: {
+      ...fedCmCorsHeaders(normalizedOrigin),
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, X-AtPassport-FedCM",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
+}
+
 export async function POST(request: Request) {
   if (!isFedCmRequest(request)) {
+    console.warn("[FedCM Assertion] Rejected: not a FedCM request (missing Sec-Fetch-Dest or X-AtPassport-FedCM)");
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 
@@ -27,14 +46,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 
-  const client = await validateFedCmClient(request.headers.get("origin"), clientId);
+  const isExtension =
+    request.headers.get("x-atpassport-fedcm") === "1" ||
+    Boolean(request.headers.get("origin")?.startsWith("moz-extension://"));
+  const client = await validateFedCmClient(request.headers.get("origin"), clientId, isExtension);
   if (!client) {
+    console.warn("[FedCM Assertion] Rejected: invalid client", { origin: request.headers.get("origin"), clientId, isExtension });
     return NextResponse.json({ error: "invalid_client" }, { status: 403 });
   }
 
   const corsHeaders = fedCmCorsHeaders(client.origin);
-  const uuid = await getFedCmSessionUuid();
+  const uuid = (await getFedCmSessionUuid()) || (await getSessionUuid());
   if (!uuid) {
+    console.warn("[FedCM Assertion] Rejected: unauthorized (no FedCM or web session)");
     return NextResponse.json(
       { error: "unauthorized" },
       { status: 401, headers: corsHeaders },

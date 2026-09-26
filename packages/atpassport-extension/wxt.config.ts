@@ -17,12 +17,15 @@ export default defineConfig({
     default_locale: 'en',
     permissions: [
       'activeTab',
+      'tabs',
       'scripting',
       'clipboardWrite',
+      'storage',
       ...(env.browser === 'firefox' ? ['declarativeNetRequest'] : []),
     ],
     host_permissions: [
       'https://atpassport.net/*',
+      'https://*.atpassport.net/*',
       ...(env.browser === 'firefox' ? ['<all_urls>'] : []),
     ],
     ...(env.browser === 'chrome'

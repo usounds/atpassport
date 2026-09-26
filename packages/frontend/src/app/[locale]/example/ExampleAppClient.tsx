@@ -70,10 +70,9 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
   };
 
   const handleInputAssist = async () => {
-    const isLocal = window.location.hostname === 'localhost';
     const assistResult = await requestHandleAssist({
       targetInput: assistedHandleRef.current ?? undefined,
-      configURL: isLocal ? `${window.location.origin}/fedcm/config.json` : undefined,
+      configURL: `${window.location.origin}/fedcm/config.json`,
       fallback: async () => {
         handleLogin();
         return null;

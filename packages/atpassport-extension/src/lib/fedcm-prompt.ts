@@ -736,11 +736,18 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
 
     // Primary Confirm Button
     const confirmBtn = document.createElement('button');
+    confirmBtn.type = 'button';
     confirmBtn.className = 'atp-confirm-btn';
     confirmBtn.textContent = i18n.continueBtn(account.displayName || formattedHandle);
-    confirmBtn.addEventListener('click', () => {
-      dismiss(false);
-      options.onSelect(account);
+    confirmBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('[@passport-prompt] confirmBtn clicked for account:', account);
+      try {
+        options.onSelect(account);
+      } finally {
+        dismiss(false);
+      }
     });
     body.appendChild(confirmBtn);
 

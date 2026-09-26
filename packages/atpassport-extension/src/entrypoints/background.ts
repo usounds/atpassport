@@ -1,5 +1,5 @@
-import { HandleManager } from '@/lib/HandleManager';
 import { setupFedCmHeaderRule } from '@/lib/fedcmHeaderRule';
+import { handleBackgroundMessage } from '@/lib/backgroundMessages';
 
 export default defineBackground(() => {
   // Initialize declarativeNetRequest rule for Firefox FedCM polyfill
@@ -11,21 +11,16 @@ export default defineBackground(() => {
     // AtPassport Extension installed.
   });
 
-  browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message?.type === 'FETCH_ACCOUNTS') {
-      const manager = new HandleManager();
-      manager
-        .fetchAccounts()
-        .then((accounts) => {
-          sendResponse({ success: true, accounts });
-        })
-        .catch((err) => {
-          sendResponse({
-            success: false,
-            error: err instanceof Error ? err.message : String(err),
-          });
+  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    handleBackgroundMessage(message, sender)
+      .then(sendResponse)
+      .catch((err) => {
+        sendResponse({
+          success: false,
+          error: err instanceof Error ? err.message : String(err),
         });
-      return true; // Keep message channel open for async response
-    }
+      });
+    return true; // Keep message channel open for async response
   });
 });
+

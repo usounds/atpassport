@@ -6,6 +6,7 @@ import { AssociationItem } from './AssociationItem';
 import { moveAssociation, removeAssociation, refreshAssociation } from '@/lib/actions';
 import { type AssociationWithProfile } from '@/lib/models';
 import { useProfileStore } from '@/lib/profile-store';
+import { toFedCmAccount, syncAccountsPush } from '@/lib/fedcm-session-client';
 
 export function AssociationListClient({ initialItems }: { initialItems: AssociationWithProfile[] }) {
   const [items, setItems] = useState(initialItems);
@@ -34,6 +35,11 @@ export function AssociationListClient({ initialItems }: { initialItems: Associat
     setPrevInitialItems(initialItems);
   }
 
+  // Synchronize current accounts list with browser via FedCM Accounts Push
+  useEffect(() => {
+    void syncAccountsPush(items.map(toFedCmAccount));
+  }, [items]);
+
   const handleMove = async (did: string, direction: 'up' | 'down') => {
     const index = items.findIndex(item => item.did === did);
     if (index === -1) return;
@@ -52,7 +58,9 @@ export function AssociationListClient({ initialItems }: { initialItems: Associat
   };
 
   const handleDelete = async (did: string) => {
-    setItems(prev => prev.filter(item => item.did !== did));
+    const nextItems = items.filter(item => item.did !== did);
+    setItems(nextItems);
+    void syncAccountsPush(nextItems.map(toFedCmAccount));
     await removeAssociation(did);
   };
 

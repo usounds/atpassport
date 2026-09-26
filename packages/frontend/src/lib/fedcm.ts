@@ -16,7 +16,9 @@ export function getPublicRequestOrigin(request: Request): string {
 }
 
 export function isFedCmRequest(request: Request): boolean {
-  return request.headers.get("sec-fetch-dest")?.toLowerCase() === "webidentity";
+  const dest = request.headers.get("sec-fetch-dest")?.toLowerCase();
+  if (dest === "webidentity") return true;
+  return request.headers.get("x-atpassport-fedcm") === "1";
 }
 
 export function normalizeClientOrigin(value: string | null): string | null {
@@ -91,10 +93,32 @@ export async function isRegisteredFedCmClient(origin: string): Promise<boolean> 
 export async function validateFedCmClient(
   originHeader: string | null,
   clientId: string | null,
+  isExtensionRequest: boolean = false,
 ): Promise<{ origin: string; registration: VerifiedDomain | null } | null> {
-  const origin = normalizeClientOrigin(originHeader);
   const normalizedClientId = normalizeClientOrigin(clientId);
-  if (!origin || !normalizedClientId || origin !== normalizedClientId) {
+  if (!normalizedClientId) {
+    return null;
+  }
+
+  if (isExtensionRequest) {
+    if (normalizedClientId === "https://atpassport.net") {
+      return { origin: normalizedClientId, registration: null };
+    }
+    const { hostname } = new URL(normalizedClientId);
+    const isLoopback =
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "[::1]" ||
+      hostname.endsWith(".localhost");
+    if (isLoopback && process.env.NODE_ENV !== "production") {
+      return { origin: normalizedClientId, registration: null };
+    }
+    const registration = await getFedCmClientRegistration(normalizedClientId);
+    return { origin: normalizedClientId, registration };
+  }
+
+  const origin = normalizeClientOrigin(originHeader);
+  if (!origin || origin !== normalizedClientId) {
     return null;
   }
 
@@ -113,7 +137,7 @@ export async function validateFedCmClient(
   }
 
   const registration = await getFedCmClientRegistration(origin);
-  return registration ? { origin, registration } : null;
+  return { origin, registration };
 }
 
 export function createHandleAssistToken(did: string, username: string): string {

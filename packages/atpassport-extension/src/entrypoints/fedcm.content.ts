@@ -1,5 +1,7 @@
 import { showFedCmPrompt } from '@/lib/fedcm-prompt';
-import type { AccountItem } from '@/lib/HandleManager';
+import { getDefaultIdpOrigin, type AccountItem } from '@/lib/HandleManager';
+import { isAtPassportOrigin, isAtPassportConfigUrl } from '@/lib/fedcm-url';
+import type { StoredAccount } from '@/lib/accountStorage';
 
 declare global {
   function exportFunction(
@@ -154,6 +156,53 @@ const INLINE_POLYFILL_CODE = `
     }
     console.log('[@passport] navigator.credentials.get patched successfully');
   }
+
+  // 4. navigator.login.setStatus patch
+  try {
+    if (typeof navigator !== 'undefined') {
+      var navProto = Object.getPrototypeOf(navigator) || (typeof Navigator !== 'undefined' ? Navigator.prototype : null);
+      var origSetStatus = (navigator.login && typeof navigator.login.setStatus === 'function')
+        ? navigator.login.setStatus.bind(navigator.login)
+        : null;
+
+      var loginObj = {
+        setStatus: function(status, options) {
+          try {
+            console.log('[@passport Polyfill] navigator.login.setStatus called:', status, options);
+            window.dispatchEvent(new CustomEvent('atpassport-fedcm-setstatus', {
+              detail: JSON.stringify({ status: status, options: options })
+            }));
+          } catch (e) {
+            console.warn('[@passport Polyfill] setStatus dispatch error:', e);
+          }
+
+          if (origSetStatus) {
+            try {
+              return origSetStatus(status, options);
+            } catch (e) {
+              return Promise.resolve();
+            }
+          }
+          return Promise.resolve();
+        }
+      };
+
+      if (navProto) {
+        try {
+          Object.defineProperty(navProto, 'login', {
+            get: function() { return loginObj; },
+            configurable: true,
+            enumerable: true,
+          });
+        } catch (e) {
+          try { navigator.login = loginObj; } catch (e2) {}
+        }
+      } else {
+        try { navigator.login = loginObj; } catch (e) {}
+      }
+      console.log('[@passport] navigator.login.setStatus patched successfully');
+    }
+  } catch (e) {}
 })();
 `;
 
@@ -163,17 +212,59 @@ export default defineContentScript({
   runAt: 'document_start',
   main() {
     console.log('[@passport] FedCM content script main() initialized on:', window.location.href);
+
     // Shared flow to fetch accounts via background and display the FedCM prompt
-    const executeFedCmFlow = async (): Promise<FedCmResponse> => {
-      console.log('[@passport] executeFedCmFlow requested');
+    const executeFedCmFlow = async (options?: unknown): Promise<FedCmResponse> => {
+      console.log('[@passport] executeFedCmFlow requested with options:', options);
+
+      // 1. Identify target IdP configURL and origin
+      const identity = (options as { identity?: { providers?: Array<{ configURL?: string }> } })?.identity;
+      const provider = identity?.providers?.[0];
+      const defaultOrigin = getDefaultIdpOrigin();
+      const configURL = provider?.configURL || `${defaultOrigin}/fedcm/config.json`;
+
+      let idpOrigin = defaultOrigin;
+      try {
+        idpOrigin = new URL(configURL, window.location.href).origin;
+      } catch {
+        // fallback
+      }
+
+      // 2. Fetch accounts: First try stored accounts for this IdP origin
       let accounts: AccountItem[] = [];
       try {
-        const response = await browser.runtime.sendMessage({ type: 'FETCH_ACCOUNTS' });
-        if (response?.success && Array.isArray(response.accounts)) {
-          accounts = response.accounts;
+        const storedRes = await browser.runtime.sendMessage({
+          type: 'GET_STORED_ACCOUNTS',
+          origin: idpOrigin,
+        });
+        console.log('[@passport] GET_STORED_ACCOUNTS response:', storedRes);
+        if (storedRes?.success && Array.isArray(storedRes.accounts) && storedRes.accounts.length > 0) {
+          accounts = storedRes.accounts.map((acc: StoredAccount) => ({
+            handle: acc.username.startsWith('@') ? acc.username : `@${acc.username}`,
+            displayName: acc.name,
+            avatar: acc.picture,
+            did: acc.id,
+          }));
+          console.log('[@passport] Using', accounts.length, 'pushed accounts from extension storage (Zero-Network hit!):', accounts);
         }
       } catch (err) {
-        console.warn('[@passport] Error fetching accounts from background:', err);
+        console.warn('[@passport] Error getting stored accounts from background:', err);
+      }
+
+      // 3. Fallback to FETCH_ACCOUNTS if stored accounts are empty
+      if (accounts.length === 0) {
+        console.warn('[@passport] No pushed accounts found in extension storage. Falling back to network FETCH_ACCOUNTS (/api/fedcm/accounts)...');
+        try {
+          const response = await browser.runtime.sendMessage({
+            type: 'FETCH_ACCOUNTS',
+            origin: idpOrigin,
+          });
+          if (response?.success && Array.isArray(response.accounts)) {
+            accounts = response.accounts;
+          }
+        } catch (err) {
+          console.warn('[@passport] Error fetching accounts from background fallback:', err);
+        }
       }
 
       console.debug('[@passport] Accounts retrieved for FedCM:', accounts?.length ?? 0);
@@ -184,56 +275,155 @@ export default defineContentScript({
 
       const iconUrl = browser.runtime.getURL('/icons/icon48.png');
 
-      return new Promise<FedCmResponse>((resolve, reject) => {
-        showFedCmPrompt({
-          accounts,
-          iconUrl,
-          rpDomain: window.location.hostname,
-          onSelect: (selectedAccount) => {
-            const cleanHandle = selectedAccount.handle.replace(/^@/, '');
-            const did =
-              selectedAccount.did ||
-              `did:plc:${cleanHandle.replace(/[^a-zA-Z0-9]/g, '')}`;
-            const token = JSON.stringify({
-              v: 1,
-              did,
-              username: cleanHandle,
+      let flowResolve!: (val: FedCmResponse) => void;
+      let flowReject!: (reason: unknown) => void;
+      const flowPromise = new Promise<FedCmResponse>((res, rej) => {
+        flowResolve = res;
+        flowReject = rej;
+      });
+
+      showFedCmPrompt({
+        accounts,
+        iconUrl,
+        rpDomain: window.location.hostname,
+        onSelect: async (selectedAccount) => {
+          console.log('[@passport] onSelect callback invoked for account:', selectedAccount);
+          try {
+            const accountId = selectedAccount.did || selectedAccount.handle.replace(/^@/, '');
+            console.log('[@passport] Delegating assertion to background, accountId:', accountId, 'clientId:', window.location.origin);
+
+            const res = await browser.runtime.sendMessage({
+              type: 'EXECUTE_ASSERTION',
+              origin: idpOrigin,
+              clientId: window.location.origin,
+              accountId,
             });
 
-            resolve({
-              token,
+            console.log('[@passport] Background assertion response:', res);
+            if (!res?.success || !res?.token) {
+              const errorDetail = res?.error || 'Failed to retrieve assertion token';
+              console.warn('[@passport] Assertion failed in background:', errorDetail);
+              throw new DOMException(errorDetail, 'NetworkError');
+            }
+
+            console.log('[@passport] Assertion succeeded, received token');
+            flowResolve({
+              token: res.token,
               type: 'identity',
             });
-          },
-          onDismiss: () => {
-            reject(new DOMException('User dismissed the credential manager.', 'AbortError'));
-          },
-        });
+          } catch (err) {
+            console.error('[@passport] FedCM assertion request failed:', err);
+            if (err instanceof DOMException) {
+              flowReject(err);
+            } else {
+              flowReject(
+                new DOMException(
+                  err instanceof Error ? err.message : 'Failed to retrieve assertion token',
+                  'NetworkError'
+                )
+              );
+            }
+          }
+        },
+        onDismiss: () => {
+          console.log('[@passport] Prompt dismissed by user');
+          flowReject(new DOMException('User dismissed the credential manager.', 'AbortError'));
+        },
       });
+
+      return flowPromise;
     };
 
     // 1. Inject synchronous inline script into Main World
+    let inlineInjected = false;
     try {
       const inlineScript = document.createElement('script');
       inlineScript.textContent = INLINE_POLYFILL_CODE;
-      (document.head || document.documentElement).appendChild(inlineScript);
-      inlineScript.remove();
+      const target = document.head || document.documentElement;
+      if (target) {
+        target.appendChild(inlineScript);
+        inlineScript.remove();
+        inlineInjected = true;
+      }
     } catch (e) {
       console.debug('[@passport] Inline script injection skipped/failed:', e);
     }
 
-    // 2. Also inject the external polyfill script tag as fallback
-    try {
-      const script = document.createElement('script');
-      script.src = browser.runtime.getURL('/injected.js');
-      script.async = false;
-      (document.head || document.documentElement).appendChild(script);
-      script.onload = () => script.remove();
-    } catch (e) {
-      console.debug('[@passport] Script tag injection fallback skipped/failed:', e);
+    // 2. Also inject the external polyfill script tag only as fallback if inline failed
+    if (!inlineInjected) {
+      try {
+        const script = document.createElement('script');
+        script.src = browser.runtime.getURL('/injected.js');
+        script.async = false;
+        const target = document.head || document.documentElement;
+        if (target) {
+          target.appendChild(script);
+          script.onload = () => script.remove();
+        }
+      } catch (e) {
+        console.debug('[@passport] Script tag injection fallback skipped/failed:', e);
+      }
     }
 
-    // 3. Listen for CustomEvent FedCM requests (bridge for injected scripts or web pages)
+    // 3. Listen for Accounts Push events from AtPassport Web
+    window.addEventListener('atpassport-fedcm-setstatus', async (event: Event) => {
+      console.log('[@passport ContentScript] Received atpassport-fedcm-setstatus event on:', window.location.origin);
+      try {
+        // Only accept push events if currently running on an AtPassport origin
+        if (!isAtPassportOrigin(window.location.origin)) {
+          console.log('[@passport ContentScript] Ignored setstatus: not an AtPassport origin:', window.location.origin);
+          return;
+        }
+
+        const customEvent = event as CustomEvent<string | { status: string; options?: { accounts?: StoredAccount[] } }>;
+        let detail: { status: string; options?: { accounts?: StoredAccount[] } } | null = null;
+        try {
+          const raw = customEvent.detail;
+          detail = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        } catch {
+          return;
+        }
+
+        if (!detail || typeof detail.status !== 'string') return;
+
+        // 1. If status is 'logged-out', clear pushed accounts
+        if (detail.status === 'logged-out') {
+          console.log('[@passport ContentScript] User logged out, clearing pushed accounts');
+          const res = await browser.runtime.sendMessage({
+            type: 'SAVE_PUSHED_ACCOUNTS',
+            origin: window.location.origin,
+            accounts: [],
+          });
+          console.log('[@passport ContentScript] Clear accounts response:', res);
+          return;
+        }
+
+        // 2. If status is 'logged-in', ONLY update stored accounts if options.accounts was explicitly provided!
+        if (detail.status === 'logged-in') {
+          if (!detail.options || !Array.isArray(detail.options.accounts)) {
+            console.log('[@passport ContentScript] Baseline setStatus("logged-in") without accounts received. Preserving existing stored accounts.');
+            return;
+          }
+
+          const accounts = detail.options.accounts;
+          console.log('[@passport ContentScript] Sending SAVE_PUSHED_ACCOUNTS to background:', {
+            origin: window.location.origin,
+            accountsCount: accounts.length,
+          });
+
+          const res = await browser.runtime.sendMessage({
+            type: 'SAVE_PUSHED_ACCOUNTS',
+            origin: window.location.origin,
+            accounts,
+          });
+          console.log('[@passport ContentScript] SAVE_PUSHED_ACCOUNTS response from background:', res);
+        }
+      } catch (err) {
+        console.warn('[@passport ContentScript] Failed to process atpassport-fedcm-setstatus:', err);
+      }
+    });
+
+    // 4. Listen for CustomEvent FedCM requests (bridge for injected scripts or web pages)
     const processedRequests = new Set<string>();
 
     const handleCustomEvent = async (event: Event) => {
@@ -247,7 +437,7 @@ export default defineContentScript({
       }
 
       const requestId = data?.requestId;
-      if (!requestId || processedRequests.has(requestId)) return;
+      if (!data || !requestId || processedRequests.has(requestId)) return;
       processedRequests.add(requestId);
       console.log('[@passport] Content script received atpassport-fedcm-request, requestId:', requestId);
 
@@ -261,14 +451,14 @@ export default defineContentScript({
       };
 
       try {
-        const result = await executeFedCmFlow();
+        const result = await executeFedCmFlow(data.options);
         respond({
           requestId,
           token: result.token,
         });
       } catch (err) {
-        const errName = (err && typeof err === 'object' && 'name' in err) ? String(err.name) : 'IdentityCredentialError';
-        const errMsg = (err && typeof err === 'object' && 'message' in err) ? String(err.message) : 'Failed to retrieve accounts.';
+        const errName = (err && typeof err === 'object' && 'name' in err) ? String((err as { name?: string }).name) : 'IdentityCredentialError';
+        const errMsg = (err && typeof err === 'object' && 'message' in err) ? String((err as { message?: string }).message) : 'Failed to retrieve accounts.';
         respond({
           requestId,
           error: {
@@ -282,3 +472,4 @@ export default defineContentScript({
     window.addEventListener('atpassport-fedcm-request', handleCustomEvent);
   },
 });
+

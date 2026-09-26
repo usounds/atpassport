@@ -88,6 +88,17 @@ describe("FedCM helpers", () => {
         verifiedAt: "now",
       },
     });
+
+    vi.mocked(getVerifiedDomainFromDb).mockResolvedValue(null);
+    await expect(
+      validateFedCmClient("https://unregistered-rp.example", "https://unregistered-rp.example")
+    ).resolves.toEqual({
+      origin: "https://unregistered-rp.example",
+      registration: null,
+    });
+    await expect(
+      validateFedCmClient("https://unregistered-rp.example", "https://attacker.example")
+    ).resolves.toBeNull();
   });
 
   it("creates a versioned non-authentication token", () => {

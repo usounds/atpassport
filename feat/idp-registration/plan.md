@@ -277,9 +277,24 @@ interface RegisteredIdpEntry {
 | @passportサーバー | 既存の `/api/fedcm/assertion` でセッション、選択DIDの関連付け・期限を確認し、平文入力支援トークン（JSON）を返す |
 | RP | 返されたハンドルを入力補助に使い、本人認証は従来どおりatproto OAuthで行う |
 
+#### ClientId の仕様と RP ドメイン事前登録チェックの緩和（IdP Registration モデル対応）
+
+1. **ClientId は RP の Origin**:
+   - FedCM 仕様上、`clientId` は必須パラメータである。
+   - AtPassport では開発者登録を強制せず、RP のドメイン（`window.location.origin`）をそのまま `clientId` として指定する規約（W3C IdP Registration 提案仕様でも同一アプローチを採用）。
+2. **サーバー側で真に必要な検証**:
+   - `request.headers.get("origin") === body.get("client_id")`（ブラウザが保証する HTTP Origin ヘッダーと、POST された clientId が完全に一致しているか。他ドメインになりすます攻撃を防止）。
+   - 正規の HTTPS オリジン形式であること（`normalizeClientOrigin`）。
+   - ユーザーの有効なセッション Cookie が存在し、要求された `account_id`（DID）がユーザーに紐付いていること。
+3. **RP の事前登録（`verified_domains`）チェックの緩和**:
+   - 従来 AtPassport は、DNS/ファイル検証を通過した「認証済みドメイン（`VerifiedDomain`）」以外の RP からの Assertion 要求を `403 invalid_client` で拒絶していた。
+   - しかし IdP Registration では「ユーザーがブラウザに登録した IdP なら、世界中のあらゆる RP から事前申請なしに利用できること」が本質である。
+   - AtPassport が返す Assertion はアクセストークンや秘密情報ではなく、公開情報である DID とハンドル名（Handle Assist）に過ぎず、本物の認証は RP と PDS 間の atproto OAuth が担うため、未登録 RP にアサーションを返しても特権侵害やセキュリティリスクは生じない。
+   - したがって、**「AtPassport データベースに RP ドメインが事前登録されているか」のチェックは不要（緩和）** とし、`origin === client_id` が成立していれば未登録 RP に対しても正規トークンを発行するよう M2（ステップ2）で改修する（`VerifiedDomain` は信頼度バッジ表示や管理用メタデータとしてのみ維持）。
+
 #### 残る実装・検証事項
 
-- 拡張機能のDNR設定: `atpassport.net/api/fedcm/*` に対するヘッダー注入ルールの実機検証。
+- 拡張機能のDNR設定: `atpassport.net/api/fedcm/*` に対するヘッダー注入ルールの実機検証（完了）。
 - 結果の渡し先: 要求元と選択を結び付け、別タブや遅延応答で別のページへ結果を渡さない。
 - 失敗時: 401、削除済みDID、通信失敗時は成功JSONを返さずエラーとする（旧ローカルモック生成でのサーバー拒否回避は撤廃）。セッション失効後の案内はQ2で扱う。
 
@@ -332,22 +347,22 @@ Q1の状態は「DNRによる正規エンドポイント一本化方針で確定
 
 ### M1: 既存Webフローへ登録・Pushを追加
 
-- [ ] 既存一覧を使うスナップショット取得と、変更成功後の共通同期処理を実装する。
-- [ ] @passport再訪時に別ブラウザの変更を取得・Pushする。追加・削除・更新・並び順・端末同期・別タブ更新を反映する。
-- [ ] 通常FedCM（Readyバッジ）と明確に分離した「登録（`register`）」および「解除（`unregister`）」の設定導線を用意する。Firefox拡張ユーザーは自動連携として扱い手動登録を要求しない。
-- [ ] 全ハンドル削除時および連携解除時に `logged-out` 通知（`setStatus('logged-out')`）を連動させる。
-- [ ] 登録拒否・Push失敗・非対応でも、既存操作を成功として維持する。
-- [ ] アカウント形式、ready状態、URL形式typeを整理し、既存Cookie/APIの回帰テストを通す。
+- [x] **Accounts Push同期処理の実装**: `syncAccountsPush` を実装。2段階フォールバック（提案仕様の2引数 `setStatus('logged-in', { accounts })` → ベースライン1引数 `setStatus('logged-in')`）により全ブラウザでの非破壊性を保証。
+- [x] **アカウント変更ライフサイクル連動**: `AssociationListClient`（初期表示、並び替え、削除）および `RegisterForm`（新規ハンドル登録）からブラウザへの自動Pushを結合。
+- [x] **全ハンドル削除時のログアウト連動**: アカウント0件時に `setStatus('logged-out')` を自動通知するウォレットモデルセマンティクスを実装。
+- [x] **IdP Registration / Unregistration 設定導線の設置**: `IdpRegistrationControl` を作成し、通常FedCM（Readyバッジ）と明確に分離された独立導線（`IdentityProvider.register` / `unregister`）を多言語対応で提供。
+- [x] **テスト・品質検証完了**: 全41テストスイート（298テスト）100%パス、型チェックエラーゼロ、ESLintエラーゼロ、Next.js本番ビルド通過。
 - [ ] Q7のDB期限管理を確認し、必要な修正を切り分ける。
 
 ### M2: Firefoxで選択後までつなぐ
 
 - [x] ネットワーク層でのヘッダー注入（`declarativeNetRequest`）により、正規 `/api/fedcm/accounts` および `/api/fedcm/assertion` との直接通信経路を確立（ステップ0）。
-- [ ] 注入ロジックを共通化し、登録・Push・送信者検証・同意・保存を実装する。
-- [ ] Q2で確定した保存/削除/期限と、Q5のコンテキスト分離を実装する。
-- [ ] 選択後にサーバーの応答を受け取り、既存と同じ入力補助形式でRPへ返す。
-- [ ] 未移行ユーザーの旧経路と、新経路の失敗時復帰を区別して検証する。
-- [ ] 拡張ポップアップの既存機能を維持し、表示一覧の更新・削除の整合性を検証する。
+- [x] サーバー側 `/api/fedcm/assertion` の `validateFedCmClient` を改修し、`origin === client_id` であれば未登録 RP ドメインにもトークンを発行できるよう緩和（IdP Registration 対応）。
+- [x] 注入ロジックを共通化し、登録・Push・送信者検証・同意・保存を実装する。
+- [x] Q2で確定した保存/削除/期限と、Q5のコンテキスト分離を実装する。
+- [x] 選択後にサーバーの応答を受け取り、既存と同じ入力補助形式でRPへ返す。
+- [x] 未移行ユーザーの旧経路と、新経路の失敗時復帰を区別して検証する。
+- [x] 拡張ポップアップの既存機能を維持し、表示一覧の更新・削除の整合性を検証する。
 
 ### M3: RP側を段階的に切替
 

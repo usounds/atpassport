@@ -10,6 +10,7 @@ import { publicAgent } from '@/lib/atproto';
 import { Link } from '@/i18n/routing';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { ok } from '@atcute/client';
+import { ensureFedCmSession } from '@/lib/fedcm-session-client';
 
 const MAX_HANDLES = 15;
 
@@ -68,13 +69,7 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
         }
         return;
       }
-      try {
-        await (navigator as Navigator & {
-          login?: { setStatus: (status: 'logged-in' | 'logged-out') => Promise<void> };
-        }).login?.setStatus('logged-in');
-      } catch {
-        // Login Status API is optional and does not affect registration success.
-      }
+      void ensureFedCmSession();
       setHandle('');
       setAgreed(false);
       close();
