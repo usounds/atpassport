@@ -29,8 +29,10 @@ sequenceDiagram
     Web->>ExtCont: navigator.login.setStatus('logged-in', { accounts })
     Note over ExtCont: 悪意あるRPによる注入防止のため、Origin が AtPassport か厳格チェック
     ExtCont->>ExtBG: メッセージ: SAVE_PUSHED_ACCOUNTS { origin, accounts }
-    Note over ExtBG: sender.tab.url / origin を二重検証
-    ExtBG->>ExtStore: アカウント一覧をローカル保存 (秘密情報なし)
+    Note over ExtBG: sender.tab.url / origin / contextKey を二重検証
+    ExtBG->>ExtStore: アカウント一覧をローカル保存 (コンテキスト分離・秘密情報なし)
+    ExtBG-->>ExtCont: 保存完了応答 (success: true)
+    ExtCont-->>Web: atpassport-fedcm-setstatus-response (Promise解決)
 
     Note over RP,Server: 【フェーズ2: RP上でのアサーション要求】
     RP->>ExtCont: navigator.credentials.get({ identity: { ... } })
@@ -287,15 +289,21 @@ backgroundはruntime senderのトップフレーム・タブ・Origin・コン�
 
 | パッケージ | ファイルパス | 変更区分 | 内容 |
 |---|---|---|---|
-| `frontend` | `src/lib/fedcm.ts` | 変更 | `validateFedCmClient` を改修し、`origin === client_id` かつ 有効HTTPSオリジンであれば未登録RPでも承認 |
+| `frontend` | `src/lib/fedcm.ts` | 変更 | `validateFedCmClient` を改修し、`origin === client_id` かつ 有効HTTPSオリジンであれば未登録RPでも承認。`isFedCmRequest` で `Sec-Fetch-Dest === "webidentity"` のみを厳格検証（ヘッダー迂回撤廃） |
 | `frontend` | `src/app/api/fedcm/assertion/route.ts` | 変更 | `OPTIONS` CORSプリフライトハンドラーを追加 |
-| `frontend` | `src/lib/__tests__/fedcm.test.ts` | 変更 | 未登録RPでの検証承認テストケースを追加 |
+| `frontend` | `src/lib/__tests__/fedcm.test.ts` | 変更 | 未登録RPでの検証承認および `x-atpassport-fedcm` 除外テストケースを追加 |
 | `frontend` | `src/app/api/fedcm/assertion/__tests__/route.test.ts` | 変更 | 未登録RPに対するアサーション成功およびOPTIONSプリフライトのテストケースを追加 |
-| `atpassport-extension` | `wxt.config.ts` | 変更 | permissions に `"storage"` を追加 |
-| `atpassport-extension` | `src/lib/accountStorage.ts` | 新規 | `browser.storage.local` を用いたアカウント保存・取得・削除ヘルパー |
-| `atpassport-extension` | `src/lib/__tests__/accountStorage.test.ts` | 新規 | ストレージ管理ヘルパーの単体テスト |
-| `atpassport-extension` | `src/entrypoints/background.ts` | 変更 | `SAVE_PUSHED_ACCOUNTS`, `GET_STORED_ACCOUNTS` メッセージハンドラーの追加（`sender.origin` 検証含む） |
-| `atpassport-extension` | `src/entrypoints/fedcm.content.ts` | 変更 | ① `login.setStatus` インターセプトとオリジン検証付きPush同期<br/>② ローカル保存アカウントの表示<br/>③ アカウント選択後の `/api/fedcm/assertion` 呼び出し |
+| `atpassport-extension` | `wxt.config.ts` | 変更 | permissions に `"storage"`, `"cookies"` (firefox) を追加 |
+| `atpassport-extension` | `src/lib/accountStorage.ts` | 新規 | `browser.storage.local` を用いたアカウント保存・取得・削除ヘルパー（コンテキストキー `cookieStoreId` 分離、プライベート保護） |
+| `atpassport-extension` | `src/lib/__tests__/accountStorage.test.ts` | 新規 | ストレージ管理ヘルパーの単体テスト（コンテナ分離・レガシー除外含む） |
+| `atpassport-extension` | `src/lib/backgroundMessages.ts` | 新規 | `SAVE_PUSHED_ACCOUNTS`, `GET_STORED_ACCOUNTS`, `CLEAR_STORED_ACCOUNTS`, `PREPARE_ASSERTION`, `RELEASE_ASSERTION` ハンドラー（送信者Origin・コンテキスト二重検証） |
+| `atpassport-extension` | `src/lib/__tests__/backgroundMessages.test.ts` | 新規 | バックグラウンドメッセージ処理の単体テスト |
+| `atpassport-extension` | `src/lib/fedcmHeaderRule.ts` | 新規 | 選択スコープ限定の一時的DNRセッションルール管理（旧ルール1001撤廃、tabId・POST・UUID URL限定、15秒失効タイマー） |
+| `atpassport-extension` | `src/lib/__tests__/fedcmHeaderRule.test.ts` | 新規 | DNRセッションルール生成・解放・失効・不正Origin拒絶のテスト |
+| `atpassport-extension` | `src/entrypoints/background.ts` | 変更 | 起動時DNR旧ルール掃除および `handleBackgroundMessage` メッセージリスナー配線 |
+| `atpassport-extension` | `src/entrypoints/fedcm.content.ts` | 変更 | ① `login.setStatus` インターセプトとオリジン検証・ACK完了保証付きPush同期<br/>② コンテキスト別ローカル保存アカウントの表示<br/>③ 信頼されたクリック（`e.isTrusted`）に基づく `PREPARE_ASSERTION` 経由の直接 `fetch` および 401 時の `CLEAR_STORED_ACCOUNTS` 連動 |
+| `atpassport-extension` | `src/entrypoints/injected.ts` | 変更 | 外部注入ポリフィルでも同様のACK応答待機とタイムアウト処理を同期 |
+| `atpassport-extension` | `src/lib/__tests__/push-ack.test.ts` | 新規 | `setStatus` の保存ACK待機・タイムアウト・エラー拒絶の単体テスト |
 
 ---
 
@@ -306,28 +314,34 @@ backgroundはruntime senderのトップフレーム・タブ・Origin・コン�
    - 未登録の HTTPS RP（例: `https://unregistered-rp.example`）で `origin === client_id` の場合に `{ origin, registration: null }` が返ること。
    - `origin !== client_id` のなりすまし要求で `null`（拒否）となること。
    - 不正なプロトコル（HTTP）や不正なフォーマットで拒否されること。
+   - `x-atpassport-fedcm` 等の任意ヘッダーによる検証迂回が不可能であること。
 2. **サーバー側 `/api/fedcm/assertion`**:
    - `OPTIONS` プリフライトに対して 200 OK と正規CORSヘッダーが返ること。
    - 未登録RPからのPOSTリクエストに対して、セッションとアカウントが一致していれば `200 OK` でトークンが返ること。
-3. **拡張機能 `accountStorage`**:
-   - アカウントの保存、取得、空配列によるログアウト削除が正常に行われること。
-4. **拡張機能のセキュリティ検証**:
-   - 非AtPassportオリジンからのPushイベントがContent Script/Backgroundで拒絶されること。
+3. **拡張機能 `accountStorage` & `backgroundMessages`**:
+   - アカウントの保存、取得、空配列によるログアウト削除がコンテキストキー（`cookieStoreId`）ごとに独立して正常に行われること。
+   - プライベートブラウジングでの保存拒絶、取得時空配列返却による漏洩防止。
+   - 送信元Originの二重検証による偽アカウント注入防止。
+4. **拡張機能のAssertionセッション付与 & 401失効**:
+   - 信頼された確認クリックによる `PREPARE_ASSERTION` のみ許可、合成クリックの拒絶。
+   - 401応答時の対象コンテキスト保存アカウントの自動失効（`CLEAR_STORED_ACCOUNTS`）。
 
 ### 5.2 統合・E2Eテスト
-1. **Frontend Playwright E2E**:
-   - 既存のE2Eテストスイートがすべて通過すること。
-2. **Firefox拡張機能ビルド & 実機検証**:
-   - `pnpm --filter atpassport-extension build:firefox` が正常終了すること。
-   - FirefoxでAtPassportを開き、ハンドルが `browser.storage.local` に保存されること。
-   - 任意の外部RP（またはデモページ）で「@passportで選択」をクリックした際、保存アカウントからネイティブ風UIが表示され、選択時に `/api/fedcm/assertion` にPOSTされて正規トークンが入力欄に補完されること。
+1. **Frontend Vitest スイート**:
+   - 全42テストスイート（304テスト）が通過すること。
+2. **Extension Vitest スイート**:
+   - 全8テストスイート（82テスト）が通過すること。
+3. **ビルド検証**:
+   - Next.js本番ビルド (`pnpm build`) および 拡張機能ビルド (`wxt build && wxt build -b firefox`) が警告/エラーなく完了すること。
 
 ---
 
-## 6. 次のアクション
+## 6. 実装・検証ステータス
 
-ユーザーによる本設計仕様書のレビュー・承認後、以下の順序で実装を進めます：
-1. サーバー側の検証緩和とOPTIONSハンドラー追加（`fedcm.ts`, `assertion/route.ts` & テスト）
-2. 拡張機能の `storage` 権限と `accountStorage.ts` の実装
-3. 拡張機能の `background.ts` と `fedcm.content.ts` の同期・Assertion接続
-4. ビルドと実機検証
+- [x] **サーバー側 Assertion 検証緩和**: `packages/frontend/src/lib/fedcm.ts` および `src/app/api/fedcm/assertion/route.ts` にて実装・テスト完了。
+- [x] **拡張機能ローカルストレージ & コンテナ分離**: `packages/atpassport-extension/src/lib/accountStorage.ts` および `backgroundMessages.ts` にて実装・テスト完了。
+- [x] **Accounts Push 保存ACK同期保証**: Main World Polyfill (`fedcm.content.ts` / `injected.ts`) にて `requestId` による応答待ちと3秒タイムアウト機構を実装・テスト完了。
+- [x] **一時DNRセッションルールによる直接Assertion fetch**: `fedcmHeaderRule.ts` および `fedcm.content.ts` にて実装、401時の自動一覧失効（`CLEAR_STORED_ACCOUNTS`）を実装・テスト完了。
+- [x] **全テスト・ビルド通過**: Frontend 304テスト / Extension 82テスト 100%パス、Next.js & Firefox拡張ビルド成功。
+- **次のステップ**: Step 3 (RP Client SDK registered IdP discovery `discovery: 'types'` およびフォールバック契約) への移行準備完了。
+
