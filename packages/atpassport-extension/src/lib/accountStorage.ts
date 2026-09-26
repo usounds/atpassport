@@ -9,6 +9,8 @@ export interface StoredAccount {
 
 export interface StoredIdpEntry {
   origin: string;
+  configURL?: string;
+  types?: string[];
   accounts: StoredAccount[];
   updatedAt: number;
 }
@@ -35,6 +37,20 @@ export function normalizeIdpOrigin(origin: string): string | null {
   } catch {
     return null;
   }
+}
+
+export function normalizeTypeUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    if (parsed.origin && parsed.origin !== 'null') {
+      const origin = parsed.origin.toLowerCase();
+      const pathname = parsed.pathname.replace(/\/$/, '');
+      return `${origin}${pathname}`;
+    }
+  } catch {
+    // ignore
+  }
+  return url.trim().replace(/\/$/, '').toLowerCase();
 }
 
 export const DEFAULT_CONTEXT_KEY = 'firefox-default';
@@ -81,6 +97,8 @@ export async function savePushedAccounts(
 
   const entry: StoredIdpEntry = {
     origin: normalized,
+    configURL: `${normalized}/fedcm/config.json`,
+    types: [normalized],
     accounts: accounts.map((acc) => ({
       id: String(acc.id),
       name: String(acc.name || acc.username || acc.id),
@@ -112,6 +130,43 @@ export async function getPushedAccounts(
   }
 
   return entry.accounts;
+}
+
+/**
+ * Searches stored IdP entries in a specific context for a matching providerType.
+ * Returns the single matched StoredIdpEntry with accounts.
+ * Returns null if 0 or multiple entries match, or if accounts are empty.
+ */
+export async function findStoredIdpEntryByType(
+  providerType: string,
+  contextKey: string = DEFAULT_CONTEXT_KEY
+): Promise<StoredIdpEntry | null> {
+  if (!providerType || typeof providerType !== 'string') return null;
+
+  const normalizedTarget = normalizeTypeUrl(providerType);
+  const ctx = normalizeContextKey(contextKey);
+  const prefix = `${STORAGE_KEY_PREFIX}${ctx}:`;
+
+  const allData = await browser.storage.local.get(null);
+  const matchedEntries: StoredIdpEntry[] = [];
+
+  for (const [key, value] of Object.entries(allData)) {
+    if (key.startsWith(prefix) && value && typeof value === 'object') {
+      const entry = value as StoredIdpEntry;
+      if (Array.isArray(entry.types) && Array.isArray(entry.accounts) && entry.accounts.length > 0) {
+        const matches = entry.types.some((t) => normalizeTypeUrl(t) === normalizedTarget);
+        if (matches) {
+          matchedEntries.push(entry);
+        }
+      }
+    }
+  }
+
+  if (matchedEntries.length !== 1) {
+    return null;
+  }
+
+  return matchedEntries[0];
 }
 
 /**

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Container, Title, Text, Stack, TextInput, ActionIcon, Group, Button, Paper, Divider, Table, Box, Tabs } from '@mantine/core';
+import { Container, Title, Text, Stack, TextInput, ActionIcon, Group, Button, Paper, Divider, Table, Box, Tabs, SegmentedControl } from '@mantine/core';
 import { IconPlus, IconTrash, IconUserCircle, IconUserPlus, IconSettings, IconRefresh } from '@tabler/icons-react';
 import { useTranslations } from 'next-intl';
 import { useRouter, usePathname } from 'next/navigation';
@@ -36,6 +36,7 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
   const [suggestHandle, setSuggestHandle] = useState('');
   const [assistedHandle, setAssistedHandle] = useState('');
   const assistedHandleRef = useRef<HTMLInputElement>(null);
+  const [discoveryMode, setDiscoveryMode] = useState<'config' | 'types' | 'auto'>('config');
   const [result, setResult] = useState<AuthResult | null>(initialResult || null);
 
   const addParam = () => setCustomParams([...customParams, { key: '', value: '' }]);
@@ -70,9 +71,12 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
   };
 
   const handleInputAssist = async () => {
+    const origin = window.location.origin;
     const assistResult = await requestHandleAssist({
       targetInput: assistedHandleRef.current ?? undefined,
-      configURL: `${window.location.origin}/fedcm/config.json`,
+      discovery: discoveryMode,
+      type: origin,
+      configURL: `${origin}/fedcm/config.json`,
       fallback: async () => {
         handleLogin();
         return null;
@@ -189,6 +193,21 @@ export function ExampleAppClient({ locale, initialResult }: ExampleAppClientProp
                     <Box>
                       <Text fw={600} size="sm" mb={4}>{t('auth_flow_title')}</Text>
                       <Text size="xs" c="dimmed">{t('auth_flow_description')}</Text>
+                    </Box>
+
+                    <Box>
+                      <Text size="xs" fw={500} c="dimmed" mb={4}>探索モード (Discovery Mode)</Text>
+                      <SegmentedControl
+                        value={discoveryMode}
+                        onChange={(val) => setDiscoveryMode(val as 'config' | 'types' | 'auto')}
+                        fullWidth
+                        size="xs"
+                        data={[
+                          { label: 'config (従来)', value: 'config' },
+                          { label: 'types (登録型)', value: 'types' },
+                          { label: 'auto (自動)', value: 'auto' },
+                        ]}
+                      />
                     </Box>
 
                     <TextInput

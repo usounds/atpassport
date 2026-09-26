@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isAtPassportConfigUrl, isAtPassportOrigin } from '../fedcm-url';
+import { isAtPassportConfigUrl, isAtPassportOrigin, isAtPassportType } from '../fedcm-url';
 
 describe('isAtPassportOrigin', () => {
   it('should accept valid production and subdomain origins', () => {
@@ -81,6 +81,37 @@ describe('isAtPassportConfigUrl', () => {
     expect(isAtPassportConfigUrl(undefined)).toBe(false);
     expect(isAtPassportConfigUrl(12345)).toBe(false);
     expect(isAtPassportConfigUrl('not-a-url')).toBe(false);
+  });
+});
+
+describe('isAtPassportType', () => {
+  it('should accept valid production and subdomain type URLs', () => {
+    expect(isAtPassportType('https://atpassport.net')).toBe(true);
+    expect(isAtPassportType('https://atpassport.net/')).toBe(true);
+    expect(isAtPassportType('https://dev.atpassport.net')).toBe(true);
+    expect(isAtPassportType('https://staging.atpassport.net')).toBe(true);
+  });
+
+  it('should accept local development loopback type URLs', () => {
+    expect(isAtPassportType('http://localhost:3000')).toBe(true);
+    expect(isAtPassportType('http://localhost:3000/')).toBe(true);
+    expect(isAtPassportType('http://127.0.0.1:3000')).toBe(true);
+    expect(isAtPassportType('http://[::1]:3000')).toBe(true);
+  });
+
+  it('should reject non-URL strings like alias "atpassport"', () => {
+    expect(isAtPassportType('atpassport')).toBe(false);
+    expect(isAtPassportType('atproto')).toBe(false);
+    expect(isAtPassportType('')).toBe(false);
+    expect(isAtPassportType(null)).toBe(false);
+    expect(isAtPassportType(undefined)).toBe(false);
+  });
+
+  it('should reject attacker or foreign origins', () => {
+    expect(isAtPassportType('https://evil.com')).toBe(false);
+    expect(isAtPassportType('https://atpassport.net.attacker.com')).toBe(false);
+    expect(isAtPassportType('http://evil.com/https://atpassport.net')).toBe(false);
+    expect(isAtPassportType('http://atpassport.net')).toBe(false); // non-loopback http rejected
   });
 });
 

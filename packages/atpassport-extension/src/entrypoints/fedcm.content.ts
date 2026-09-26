@@ -1,6 +1,6 @@
 import { showFedCmPrompt } from '@/lib/fedcm-prompt';
 import { getDefaultIdpOrigin, type AccountItem } from '@/lib/HandleManager';
-import { isAtPassportOrigin, isAtPassportConfigUrl } from '@/lib/fedcm-url';
+import { isAtPassportOrigin, isAtPassportConfigUrl, isAtPassportType } from '@/lib/fedcm-url';
 import type { StoredAccount } from '@/lib/accountStorage';
 
 declare global {
@@ -16,9 +16,10 @@ declare global {
   ): T;
 }
 
-interface FedCmResponse {
-  token: string;
-  type: string;
+export interface FedCmFlowResult {
+  token?: string;
+  type?: string;
+  noMatch?: boolean;
 }
 
 const INLINE_POLYFILL_CODE = `
@@ -71,10 +72,10 @@ const INLINE_POLYFILL_CODE = `
       console.log('[@passport] navigator.credentials.get called with:', options);
       var identity = options && options.identity;
       var providers = identity && identity.providers;
-      function isAtPassportConfigUrl(configURL) {
-        if (!configURL || typeof configURL !== 'string') return false;
+      function isAtPassportOrigin(originOrUrl) {
+        if (!originOrUrl || typeof originOrUrl !== 'string') return false;
         try {
-          var url = new URL(configURL, window.location.href);
+          var url = new URL(originOrUrl, window.location.href);
           var hostname = url.hostname.toLowerCase();
           var isLoopback =
             hostname === 'localhost' ||
@@ -83,24 +84,50 @@ const INLINE_POLYFILL_CODE = `
             hostname === '[::1]';
 
           if (isLoopback) {
-            if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
-          } else {
-            if (url.protocol !== 'https:') return false;
-            var isAtPassportDomain =
-              hostname === 'atpassport.net' ||
-              hostname.endsWith('.atpassport.net');
-            if (!isAtPassportDomain) return false;
+            return url.protocol === 'http:' || url.protocol === 'https:';
           }
+          if (url.protocol !== 'https:') return false;
+          return hostname === 'atpassport.net' || hostname.endsWith('.atpassport.net');
+        } catch (e) {
+          return false;
+        }
+      }
 
+      function isAtPassportConfigUrl(configURL) {
+        if (!configURL || typeof configURL !== 'string') return false;
+        try {
+          var url = new URL(configURL, window.location.href);
+          if (!isAtPassportOrigin(url.origin)) return false;
           return url.pathname === '/fedcm/config.json';
         } catch (e) {
           return false;
         }
       }
 
-      var isAtPassport = providers && providers.some(function(p) {
-        return p && isAtPassportConfigUrl(p.configURL);
-      });
+      function isAtPassportType(providerType) {
+        if (!providerType || typeof providerType !== 'string' || !providerType.trim()) return false;
+        try {
+          var url = new URL(providerType);
+          if (url.protocol !== 'https:' && url.protocol !== 'http:') return false;
+          return isAtPassportOrigin(url.origin);
+        } catch (e) {
+          return false;
+        }
+      }
+
+      if (!Array.isArray(providers) || providers.length !== 1) {
+        console.log('[@passport] Multiple providers or no providers specified, delegating to original');
+        if (origGet) {
+          return origGet(options);
+        }
+        return Promise.reject(new DOMException('The operation is not supported.', 'NotSupportedError'));
+      }
+
+      var provider = providers[0];
+      var isAtPassport = provider && (
+        (provider.configURL && isAtPassportConfigUrl(provider.configURL)) ||
+        (provider.type && isAtPassportType(provider.type))
+      );
 
       if (!isAtPassport) {
         console.log('[@passport] Not an AtPassport FedCM request, delegating to original');
@@ -130,7 +157,9 @@ const INLINE_POLYFILL_CODE = `
             var data = typeof raw === 'string' ? JSON.parse(raw) : raw;
             if (!data || data.requestId !== requestId) return;
             cleanup();
-            if (data.error) {
+            if (data.noMatch) {
+              resolve(null);
+            } else if (data.error) {
               reject(new DOMException(data.error.message || 'Error', data.error.name || 'AbortError'));
             } else {
               resolve({
@@ -247,70 +276,145 @@ export default defineContentScript({
     console.log('[@passport] FedCM content script main() initialized on:', window.location.href);
 
     // Shared flow to fetch accounts via background and display the FedCM prompt
-    const executeFedCmFlow = async (options?: unknown): Promise<FedCmResponse> => {
+    const executeFedCmFlow = async (options?: unknown): Promise<FedCmFlowResult> => {
       console.log('[@passport] executeFedCmFlow requested with options:', options);
 
-      // 1. Identify target IdP configURL and origin
-      const identity = (options as { identity?: { providers?: Array<{ configURL?: string }> } })?.identity;
-      const provider = identity?.providers?.[0];
-      const defaultOrigin = getDefaultIdpOrigin();
-      const configURL = provider?.configURL || `${defaultOrigin}/fedcm/config.json`;
+      // 1. Identify target IdP provider
+      const identity = (options as { identity?: { providers?: Array<{ configURL?: string; type?: string }> } })?.identity;
+      const providers = identity?.providers;
 
-      let idpOrigin = defaultOrigin;
-      try {
-        idpOrigin = new URL(configURL, window.location.href).origin;
-      } catch {
-        // fallback
+      if (!Array.isArray(providers) || providers.length !== 1) {
+        throw new DOMException('Multiple providers are not supported.', 'NotSupportedError');
       }
 
-      // 2. Fetch accounts: First try stored accounts for this IdP origin
+      const provider = providers[0];
+      const isAtp = (provider.configURL && isAtPassportConfigUrl(provider.configURL)) ||
+                    (provider.type && isAtPassportType(provider.type));
+
+      if (!isAtp) {
+        throw new DOMException('The operation is not supported.', 'NotSupportedError');
+      }
+
+      let idpOrigin: string;
       let accounts: AccountItem[] = [];
-      try {
-        const storedRes = await browser.runtime.sendMessage({
-          type: 'GET_STORED_ACCOUNTS',
-          origin: idpOrigin,
-        });
-        console.log('[@passport] GET_STORED_ACCOUNTS response:', storedRes);
-        if (storedRes?.success && Array.isArray(storedRes.accounts) && storedRes.accounts.length > 0) {
+
+      if (provider.type) {
+        // Registered IdP discovery mode (Zero-Network)
+        let storedRes: {
+          success?: boolean;
+          status?: 'matched' | 'no-match';
+          idp?: { origin: string; configURL: string };
+          accounts?: StoredAccount[];
+          error?: string;
+        } | null = null;
+
+        try {
+          storedRes = await browser.runtime.sendMessage({
+            type: 'GET_STORED_ACCOUNTS',
+            providerType: provider.type,
+          });
+        } catch (err) {
+          console.error('[@passport] Error getting stored accounts by type:', err);
+          throw new DOMException(
+            err instanceof Error ? err.message : 'Failed to query stored accounts',
+            'IdentityCredentialError'
+          );
+        }
+
+        console.log('[@passport] GET_STORED_ACCOUNTS by type response:', storedRes);
+        if (!storedRes || !storedRes.success) {
+          throw new DOMException(
+            storedRes?.error || 'Failed to read stored accounts from extension storage',
+            'IdentityCredentialError'
+          );
+        }
+
+        if (storedRes.status === 'no-match') {
+          console.log('[@passport] Registered IdP discovery: no-match');
+          return { noMatch: true };
+        }
+
+        if (storedRes.status !== 'matched' || !storedRes.idp?.origin) {
+          throw new DOMException(
+            'Corrupted stored IdP entry returned from background',
+            'IdentityCredentialError'
+          );
+        }
+
+        idpOrigin = storedRes.idp.origin;
+        if (Array.isArray(storedRes.accounts) && storedRes.accounts.length > 0) {
           accounts = storedRes.accounts.map((acc: StoredAccount) => ({
             handle: acc.username.startsWith('@') ? acc.username : `@${acc.username}`,
             displayName: acc.name,
             avatar: acc.picture,
             did: acc.id,
           }));
-          console.log('[@passport] Using', accounts.length, 'pushed accounts from extension storage (Zero-Network hit!):', accounts);
         }
-      } catch (err) {
-        console.warn('[@passport] Error getting stored accounts from background:', err);
-      }
 
-      // 3. Fallback to FETCH_ACCOUNTS if stored accounts are empty
-      if (accounts.length === 0) {
-        console.warn('[@passport] No pushed accounts found in extension storage. Falling back to network FETCH_ACCOUNTS (/api/fedcm/accounts)...');
+        if (accounts.length === 0) {
+          console.log('[@passport] Registered IdP discovery: accounts empty, returning no-match');
+          return { noMatch: true };
+        }
+      } else {
+        // Legacy configURL mode
+        const defaultOrigin = getDefaultIdpOrigin();
+        const configURL = provider.configURL || `${defaultOrigin}/fedcm/config.json`;
+
+        idpOrigin = defaultOrigin;
         try {
-          const response = await browser.runtime.sendMessage({
-            type: 'FETCH_ACCOUNTS',
+          idpOrigin = new URL(configURL, window.location.href).origin;
+        } catch {
+          // fallback
+        }
+
+        // 2. Fetch accounts: First try stored accounts for this IdP origin
+        try {
+          const storedRes = await browser.runtime.sendMessage({
+            type: 'GET_STORED_ACCOUNTS',
             origin: idpOrigin,
           });
-          if (response?.success && Array.isArray(response.accounts)) {
-            accounts = response.accounts;
+          console.log('[@passport] GET_STORED_ACCOUNTS response:', storedRes);
+          if (storedRes?.success && Array.isArray(storedRes.accounts) && storedRes.accounts.length > 0) {
+            accounts = storedRes.accounts.map((acc: StoredAccount) => ({
+              handle: acc.username.startsWith('@') ? acc.username : `@${acc.username}`,
+              displayName: acc.name,
+              avatar: acc.picture,
+              did: acc.id,
+            }));
+            console.log('[@passport] Using', accounts.length, 'pushed accounts from extension storage (Zero-Network hit!):', accounts);
           }
         } catch (err) {
-          console.warn('[@passport] Error fetching accounts from background fallback:', err);
+          console.warn('[@passport] Error getting stored accounts from background:', err);
+        }
+
+        // 3. Fallback to FETCH_ACCOUNTS if stored accounts are empty
+        if (accounts.length === 0) {
+          console.warn('[@passport] No pushed accounts found in extension storage. Falling back to network FETCH_ACCOUNTS (/api/fedcm/accounts)...');
+          try {
+            const response = await browser.runtime.sendMessage({
+              type: 'FETCH_ACCOUNTS',
+              origin: idpOrigin,
+            });
+            if (response?.success && Array.isArray(response.accounts)) {
+              accounts = response.accounts;
+            }
+          } catch (err) {
+            console.warn('[@passport] Error fetching accounts from background fallback:', err);
+          }
+        }
+
+        if (!accounts || accounts.length === 0) {
+          throw new DOMException('No AtPassport accounts found or user is not logged in.', 'IdentityCredentialError');
         }
       }
 
       console.debug('[@passport] Accounts retrieved for FedCM:', accounts?.length ?? 0);
 
-      if (!accounts || accounts.length === 0) {
-        throw new DOMException('No AtPassport accounts found or user is not logged in.', 'IdentityCredentialError');
-      }
-
       const iconUrl = browser.runtime.getURL('/icons/icon48.png');
 
-      let flowResolve!: (val: FedCmResponse) => void;
+      let flowResolve!: (val: FedCmFlowResult) => void;
       let flowReject!: (reason: unknown) => void;
-      const flowPromise = new Promise<FedCmResponse>((res, rej) => {
+      const flowPromise = new Promise<FedCmFlowResult>((res, rej) => {
         flowResolve = res;
         flowReject = rej;
       });
@@ -527,7 +631,7 @@ export default defineContentScript({
       processedRequests.add(requestId);
       console.log('[@passport] Content script received atpassport-fedcm-request, requestId:', requestId);
 
-      const respond = (detail: { requestId: string; token?: string; error?: { name: string; message: string } }) => {
+      const respond = (detail: { requestId: string; token?: string; noMatch?: boolean; error?: { name: string; message: string } }) => {
         const payload = JSON.stringify(detail);
         window.dispatchEvent(
           new CustomEvent('atpassport-fedcm-response', {
@@ -538,10 +642,17 @@ export default defineContentScript({
 
       try {
         const result = await executeFedCmFlow(data.options);
-        respond({
-          requestId,
-          token: result.token,
-        });
+        if (result.noMatch) {
+          respond({
+            requestId,
+            noMatch: true,
+          });
+        } else {
+          respond({
+            requestId,
+            token: result.token,
+          });
+        }
       } catch (err) {
         const errName = (err && typeof err === 'object' && 'name' in err) ? String((err as { name?: string }).name) : 'IdentityCredentialError';
         const errMsg = (err && typeof err === 'object' && 'message' in err) ? String((err as { message?: string }).message) : 'Failed to retrieve accounts.';

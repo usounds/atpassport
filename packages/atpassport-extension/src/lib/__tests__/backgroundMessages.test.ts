@@ -8,6 +8,7 @@ vi.mock('../accountStorage', () => ({
   savePushedAccounts: vi.fn(),
   getPushedAccounts: vi.fn(),
   clearPushedAccounts: vi.fn(),
+  findStoredIdpEntryByType: vi.fn(),
   normalizeIdpOrigin: vi.fn((origin: string) => {
     try {
       const u = new URL(origin);
@@ -260,6 +261,87 @@ describe('handleBackgroundMessage', () => {
 
       expect(res.success).toBe(false);
       expect(res.error).toBe('Invalid origin');
+    });
+
+    it('should return matched status and IdP details when providerType matches', async () => {
+      const mockEntry = {
+        origin: 'https://atpassport.net',
+        configURL: 'https://atpassport.net/fedcm/config.json',
+        types: ['https://atpassport.net'],
+        accounts: [{ id: 'did:plc:123', name: 'Alice' }],
+        updatedAt: Date.now(),
+      };
+      (accountStorage.findStoredIdpEntryByType as ReturnType<typeof vi.fn>).mockResolvedValue(mockEntry);
+
+      const res = await handleBackgroundMessage(
+        {
+          type: 'GET_STORED_ACCOUNTS',
+          providerType: 'https://atpassport.net',
+        },
+        { tab: { cookieStoreId: 'firefox-container-1' } }
+      );
+
+      expect(res.success).toBe(true);
+      expect(res.status).toBe('matched');
+      expect(res.idp).toEqual({
+        origin: 'https://atpassport.net',
+        configURL: 'https://atpassport.net/fedcm/config.json',
+      });
+      expect(res.accounts).toEqual(mockEntry.accounts);
+      expect(accountStorage.findStoredIdpEntryByType).toHaveBeenCalledWith(
+        'https://atpassport.net',
+        'firefox-container-1'
+      );
+      expect(mockFetchAccounts).not.toHaveBeenCalled();
+    });
+
+    it('should return no-match status when providerType does not match', async () => {
+      (accountStorage.findStoredIdpEntryByType as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+      const res = await handleBackgroundMessage(
+        {
+          type: 'GET_STORED_ACCOUNTS',
+          providerType: 'https://unknown-idp.example',
+        },
+        { tab: { cookieStoreId: 'firefox-default' } }
+      );
+
+      expect(res.success).toBe(true);
+      expect(res.status).toBe('no-match');
+      expect(res.accounts).toBeUndefined();
+      expect(mockFetchAccounts).not.toHaveBeenCalled();
+    });
+
+    it('should return no-match status in private browsing context when providerType is requested', async () => {
+      const res = await handleBackgroundMessage(
+        {
+          type: 'GET_STORED_ACCOUNTS',
+          providerType: 'https://atpassport.net',
+        },
+        { tab: { incognito: true, cookieStoreId: 'firefox-private' } }
+      );
+
+      expect(res.success).toBe(true);
+      expect(res.status).toBe('no-match');
+      expect(accountStorage.findStoredIdpEntryByType).not.toHaveBeenCalled();
+      expect(mockFetchAccounts).not.toHaveBeenCalled();
+    });
+
+    it('should return error when findStoredIdpEntryByType throws', async () => {
+      (accountStorage.findStoredIdpEntryByType as ReturnType<typeof vi.fn>).mockRejectedValue(
+        new Error('Storage failure')
+      );
+
+      const res = await handleBackgroundMessage(
+        {
+          type: 'GET_STORED_ACCOUNTS',
+          providerType: 'https://atpassport.net',
+        },
+        {}
+      );
+
+      expect(res.success).toBe(false);
+      expect(res.error).toBe('Storage failure');
     });
   });
 

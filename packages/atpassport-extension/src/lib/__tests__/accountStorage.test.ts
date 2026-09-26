@@ -3,6 +3,8 @@ import {
   savePushedAccounts,
   getPushedAccounts,
   clearPushedAccounts,
+  findStoredIdpEntryByType,
+  normalizeTypeUrl,
   getAccountStorageKey,
   normalizeIdpOrigin,
 } from '../accountStorage';
@@ -14,7 +16,10 @@ vi.mock('wxt/browser', () => ({
   browser: {
     storage: {
       local: {
-        get: vi.fn(async (keys: string | string[]) => {
+        get: vi.fn(async (keys: string | string[] | null) => {
+          if (keys === null || keys === undefined) {
+            return { ...mockStorage };
+          }
           if (Array.isArray(keys)) {
             const res: Record<string, unknown> = {};
             for (const k of keys) {
@@ -144,6 +149,97 @@ describe('accountStorage', () => {
 
       await clearPushedAccounts('https://atpassport.net');
       expect(await getPushedAccounts('https://atpassport.net')).toEqual([]);
+    });
+  });
+
+  describe('normalizeTypeUrl', () => {
+    it('normalizes URLs removing trailing slashes and lowercasing origin', () => {
+      expect(normalizeTypeUrl('https://AtPassport.net/')).toBe('https://atpassport.net');
+      expect(normalizeTypeUrl('https://atpassport.net')).toBe('https://atpassport.net');
+      expect(normalizeTypeUrl('http://localhost:3000/')).toBe('http://localhost:3000');
+      expect(normalizeTypeUrl('https://example.com/idp/')).toBe('https://example.com/idp');
+    });
+
+    it('handles non-standard URLs gracefully', () => {
+      expect(normalizeTypeUrl('custom:type/')).toBe('custom:type');
+    });
+  });
+
+  describe('savePushedAccounts metadata and findStoredIdpEntryByType', () => {
+    it('populates configURL and types on savePushedAccounts', async () => {
+      const accounts = [{ id: 'did:plc:123', name: 'Alice', username: '@alice.bsky.social' }];
+      await savePushedAccounts('https://atpassport.net', accounts, 'firefox-default');
+
+      const entry = await findStoredIdpEntryByType('https://atpassport.net', 'firefox-default');
+      expect(entry).not.toBeNull();
+      expect(entry?.origin).toBe('https://atpassport.net');
+      expect(entry?.configURL).toBe('https://atpassport.net/fedcm/config.json');
+      expect(entry?.types).toEqual(['https://atpassport.net']);
+      expect(entry?.accounts).toHaveLength(1);
+    });
+
+    it('matches providerType with trailing slash normalization', async () => {
+      const accounts = [{ id: 'did:plc:123', name: 'Alice', username: '@alice.bsky.social' }];
+      await savePushedAccounts('https://atpassport.net', accounts, 'firefox-default');
+
+      const entryWithSlash = await findStoredIdpEntryByType('https://atpassport.net/', 'firefox-default');
+      expect(entryWithSlash).not.toBeNull();
+      expect(entryWithSlash?.origin).toBe('https://atpassport.net');
+    });
+
+    it('isolates findStoredIdpEntryByType across containers', async () => {
+      const workAccounts = [{ id: 'did:plc:work', name: 'WorkAlice' }];
+      await savePushedAccounts('https://atpassport.net', workAccounts, 'firefox-container-1');
+
+      // Found in container-1
+      const foundInCont1 = await findStoredIdpEntryByType('https://atpassport.net', 'firefox-container-1');
+      expect(foundInCont1?.accounts[0].id).toBe('did:plc:work');
+
+      // Not found in default context
+      const notFoundDefault = await findStoredIdpEntryByType('https://atpassport.net', 'firefox-default');
+      expect(notFoundDefault).toBeNull();
+    });
+
+    it('returns null if providerType does not match any entry', async () => {
+      const accounts = [{ id: 'did:plc:123', name: 'Alice' }];
+      await savePushedAccounts('https://atpassport.net', accounts);
+
+      const result = await findStoredIdpEntryByType('https://other-idp.com');
+      expect(result).toBeNull();
+    });
+
+    it('returns null if entry has empty accounts', async () => {
+      // Direct storage mock with empty accounts
+      mockStorage['fedcm_idp_accounts:firefox-default:https://atpassport.net'] = {
+        origin: 'https://atpassport.net',
+        configURL: 'https://atpassport.net/fedcm/config.json',
+        types: ['https://atpassport.net'],
+        accounts: [],
+        updatedAt: Date.now(),
+      };
+
+      const result = await findStoredIdpEntryByType('https://atpassport.net');
+      expect(result).toBeNull();
+    });
+
+    it('returns null if multiple entries match the same providerType', async () => {
+      mockStorage['fedcm_idp_accounts:firefox-default:https://atpassport.net'] = {
+        origin: 'https://atpassport.net',
+        configURL: 'https://atpassport.net/fedcm/config.json',
+        types: ['https://shared-type.example.com'],
+        accounts: [{ id: 'did:1', name: 'User 1' }],
+        updatedAt: Date.now(),
+      };
+      mockStorage['fedcm_idp_accounts:firefox-default:https://idp2.atpassport.net'] = {
+        origin: 'https://idp2.atpassport.net',
+        configURL: 'https://idp2.atpassport.net/fedcm/config.json',
+        types: ['https://shared-type.example.com'],
+        accounts: [{ id: 'did:2', name: 'User 2' }],
+        updatedAt: Date.now(),
+      };
+
+      const result = await findStoredIdpEntryByType('https://shared-type.example.com');
+      expect(result).toBeNull();
     });
   });
 });

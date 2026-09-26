@@ -17,6 +17,8 @@ const chromeMock = {
 
 vi.stubGlobal('chrome', chromeMock);
 vi.stubGlobal('browser', chromeMock);
+vi.stubGlobal('defineUnlistedScript', (options: unknown) => options);
+vi.stubGlobal('defineContentScript', (options: unknown) => options);
 
 // Mock navigator.clipboard
 if (typeof navigator !== 'undefined') {

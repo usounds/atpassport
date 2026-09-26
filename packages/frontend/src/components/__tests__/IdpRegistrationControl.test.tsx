@@ -31,22 +31,13 @@ describe('IdpRegistrationControl', () => {
     vi.clearAllMocks();
   });
 
-  it('renders disabled buttons and unsupported notice when browser lacks IdentityProvider support', () => {
+  it('renders nothing when browser lacks IdentityProvider support', () => {
     vi.mocked(fedcmClient.hasIdpRegistrationSupport).mockReturnValue(false);
 
-    render(<IdpRegistrationControl />);
+    const { container } = render(<IdpRegistrationControl />);
 
-    expect(screen.getByText('IdP Registration')).toBeInTheDocument();
-    expect(screen.getByText('Experimental')).toBeInTheDocument();
-
-    // Click to expand
-    fireEvent.click(screen.getByText('IdP Registration'));
-
-    const registerBtn = screen.getByRole('button', { name: 'Register IdP' });
-    const unregisterBtn = screen.getByRole('button', { name: 'Unregister IdP' });
-    expect(registerBtn).toBeDisabled();
-    expect(unregisterBtn).toBeDisabled();
-    expect(screen.getByText('Your browser does not support the IdP Registration API.')).toBeInTheDocument();
+    expect(container.querySelector('.mantine-Paper-root')).toBeNull();
+    expect(screen.queryByText('IdP Registration')).not.toBeInTheDocument();
   });
 
   it('renders the control with title and experimental badge when supported', () => {

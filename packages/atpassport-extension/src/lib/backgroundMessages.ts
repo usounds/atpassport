@@ -5,6 +5,7 @@ import {
   savePushedAccounts,
   getPushedAccounts,
   clearPushedAccounts,
+  findStoredIdpEntryByType,
   normalizeIdpOrigin,
   type StoredAccount,
 } from '@/lib/accountStorage';
@@ -19,6 +20,7 @@ export interface BackgroundMessagePayload {
   clientId?: string;
   accountId?: string;
   ruleId?: number;
+  providerType?: string;
 }
 
 export interface MessageSender {
@@ -35,6 +37,11 @@ export interface MessageSender {
 
 export interface BackgroundMessageResponse {
   success: boolean;
+  status?: 'matched' | 'no-match';
+  idp?: {
+    origin: string;
+    configURL: string;
+  };
   accounts?: unknown[];
   token?: string;
   assertionUrl?: string;
@@ -165,7 +172,36 @@ export async function handleBackgroundMessage(
     const { isPrivate, contextKey, unknownContext } = getSenderContext(sender);
     if (isPrivate || unknownContext) {
       console.log('[Background] GET_STORED_ACCOUNTS: Returning empty accounts in private browsing context');
+      if (message.providerType) {
+        return { success: true, status: 'no-match' };
+      }
       return { success: true, accounts: [] };
+    }
+
+    if (message.providerType) {
+      try {
+        const entry = await findStoredIdpEntryByType(message.providerType, contextKey);
+        if (!entry) {
+          console.log('[Background] GET_STORED_ACCOUNTS by type:', message.providerType, 'context:', contextKey, 'result: no-match');
+          return { success: true, status: 'no-match' };
+        }
+        console.log('[Background] GET_STORED_ACCOUNTS by type:', message.providerType, 'context:', contextKey, 'matched origin:', entry.origin, 'accounts:', entry.accounts.length);
+        return {
+          success: true,
+          status: 'matched',
+          idp: {
+            origin: entry.origin,
+            configURL: entry.configURL || `${entry.origin}/fedcm/config.json`,
+          },
+          accounts: entry.accounts,
+        };
+      } catch (err) {
+        console.error('[Background] Failed to get stored accounts by type:', err);
+        return {
+          success: false,
+          error: err instanceof Error ? err.message : String(err),
+        };
+      }
     }
 
     let origin = message.origin;

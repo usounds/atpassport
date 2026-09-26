@@ -51,3 +51,22 @@ export function isAtPassportConfigUrl(configURL: unknown): boolean {
   }
 }
 
+/**
+ * Safely determines whether a given FedCM provider type belongs to AtPassport.
+ * Requires a valid absolute URL matching AtPassport origins (production, subdomain, loopback).
+ */
+export function isAtPassportType(providerType: unknown): boolean {
+  if (typeof providerType !== 'string' || !providerType.trim()) {
+    return false;
+  }
+  try {
+    const url = new URL(providerType);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      return false;
+    }
+    return isAtPassportOrigin(url.origin);
+  } catch {
+    return false;
+  }
+}
+

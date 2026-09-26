@@ -24,6 +24,10 @@ export function IdpRegistrationControl() {
     () => false
   );
 
+  if (!supported) {
+    return null;
+  }
+
   const handleRegister = async () => {
     if (!supported) return;
     setLoading(true);

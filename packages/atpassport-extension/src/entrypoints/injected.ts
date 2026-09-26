@@ -1,4 +1,4 @@
-import { isAtPassportConfigUrl } from '@/lib/fedcm-url';
+import { isAtPassportConfigUrl, isAtPassportType } from '@/lib/fedcm-url';
 
 export default defineUnlistedScript({
   include: ['firefox'],
@@ -50,9 +50,21 @@ export default defineUnlistedScript({
 
       nav.credentials.get = async function (options?: CredentialRequestOptions) {
         // Check if this request is for AtPassport FedCM
-        const identity = (options as unknown as { identity?: { providers?: Array<{ configURL?: string }> } })?.identity;
+        const identity = (options as unknown as { identity?: { providers?: Array<{ configURL?: string; type?: string }> } })?.identity;
         const providers = identity?.providers;
-        const isAtPassport = providers?.some(p => isAtPassportConfigUrl(p?.configURL));
+
+        // The extension only supports a single AtPassport provider.
+        // If multiple providers are specified, do not intercept partially; delegate to native or reject.
+        if (!Array.isArray(providers) || providers.length !== 1) {
+          if (originalGet) {
+            return originalGet(options);
+          }
+          throw new DOMException('The operation is not supported.', 'NotSupportedError');
+        }
+
+        const provider = providers[0];
+        const isAtPassport = (provider?.configURL && isAtPassportConfigUrl(provider.configURL)) ||
+                             (provider?.type && isAtPassportType(provider.type));
 
         if (!isAtPassport) {
           // If not AtPassport, delegate to original get if it existed
@@ -84,7 +96,9 @@ export default defineUnlistedScript({
             clearTimeout(timeoutId);
             window.removeEventListener('atpassport-fedcm-response', responseListener as EventListener);
 
-            if (data.error) {
+            if (data.noMatch) {
+              resolve(null);
+            } else if (data.error) {
               const errName = data.error.name || 'AbortError';
               const errMsg = data.error.message || 'The user aborted the request.';
               reject(new DOMException(errMsg, errName));
