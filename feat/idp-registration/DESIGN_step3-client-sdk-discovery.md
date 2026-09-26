@@ -95,16 +95,20 @@ export type AtPassportHandleAssistOptions = Pick<
 | --- | --- | --- | --- |
 | config（既定） | 従来のconfigURL | 該当なし | 既存の戻り値・fallback契約を維持 |
 | types | 単数typeの登録型探索 | configへ再試行せず、設定済みfallbackを最大1回実行 | null。別UIを自動表示しない |
-| auto | 単数typeの登録型探索 | configURLへ最大1回再試行 | null。別UIを自動表示しない |
+| auto | 単数typeの登録型探索 | configURLへ最大1回再試行（configも未対応ならfallback実行） | null。別UIを自動表示しない |
 
-新モードからconfigへ再試行した場合も、新モードの慎重なエラー分類を維持する。既存configモードの広いfallback処理をそのまま呼び出してキャンセル後の遷移を発生させない。
+- **`auto` モードのセマンティクスと未登録ユーザー体験**:
+  `auto` は「登録型探索にブラウザ環境自体が非対応な場合のフォールバック」であり、「IdP登録を行っていないユーザーに対するCookieベースFedCMへの自動ハイブリッドフォールバック」ではありません。
+  ブラウザが登録型に対応している環境でユーザーがAtPassportを未登録の場合（または保存候補なし）、ブラウザ/拡張は `no-match`（`null`）を返します。この場合、二重プロンプトや意図しない別UIの起動を防ぐため、`configURL` への再試行は行わず、クリーンに `null` を返却します。RP側には「別の方法でログイン」などの明示的な手動操作導線を用意することを推奨します。
+- 新モードからconfigへ再試行した場合も、新モードの慎重なエラー分類を維持する。既存configモードの広いfallback処理をそのまま呼び出してキャンセル後の遷移を発生させない。
 
 ### 3.3 能力判定と失敗分類
 
 - `IdentityCredential` の存在はベースラインFedCMの判定にのみ使う。登録型対応の証拠にしない。
 - FedCM自体が存在しない環境では、設定済みfallbackを最大1回実行する。
 - 登録型未対応を示す能力判定、または入力検証済みで対象版においてUI表示前の非対応と確認した `TypeError` / `NotSupportedError` に限り、上表の未対応分岐へ進む。例外名だけで全ブラウザを一律判定しない。
-- ユーザー操作の有効期間内にconfig再試行が可能か、対象ブラウザで確認する。安全に再試行できない環境では自動再試行せず、RPの「別の方法で続ける」操作から従来経路を開始する。
+- **ユーザー操作ジェスチャー（User Activation）の考慮**: FedCMの `mode: 'active'` はトランジェントなユーザー操作ジェスチャー（通常約5秒有効）を必須とします。`auto` のconfig再試行時にジェスチャー失効等で `SecurityError` / `NotAllowedError` が発生した場合は、例外を投げずに `onError` に通知して `null` を返します。
+- **完全非対応時のフォールバック**: `auto` モードで再試行した `configURL` 呼出し自体も `TypeError` / `NotSupportedError` となった場合（ブラウザ環境全体でFedCM自体が利用できない場合）、設定済み `fallback()` を最大1回実行してWeb遷移へ逃がします。
 - `AbortError`、`NotAllowedError`、nullは終了扱い。ポリフィルの明示的なユーザー取消しは `AbortError` とする。
 - ネイティブでは閉じる操作も `NetworkError` になり得る。新モードでは `NetworkError` を通信障害と断定せず、自動config再試行・自動fallbackをしない。利用者が別経路を明示選択できるUIをRPに用意する。
 - Assertionの401/403、削除済みDID、5xx、通信失敗、不正トークン、`IdentityCredentialError` は新モードでは終了扱い。エラーを成功に変えず、別経路で自動回避しない。
@@ -165,6 +169,8 @@ export type AtPassportHandleAssistOptions = Pick<
   };
   ```
   これにより、本番 `https://atpassport.net` は `types: ['https://atpassport.net']`、ローカル開発 `http://localhost:3000` は `types: ['http://localhost:3000']` として自動的に対応付けられる。同じtypeに複数IdPが一致するケースは本Stepでは未対応として扱い、先頭や既定IdPを黙って選ばない。
+- **型探索ヘルパーの新設**: `accountStorage.ts` に `findStoredIdpEntryByType(providerType: string, contextKey?: string): Promise<StoredIdpEntry | null>` を追加する。同一コンテキスト内で `entry.types.includes(providerType)` に合致するエントリを1件特定して返却し、0件または複数件一致した場合は安全に `null`（`no-match`）とする。URL末尾スラッシュの有無で照合が失敗しないよう正規化する。
+- **ポリフィルパリティの維持**: `INLINE_POLYFILL_CODE`（`fedcm.content.ts`）と `injected.ts` の両方で `provider.type` 判定および `{ noMatch: true } -> resolve(null)` を完全に同期させ、単体テストでパリティを検証する。
 - 旧スキーマには型情報がないため、config経路での読出しを維持し、登録型候補には含めない。IdP再訪時の検証済みPushでメタデータを付けて更新する。RP要求だけで登録済みへ昇格させない。
 - 拡張利用者の自動連携方針は維持する。候補資格と解除状態はマスター計画に従い、保存一覧の存在だけで拒否・解除を上書きしない。
 - 登録型では未登録・型不一致・Push未完了・空一覧をno-matchとして扱う。`FETCH_ACCOUNTS` へ暗黙に切り替えない。SDKのtypes/autoもno-matchを未対応と扱わない。
