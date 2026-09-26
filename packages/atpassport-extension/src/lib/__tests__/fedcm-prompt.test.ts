@@ -3,12 +3,23 @@ import { showFedCmPrompt } from '../fedcm-prompt';
 
 describe('fedcm-prompt', () => {
   let lastShadowRoot: ShadowRoot | null = null;
+  const clickHandlers = new Map<EventTarget, EventListener>();
+  const originalAdd = EventTarget.prototype.addEventListener;
+  function trustedClick(button: HTMLButtonElement) {
+    // jsdom cannot emit trusted user input. Exercise the captured listener explicitly.
+    clickHandlers.get(button)!.call(button, { isTrusted: true, preventDefault() {}, stopPropagation() {} } as unknown as Event);
+  }
   const origAttachShadow = Element.prototype.attachShadow;
 
   beforeEach(() => {
     document.body.innerHTML = '';
     vi.useFakeTimers();
     lastShadowRoot = null;
+    clickHandlers.clear();
+    vi.spyOn(EventTarget.prototype, 'addEventListener').mockImplementation(function(this: EventTarget, type, listener, options) {
+      if (type === 'click' && typeof listener === 'function') clickHandlers.set(this, listener);
+      return originalAdd.call(this, type, listener, options);
+    });
     vi.spyOn(Element.prototype, 'attachShadow').mockImplementation(function (this: HTMLElement, init: ShadowRootInit) {
       const root = origAttachShadow.call(this, { ...init, mode: 'open' });
       lastShadowRoot = root;
@@ -76,6 +87,8 @@ describe('fedcm-prompt', () => {
     const bobConfirmBtn = lastShadowRoot!.querySelector('.atp-confirm-btn') as HTMLButtonElement;
     expect(bobConfirmBtn).not.toBeNull();
     bobConfirmBtn.click();
+    expect(onSelect).not.toHaveBeenCalled();
+    trustedClick(bobConfirmBtn);
 
     expect(onSelect).toHaveBeenCalledTimes(1);
     expect(onSelect).toHaveBeenCalledWith(accounts[1]);
@@ -113,6 +126,8 @@ describe('fedcm-prompt', () => {
 
     // Click confirm button
     confirmBtn.click();
+    expect(onSelect).not.toHaveBeenCalled();
+    trustedClick(confirmBtn);
 
     expect(onSelect).toHaveBeenCalledTimes(1);
     expect(onSelect).toHaveBeenCalledWith(account);

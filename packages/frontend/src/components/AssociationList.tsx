@@ -24,13 +24,5 @@ export async function AssociationList() {
     profile: null, // Initial state, profiles will be fetched on the client
   }));
 
-  if (items.length === 0) {
-    return (
-      <Text c="dimmed" ta="center" py="xl">
-        {t('no_handles')}
-      </Text>
-    );
-  }
-
-  return <AssociationListClient initialItems={items} />;
+  return <AssociationListClient initialItems={items} emptyMessage={t('no_handles')} />;
 }

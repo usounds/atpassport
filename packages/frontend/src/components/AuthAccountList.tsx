@@ -4,12 +4,10 @@ import { Text, Stack, Box, Title, Alert } from '@mantine/core';
 import { AuthAccountItem } from "./AuthAccountItem";
 import { RegisterForm } from "./RegisterForm";
 import { useTranslations } from "next-intl";
-import { useState, useEffect } from 'react';
-import { refreshAssociation, removeAssociation, moveAssociation } from '@/lib/actions';
+import { useState } from 'react';
 import { type AssociationWithProfile } from '@/lib/models';
 import { IconAlertTriangle } from '@tabler/icons-react';
-import { useProfileStore } from '@/lib/profile-store';
-import { toFedCmAccount, syncAccountsPush } from '@/lib/fedcm-session-client';
+import { useAccountList } from '@/lib/use-account-list';
 
 export function AuthAccountList({ 
   initialItems, 
@@ -27,53 +25,10 @@ export function AuthAccountList({
   isLoopback?: boolean;
 }) {
   const t = useTranslations('Auth');
-  const [items, setItems] = useState(initialItems);
-  const [prevInitialItems, setPrevInitialItems] = useState(initialItems);
-
-  // Sync state with prop if initialItems changes during render
-  if (initialItems !== prevInitialItems) {
-    setPrevInitialItems(initialItems);
-    setItems(initialItems.map(initialItem => {
-      const existing = items.find(p => p.did === initialItem.did);
-      return {
-        ...initialItem,
-        profile: existing?.profile || initialItem.profile
-      };
-    }));
-  }
+  const { items, handleDelete, handleMove, handleRefresh } = useAccountList(initialItems);
 
   const [authenticating, setAuthenticating] = useState(false);
   const [selectedItem, setSelectedItem] = useState<AssociationWithProfile | null>(null);
-
-  useEffect(() => {
-    void syncAccountsPush(initialItems.map(toFedCmAccount));
-
-    const fetchProfiles = async () => {
-      // Find DIDs that don't have a profile in the current items
-      const didsToFetch = initialItems
-        .filter(item => !item.profile)
-        .map(item => item.did);
-      
-      if (didsToFetch.length === 0) return;
-
-      console.log('[AuthAccountList] Fetching profiles for %s missing items...', didsToFetch.length);
-      const profilesMap = await useProfileStore.getState().fetchProfiles(didsToFetch);
-      
-      setItems(prev => {
-        const updated = prev.map(item => {
-          const fetchedProfile = profilesMap[item.did];
-          if (fetchedProfile) {
-            return { ...item, profile: fetchedProfile };
-          }
-          return item;
-        });
-        void syncAccountsPush(updated.map(toFedCmAccount));
-        return updated;
-      });
-    };
-
-    fetchProfiles();
-  }, [initialItems]);
 
   const normalizePds = (url: string) => {
     try {
@@ -87,64 +42,9 @@ export function AuthAccountList({
     }
   };
 
-  const handleRefresh = async (did: string) => {
-    try {
-      await refreshAssociation(did);
-      const profilesMap = await useProfileStore.getState().fetchProfiles([did]);
-      if (profilesMap[did]) {
-        setItems(prev => {
-          const updated = prev.map(item => item.did === did ? { ...item, profile: profilesMap[did] } : item);
-          void syncAccountsPush(updated.map(toFedCmAccount));
-          return updated;
-        });
-      }
-    } catch (e) {
-      console.error('[AuthAccountList] Failed to refresh association:', e);
-    }
-  };
-
   const handleSelect = (item: AssociationWithProfile) => {
     setSelectedItem(item);
     setAuthenticating(true);
-  };
-
-  const handleDelete = async (did: string) => {
-    const previousItems = items;
-    const nextItems = items.filter(item => item.did !== did);
-    setItems(nextItems);
-
-    try {
-      await removeAssociation(did);
-      void syncAccountsPush(nextItems.map(toFedCmAccount));
-    } catch (e) {
-      console.error('[AuthAccountList] Failed to delete association:', e);
-      setItems(previousItems);
-    }
-  };
-
-  const handleMove = async (did: string, direction: 'up' | 'down') => {
-    const index = items.findIndex(item => item.did === did);
-    if (index === -1) return;
-
-    const newItems = [...items];
-    if (direction === 'up' && index > 0) {
-      [newItems[index - 1], newItems[index]] = [newItems[index], newItems[index - 1]];
-    } else if (direction === 'down' && index < items.length - 1) {
-      [newItems[index + 1], newItems[index]] = [newItems[index], newItems[index + 1]];
-    } else {
-      return;
-    }
-
-    const previousItems = items;
-    setItems(newItems);
-
-    try {
-      await moveAssociation(did, direction);
-      void syncAccountsPush(newItems.map(toFedCmAccount));
-    } catch (e) {
-      console.error('[AuthAccountList] Failed to move association:', e);
-      setItems(previousItems);
-    }
   };
 
   if (authenticating && selectedItem) {

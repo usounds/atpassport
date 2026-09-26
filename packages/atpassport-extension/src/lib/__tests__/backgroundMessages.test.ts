@@ -1,7 +1,8 @@
+vi.mock('../fedcmHeaderRule', () => ({ prepareAssertionRule: vi.fn(), releaseAssertionRule: vi.fn() }));
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { handleBackgroundMessage } from '../backgroundMessages';
 import * as accountStorage from '../accountStorage';
-import { HandleManager } from '../HandleManager';
+import { prepareAssertionRule } from '../fedcmHeaderRule';
 
 vi.mock('../accountStorage', () => ({
   savePushedAccounts: vi.fn(),
@@ -48,30 +49,17 @@ describe('handleBackgroundMessage', () => {
   });
 
   describe('FETCH_ACCOUNTS', () => {
-    it('should fetch accounts from /api/fedcm/accounts when endpoint succeeds', async () => {
-      const originalFetch = globalThis.fetch;
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          accounts: [
-            { id: 'did:plc:123', name: 'User', username: '@user.bsky.social' },
-          ],
-        }),
-      });
-
-      try {
-        const res = await handleBackgroundMessage({ type: 'FETCH_ACCOUNTS' }, {});
-        expect(res.success).toBe(true);
-        expect(res.accounts).toEqual([
-          { did: 'did:plc:123', displayName: 'User', handle: '@user.bsky.social', avatar: undefined },
-        ]);
-        expect(mockFetchAccounts).not.toHaveBeenCalled();
-      } finally {
-        globalThis.fetch = originalFetch;
-      }
+    it.each([
+      { incognito: true, cookieStoreId: 'firefox-private' },
+      { cookieStoreId: 'firefox-container-1' },
+      {},
+    ])('does not fetch default cookies for unsupported tab context %j', async tab => {
+      const res = await handleBackgroundMessage({ type: 'FETCH_ACCOUNTS' }, { tab });
+      expect(res.success).toBe(false);
+      expect(mockFetchAccounts).not.toHaveBeenCalled();
     });
 
-    it('should fallback to HandleManager.fetchAccounts if fedcm endpoint fails', async () => {
+    it('uses only the legacy endpoint for default context', async () => {
       const originalFetch = globalThis.fetch;
       globalThis.fetch = vi.fn().mockRejectedValue(new Error('FedCM offline'));
       const mockAccounts = [{ handle: '@user.bsky.social', displayName: 'User' }];
@@ -102,6 +90,25 @@ describe('handleBackgroundMessage', () => {
     });
   });
 
+  describe('PREPARE_ASSERTION', () => {
+    it.each([
+      { url: 'https://rp.example', frameId: 1, tab: { id: 7, cookieStoreId: 'firefox-default' } },
+      { url: 'https://rp.example', frameId: 0, tab: { id: 7, cookieStoreId: 'firefox-private', incognito: true } },
+      { url: 'https://rp.example', frameId: 0, tab: { id: 7 } },
+    ])('rejects unsupported sender %j before installing a rule', async sender => {
+      const result = await handleBackgroundMessage({ type: 'PREPARE_ASSERTION', origin: 'https://atpassport.net' }, sender);
+      expect(result.success).toBe(false);
+      expect(prepareAssertionRule).not.toHaveBeenCalled();
+    });
+    it('binds the capability to the browser-supplied tab, not payload clientId', async () => {
+      vi.mocked(prepareAssertionRule).mockResolvedValue({ ruleId: 10000, assertionUrl: 'https://atpassport.net/api/fedcm/assertion?extension_request=test' });
+      const result = await handleBackgroundMessage({ type: 'PREPARE_ASSERTION', origin: 'https://atpassport.net', clientId: 'https://forged.example' },
+        { url: 'https://rp.example', frameId: 0, tab: { id: 7, cookieStoreId: 'firefox-container-1' } });
+      expect(result.success).toBe(true);
+      expect(prepareAssertionRule).toHaveBeenCalledWith('https://atpassport.net', 7);
+    });
+  });
+
   describe('SAVE_PUSHED_ACCOUNTS', () => {
     it('should reject requests from unauthorized origins', async () => {
       const res = await handleBackgroundMessage(
@@ -124,7 +131,7 @@ describe('handleBackgroundMessage', () => {
           origin: 'https://atpassport.net',
           accounts: [],
         },
-        { tab: { url: 'https://atpassport.net', incognito: true } }
+        { tab: { url: 'https://atpassport.net', incognito: true, cookieStoreId: 'firefox-private' } }
       );
       expect(res.success).toBe(false);
       expect(res.error).toContain('Private browsing');

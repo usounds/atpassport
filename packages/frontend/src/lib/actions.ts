@@ -207,8 +207,9 @@ export async function registerHandle(handle: string): Promise<{ success: boolean
     }
     
     revalidatePath('/[locale]', 'page');
+    revalidatePath('/[locale]/authentication', 'page');
     await refreshSession();
-    const updatedAssociations = await getAssociations(uuid);
+    const updatedAssociations = await getAssociations(uuid, true);
     return { success: true, associations: updatedAssociations };
   } catch (error) {
     console.error('[ServerAction:registerHandle] ERROR:', error);
@@ -258,28 +259,37 @@ export async function refreshAssociation(did: string) {
   }
 }
 
-export async function removeAssociation(did: string) {
+export type AssociationMutationResult =
+  | { success: true; associations: IdentityAssociation[] }
+  | { success: false; error: string };
+
+export async function removeAssociation(did: string): Promise<AssociationMutationResult> {
   const validation = didSchema.safeParse(did);
   if (!validation.success) {
     console.error('[removeAssociation] Invalid DID format:', did);
-    return;
+    return { success: false, error: "Invalid DID format" };
   }
 
   const uuid = await getSessionUuid();
-  if (!uuid) return;
+  if (!uuid) return { success: false, error: "No session found" };
 
+  const current = await getAssociations(uuid, true);
+  if (!current.some(item => item.did === did)) return { success: false, error: "Account not found" };
   await deleteAssociation(uuid, did);
   revalidatePath('/[locale]', 'page');
+  revalidatePath('/[locale]/authentication', 'page');
   await refreshSession();
+  return { success: true, associations: await getAssociations(uuid, true) };
 }
 
-export async function moveAssociation(did: string, direction: 'up' | 'down') {
+export async function moveAssociation(did: string, direction: 'up' | 'down'): Promise<AssociationMutationResult> {
+  if (direction !== 'up' && direction !== 'down') return { success: false, error: 'Invalid direction' };
   const uuid = await getSessionUuid();
-  if (!uuid) return;
+  if (!uuid) return { success: false, error: "No session found" };
 
-  const associations = await getAssociations(uuid);
+  const associations = await getAssociations(uuid, true);
   const index = associations.findIndex(a => a.did === did);
-  if (index === -1) return;
+  if (index === -1) return { success: false, error: "Account not found" };
 
   if (direction === 'up' && index > 0) {
     const prev = associations[index - 1];
@@ -300,7 +310,9 @@ export async function moveAssociation(did: string, direction: 'up' | 'down') {
   }
 
   revalidatePath('/[locale]', 'page');
+  revalidatePath('/[locale]/authentication', 'page');
   await refreshSession();
+  return { success: true, associations: await getAssociations(uuid, true) };
 }
 
 export async function checkShareTokenValidity(token: string): Promise<boolean> {

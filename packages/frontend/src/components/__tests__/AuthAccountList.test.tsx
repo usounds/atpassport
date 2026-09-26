@@ -99,6 +99,8 @@ describe('AuthAccountList', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(actions.removeAssociation).mockImplementation(async did => ({ success: true, associations: mockItems.filter(item => item.did !== did) }));
+    vi.mocked(actions.moveAssociation).mockResolvedValue({ success: true, associations: mockItems });
     // Mock window.location.replace
     vi.stubGlobal('location', {
       replace: vi.fn(),

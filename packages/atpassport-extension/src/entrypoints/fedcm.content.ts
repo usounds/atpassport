@@ -173,7 +173,7 @@ const INLINE_POLYFILL_CODE = `
           var savePromise = new Promise(function(resolve, reject) {
             var timeoutId = setTimeout(function() {
               window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler);
-              resolve();
+              reject(new Error('Account storage acknowledgement timed out'));
             }, 3000);
 
             var responseHandler = function(e) {
@@ -203,7 +203,7 @@ const INLINE_POLYFILL_CODE = `
             } catch (dispatchErr) {
               clearTimeout(timeoutId);
               window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler);
-              resolve();
+              reject(new Error('Failed to dispatch account storage request'));
             }
           });
 
@@ -323,20 +323,25 @@ export default defineContentScript({
           console.log('[@passport] onSelect callback invoked for account:', selectedAccount);
           try {
             const accountId = selectedAccount.did || selectedAccount.handle.replace(/^@/, '');
-            const assertionUrl = `${idpOrigin}/api/fedcm/assertion`;
+            const grant = await browser.runtime.sendMessage({ type: 'PREPARE_ASSERTION', origin: idpOrigin });
+            if (!grant?.success || !grant.assertionUrl || typeof grant.ruleId !== 'number') {
+              throw new DOMException('Assertion request could not be authorized', 'NotAllowedError');
+            }
             const formData = new URLSearchParams();
             formData.append('client_id', window.location.origin);
             formData.append('account_id', accountId);
 
-            console.log('[@passport] Fetching assertion from content script:', assertionUrl, 'clientId:', window.location.origin);
-            const response = await fetch(assertionUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-              },
-              body: formData.toString(),
-              credentials: 'include',
-            });
+            let response: Response;
+            try {
+              response = await fetch(grant.assertionUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(), credentials: 'include', redirect: 'error',
+                signal: AbortSignal.timeout(10000),
+              });
+            } finally {
+              await browser.runtime.sendMessage({ type: 'RELEASE_ASSERTION', ruleId: grant.ruleId });
+            }
 
             console.log('[@passport] Assertion response status:', response.status);
 

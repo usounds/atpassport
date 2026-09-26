@@ -528,17 +528,27 @@ describe('Actions Library', () => {
   });
 
   describe('removeAssociation', () => {
-    it('should call deleteAssociation', async () => {
+    it('should call deleteAssociation and return the confirmed snapshot', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      await removeAssociation(mockDid);
+      vi.mocked(getAssociations).mockResolvedValueOnce([{ did: mockDid } as AssociationWithProfile]).mockResolvedValueOnce([]);
+      const result = await removeAssociation(mockDid);
+      expect(result).toEqual({ success: true, associations: [] });
+      expect(getAssociations).toHaveBeenLastCalledWith(mockUuid, true);
       expect(deleteAssociation).toHaveBeenCalledWith(mockUuid, mockDid);
     });
 
     it('should skip if no session', async () => {
       vi.mocked(getSessionUuid).mockResolvedValue(null);
-      await removeAssociation(mockDid);
+      expect(await removeAssociation(mockDid)).toEqual({ success: false, error: 'No session found' });
       expect(deleteAssociation).not.toHaveBeenCalled();
     });
+  });
+
+  it('reports a missing move target instead of treating a no-op as success', async () => {
+    vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
+    vi.mocked(getAssociations).mockResolvedValue([]);
+    expect(await moveAssociation(mockDid, 'up')).toEqual({ success: false, error: 'Account not found' });
+    expect(updateAssociation).not.toHaveBeenCalled();
   });
 
   describe('Utility Functions', () => {

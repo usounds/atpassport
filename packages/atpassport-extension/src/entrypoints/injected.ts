@@ -123,7 +123,7 @@ export default defineUnlistedScript({
             const savePromise = new Promise<void>((resolve, reject) => {
               const timeoutId = setTimeout(() => {
                 window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler as EventListener);
-                resolve();
+                reject(new Error('Account storage acknowledgement timed out'));
               }, 3000);
 
               const responseHandler = (e: CustomEvent) => {
@@ -155,7 +155,7 @@ export default defineUnlistedScript({
               } catch {
                 clearTimeout(timeoutId);
                 window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler as EventListener);
-                resolve();
+                reject(new Error('Failed to dispatch account storage request'));
               }
             });
 

@@ -740,6 +740,7 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
     confirmBtn.className = 'atp-confirm-btn';
     confirmBtn.textContent = i18n.continueBtn(account.displayName || formattedHandle);
     confirmBtn.addEventListener('click', (e) => {
+      if (!e.isTrusted) return;
       e.preventDefault();
       e.stopPropagation();
       console.log('[@passport-prompt] confirmBtn clicked for account:', account);

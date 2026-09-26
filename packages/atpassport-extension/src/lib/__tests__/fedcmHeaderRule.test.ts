@@ -1,117 +1,46 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import {
-  FEDCM_HEADER_RULE_ID,
-  getFedCmUrlRegex,
-  createFedCmHeaderRule,
-  setupFedCmHeaderRule,
-} from '../fedcmHeaderRule';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+const dnr = vi.hoisted(() => ({ updateDynamicRules: vi.fn(), getSessionRules: vi.fn(), updateSessionRules: vi.fn() }));
+vi.mock('wxt/browser', () => ({ browser: { declarativeNetRequest: dnr } }));
 
-describe('fedcmHeaderRule', () => {
-  describe('getFedCmUrlRegex', () => {
-    describe('production mode', () => {
-      const prodRegex = new RegExp(getFedCmUrlRegex(false));
+beforeEach(() => {
+  vi.resetModules(); vi.clearAllMocks(); vi.useFakeTimers(); vi.stubEnv('BROWSER', 'firefox');
+  dnr.updateDynamicRules.mockResolvedValue(undefined);
+  dnr.getSessionRules.mockResolvedValue([{ id: 10042 }, { id: 42 }]);
+  dnr.updateSessionRules.mockResolvedValue(undefined);
+});
+afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs(); });
 
-      it('should match valid atpassport.net FedCM endpoints', () => {
-        expect(prodRegex.test('https://atpassport.net/api/fedcm/accounts')).toBe(true);
-        expect(prodRegex.test('https://atpassport.net/api/fedcm/assertion')).toBe(true);
-        expect(prodRegex.test('https://preview.atpassport.net/api/fedcm/accounts')).toBe(true);
-        expect(prodRegex.test('https://staging.atpassport.net/api/fedcm/assertion')).toBe(true);
-      });
-
-      it('should NOT match non-FedCM endpoints', () => {
-        expect(prodRegex.test('https://atpassport.net/api/user/handles')).toBe(false);
-        expect(prodRegex.test('https://atpassport.net/dashboard')).toBe(false);
-        expect(prodRegex.test('https://atpassport.net/login')).toBe(false);
-      });
-
-      it('should NOT match untrusted domains or phishing domains', () => {
-        expect(prodRegex.test('https://evil-atpassport.net/api/fedcm/accounts')).toBe(false);
-        expect(prodRegex.test('https://fakeatpassport.net/api/fedcm/accounts')).toBe(false);
-        expect(prodRegex.test('https://atpassport.net.attacker.com/api/fedcm/accounts')).toBe(false);
-      });
-
-      it('should NOT match unencrypted HTTP in production', () => {
-        expect(prodRegex.test('http://atpassport.net/api/fedcm/accounts')).toBe(false);
-      });
-
-      it('should NOT match localhost in production mode', () => {
-        expect(prodRegex.test('http://localhost:3000/api/fedcm/accounts')).toBe(false);
-      });
-    });
-
-    describe('development mode', () => {
-      const devRegex = new RegExp(getFedCmUrlRegex(true));
-
-      it('should match localhost and 127.0.0.1 in development mode', () => {
-        expect(devRegex.test('http://localhost:3000/api/fedcm/accounts')).toBe(true);
-        expect(devRegex.test('http://127.0.0.1:3000/api/fedcm/assertion')).toBe(true);
-        expect(devRegex.test('https://localhost:3000/api/fedcm/accounts')).toBe(true);
-      });
-
-      it('should still match production URLs in development mode', () => {
-        expect(devRegex.test('https://atpassport.net/api/fedcm/accounts')).toBe(true);
-        expect(devRegex.test('https://preview.atpassport.net/api/fedcm/accounts')).toBe(true);
-      });
-
-      it('should still NOT match non-FedCM paths in development mode', () => {
-        expect(devRegex.test('http://localhost:3000/api/user/handles')).toBe(false);
-      });
-    });
+describe('selection-scoped FedCM headers', () => {
+  it('removes the legacy blanket rule and stale session grants on startup', async () => {
+    const { setupFedCmHeaderRule } = await import('../fedcmHeaderRule');
+    await setupFedCmHeaderRule();
+    expect(dnr.updateDynamicRules).toHaveBeenCalledWith({ removeRuleIds: [1001] });
+    expect(dnr.updateSessionRules).toHaveBeenCalledWith({ removeRuleIds: [10042] });
+    expect(dnr.updateDynamicRules.mock.calls.some(([arg]) => arg.addRules?.length)).toBe(false);
   });
-
-  describe('createFedCmHeaderRule', () => {
-    it('should construct a valid declarativeNetRequest Rule', () => {
-      const rule = createFedCmHeaderRule(false);
-
-      expect(rule.id).toBe(FEDCM_HEADER_RULE_ID);
-      expect(rule.priority).toBe(1);
-      expect(rule.action).toEqual({
-        type: 'modifyHeaders',
-        requestHeaders: [
-          {
-            header: 'Sec-Fetch-Dest',
-            operation: 'set',
-            value: 'webidentity',
-          },
-        ],
-      });
-      expect(rule.condition.resourceTypes).toEqual(['xmlhttprequest']);
-      expect(rule.condition.regexFilter).toBe(getFedCmUrlRegex(false));
-    });
+  it('only authorizes the random exact URL, selected tab and POST; cleans up on completion', async () => {
+    const { prepareAssertionRule, releaseAssertionRule } = await import('../fedcmHeaderRule');
+    const grant = await prepareAssertionRule('https://atpassport.net', 7);
+    expect(grant.assertionUrl).toMatch(/extension_request=[a-f0-9-]+$/);
+    const rule = dnr.updateSessionRules.mock.calls.at(-1)![0].addRules[0];
+    expect(rule.condition).toMatchObject({ urlFilter: `|${grant.assertionUrl}|`, tabIds: [7], requestMethods: ['post'] });
+    const count = dnr.updateSessionRules.mock.calls.length;
+    await releaseAssertionRule(grant.ruleId, 8);
+    expect(dnr.updateSessionRules).toHaveBeenCalledTimes(count);
+    await releaseAssertionRule(grant.ruleId, 7);
+    expect(dnr.updateSessionRules).toHaveBeenLastCalledWith({ removeRuleIds: [grant.ruleId] });
   });
-
-  describe('setupFedCmHeaderRule', () => {
-    let mockUpdateDynamicRules: ReturnType<typeof vi.fn>;
-
-    beforeEach(() => {
-      vi.clearAllMocks();
-      mockUpdateDynamicRules = vi.fn().mockResolvedValue(undefined);
-
-      vi.stubGlobal('browser', {
-        declarativeNetRequest: {
-          updateDynamicRules: mockUpdateDynamicRules,
-        },
-      });
-    });
-
-    it('should register dynamic rules with deduplication on Firefox', async () => {
-      vi.stubEnv('BROWSER', 'firefox');
-
-      await setupFedCmHeaderRule();
-
-      expect(mockUpdateDynamicRules).toHaveBeenCalledTimes(1);
-      const callArgs = mockUpdateDynamicRules.mock.calls[0]?.[0];
-      expect(callArgs?.removeRuleIds).toEqual([FEDCM_HEADER_RULE_ID]);
-      expect(callArgs?.addRules).toHaveLength(1);
-      expect(callArgs?.addRules?.[0]?.id).toBe(FEDCM_HEADER_RULE_ID);
-    });
-
-    it('should NOT register rules when running on Chrome', async () => {
-      vi.stubEnv('BROWSER', 'chrome');
-
-      await setupFedCmHeaderRule();
-
-      expect(mockUpdateDynamicRules).not.toHaveBeenCalled();
-    });
+  it('expires abandoned grants and never authorizes arbitrary origins', async () => {
+    const { prepareAssertionRule } = await import('../fedcmHeaderRule');
+    await expect(prepareAssertionRule('https://evil.example', 7)).rejects.toThrow();
+    const grant = await prepareAssertionRule('https://atpassport.net', 7);
+    await vi.advanceTimersByTimeAsync(15000);
+    expect(dnr.updateSessionRules).toHaveBeenLastCalledWith({ removeRuleIds: [grant.ruleId] });
+  });
+  it('does not return a capability if DNR installation fails', async () => {
+    const { prepareAssertionRule, setupFedCmHeaderRule } = await import('../fedcmHeaderRule');
+    await setupFedCmHeaderRule();
+    dnr.updateSessionRules.mockRejectedValueOnce(new Error('denied'));
+    await expect(prepareAssertionRule('https://atpassport.net', 7)).rejects.toThrow('denied');
   });
 });

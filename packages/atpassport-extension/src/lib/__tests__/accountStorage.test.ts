@@ -96,7 +96,7 @@ describe('accountStorage', () => {
       expect(await getPushedAccounts('https://atpassport.net', 'firefox-default')).toEqual([]);
     });
 
-    it('retrieves legacy stored accounts when using default context', async () => {
+    it('does not expose legacy entries with unknown context provenance', async () => {
       const legacyAccounts = [
         { id: 'did:plc:legacy', name: 'LegacyUser', username: '@legacy' },
       ];
@@ -107,7 +107,7 @@ describe('accountStorage', () => {
       };
 
       const retrieved = await getPushedAccounts('https://atpassport.net', 'firefox-default');
-      expect(retrieved).toEqual(legacyAccounts);
+      expect(retrieved).toEqual([]);
 
       // But non-default container does NOT see legacy accounts
       expect(await getPushedAccounts('https://atpassport.net', 'firefox-container-1')).toEqual([]);

@@ -103,17 +103,9 @@ export async function getPushedAccounts(
   const key = getAccountStorageKey(origin, contextKey);
   if (!key) return [];
 
-  const normalized = normalizeIdpOrigin(origin)!;
-  const keysToQuery = [key];
-  const isDefault = normalizeContextKey(contextKey) === DEFAULT_CONTEXT_KEY;
-  if (isDefault) {
-    keysToQuery.push(`${STORAGE_KEY_PREFIX}${normalized}`);
-  }
-
-  const result = await browser.storage.local.get(keysToQuery);
-  const entry = (result[key] || (isDefault ? result[`${STORAGE_KEY_PREFIX}${normalized}`] : undefined)) as
-    | StoredIdpEntry
-    | undefined;
+  // Legacy entries have no reliable context provenance. Revisit the IdP to repush.
+  const result = await browser.storage.local.get([key]);
+  const entry = result[key] as StoredIdpEntry | undefined;
 
   if (!entry || !Array.isArray(entry.accounts)) {
     return [];

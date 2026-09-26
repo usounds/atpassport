@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useSyncExternalStore } from 'react';
-import { Button, Group, Text, Collapse, Badge, Paper, Stack } from '@mantine/core';
+import { Button, Group, Text, Collapse, Badge, Paper, Stack, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconBrowser, IconCheck, IconChevronDown, IconChevronUp, IconX } from '@tabler/icons-react';
 import { useTranslations } from 'next-intl';
@@ -24,11 +24,8 @@ export function IdpRegistrationControl() {
     () => false
   );
 
-  if (!supported) {
-    return null;
-  }
-
   const handleRegister = async () => {
+    if (!supported) return;
     setLoading(true);
     try {
       const res = await registerIdp();
@@ -53,6 +50,7 @@ export function IdpRegistrationControl() {
   };
 
   const handleUnregister = async () => {
+    if (!supported) return;
     setLoading(true);
     try {
       const res = await unregisterIdp();
@@ -101,25 +99,41 @@ export function IdpRegistrationControl() {
             {t('idp_registration_desc')}
           </Text>
 
+          {!supported && (
+            <Text size="xs" c="dimmed" fs="italic">
+              {t('idp_not_supported')}
+            </Text>
+          )}
+
           <Group gap="xs" mt={4}>
-            <Button
-              size="xs"
-              variant="light"
-              color="violet"
-              onClick={handleRegister}
-              loading={loading}
-            >
-              {t('idp_register_button')}
-            </Button>
-            <Button
-              size="xs"
-              variant="subtle"
-              color="gray"
-              onClick={handleUnregister}
-              loading={loading}
-            >
-              {t('idp_unregister_button')}
-            </Button>
+            <Tooltip label={t('idp_not_supported')} disabled={supported}>
+              <span tabIndex={supported ? undefined : 0} style={{ display: 'inline-block' }}>
+                <Button
+                  size="xs"
+                  variant="light"
+                  color="violet"
+                  onClick={handleRegister}
+                  loading={loading}
+                  disabled={!supported}
+                >
+                  {t('idp_register_button')}
+                </Button>
+              </span>
+            </Tooltip>
+            <Tooltip label={t('idp_not_supported')} disabled={supported}>
+              <span tabIndex={supported ? undefined : 0} style={{ display: 'inline-block' }}>
+                <Button
+                  size="xs"
+                  variant="subtle"
+                  color="gray"
+                  onClick={handleUnregister}
+                  loading={loading}
+                  disabled={!supported}
+                >
+                  {t('idp_unregister_button')}
+                </Button>
+              </span>
+            </Tooltip>
           </Group>
         </Stack>
       </Collapse>

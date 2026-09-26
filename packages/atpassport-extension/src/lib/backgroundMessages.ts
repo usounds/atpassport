@@ -1,3 +1,4 @@
+import { prepareAssertionRule, releaseAssertionRule } from './fedcmHeaderRule';
 import { browser } from 'wxt/browser';
 import { HandleManager, getDefaultIdpOrigin } from '@/lib/HandleManager';
 import {
@@ -17,6 +18,7 @@ export interface BackgroundMessagePayload {
   configURL?: string;
   clientId?: string;
   accountId?: string;
+  ruleId?: number;
 }
 
 export interface MessageSender {
@@ -28,23 +30,26 @@ export interface MessageSender {
     incognito?: boolean;
   };
   origin?: string;
+  frameId?: number;
 }
 
 export interface BackgroundMessageResponse {
   success: boolean;
   accounts?: unknown[];
   token?: string;
+  assertionUrl?: string;
+  ruleId?: number;
   error?: string;
 }
 
-function getSenderContext(sender: MessageSender): { isPrivate: boolean; contextKey: string } {
+function getSenderContext(sender: MessageSender): { isPrivate: boolean; contextKey: string; unknownContext: boolean } {
   const isPrivate = Boolean(
     sender.tab?.incognito ||
     sender.tab?.cookieStoreId === 'firefox-private' ||
     sender.tab?.cookieStoreId?.includes('private')
   );
   const contextKey = sender.tab?.cookieStoreId || 'firefox-default';
-  return { isPrivate, contextKey };
+  return { isPrivate, contextKey, unknownContext: Boolean(sender.tab && !sender.tab.cookieStoreId) };
 }
 
 /**
@@ -58,45 +63,49 @@ export async function handleBackgroundMessage(
     return { success: false, error: 'Invalid message' };
   }
 
-  if (message.type === 'FETCH_ACCOUNTS') {
+  if (message.type === 'PREPARE_ASSERTION' || message.type === 'RELEASE_ASSERTION') {
+    const { isPrivate, unknownContext } = getSenderContext(sender);
+    const tabId = sender.tab?.id;
+    if (isPrivate || unknownContext || tabId === undefined || sender.frameId !== 0 || !sender.url) {
+      return { success: false, error: 'Unsupported assertion context' };
+    }
     try {
-      const origin = normalizeIdpOrigin(message.origin || getDefaultIdpOrigin()) || getDefaultIdpOrigin();
-      const accountsEndpoint = `${origin}/api/fedcm/accounts`;
-      try {
-        const response = await fetch(accountsEndpoint, {
-          credentials: 'include',
-        });
-        if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data?.accounts)) {
-            const accounts = data.accounts.map((acc: { id?: string; name?: string; username?: string; picture?: string }) => ({
-              handle: acc.username ? (acc.username.startsWith('@') ? acc.username : `@${acc.username}`) : `@${acc.name || ''}`,
-              displayName: acc.name,
-              avatar: acc.picture,
-              did: acc.id,
-            }));
-            return { success: true, accounts };
-          }
-        }
-      } catch {
-        // Fallback to legacy handles endpoint
+      const rp = new URL(sender.url);
+      if (rp.protocol !== 'https:' && !(rp.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(rp.hostname))) {
+        throw new Error('Invalid RP origin');
       }
+      if (message.type === 'RELEASE_ASSERTION') {
+        if (typeof message.ruleId !== 'number') throw new Error('Invalid rule');
+        await releaseAssertionRule(message.ruleId, tabId);
+        return { success: true };
+      }
+      const origin = normalizeIdpOrigin(message.origin || '');
+      if (!origin || !isAtPassportOrigin(origin)) throw new Error('Invalid IdP');
+      return { success: true, ...await prepareAssertionRule(origin, tabId) };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  }
 
-      const endpoint = `${origin}/api/user/handles`;
-      const manager = new HandleManager(endpoint);
-      const accounts = await manager.fetchAccounts();
+  if (message.type === 'FETCH_ACCOUNTS') {
+    const { isPrivate, contextKey, unknownContext } = getSenderContext(sender);
+    if (isPrivate || unknownContext || contextKey !== 'firefox-default') {
+      return { success: false, error: 'Open AtPassport in this context to synchronize accounts' };
+    }
+    try {
+      const origin = normalizeIdpOrigin(message.origin || getDefaultIdpOrigin());
+      if (!origin || !isAtPassportOrigin(origin)) throw new Error('Invalid origin');
+      // Legacy default-context only. Never grant a FedCM header to list requests.
+      const accounts = await new HandleManager(`${origin}/api/user/handles`).fetchAccounts();
       return { success: true, accounts };
-    } catch (err) {
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : String(err),
-      };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
     }
   }
 
   if (message.type === 'SAVE_PUSHED_ACCOUNTS') {
-    const { isPrivate, contextKey } = getSenderContext(sender);
-    if (isPrivate) {
+    const { isPrivate, contextKey, unknownContext } = getSenderContext(sender);
+    if (isPrivate || unknownContext) {
       console.warn('[Background] SAVE_PUSHED_ACCOUNTS rejected: Private browsing context not supported for account storage');
       return { success: false, error: 'Private browsing context is not supported for account storage' };
     }
@@ -120,9 +129,6 @@ export async function handleBackgroundMessage(
       }
     }
 
-    if (!senderOrigin && sender.tab && message.origin && isAtPassportOrigin(message.origin)) {
-      senderOrigin = message.origin;
-    }
 
     console.log('[Background] SAVE_PUSHED_ACCOUNTS request received:', {
       messageOrigin: message.origin,
@@ -156,8 +162,8 @@ export async function handleBackgroundMessage(
   }
 
   if (message.type === 'GET_STORED_ACCOUNTS') {
-    const { isPrivate, contextKey } = getSenderContext(sender);
-    if (isPrivate) {
+    const { isPrivate, contextKey, unknownContext } = getSenderContext(sender);
+    if (isPrivate || unknownContext) {
       console.log('[Background] GET_STORED_ACCOUNTS: Returning empty accounts in private browsing context');
       return { success: true, accounts: [] };
     }
@@ -190,8 +196,8 @@ export async function handleBackgroundMessage(
   }
 
   if (message.type === 'CLEAR_STORED_ACCOUNTS') {
-    const { isPrivate, contextKey } = getSenderContext(sender);
-    if (isPrivate) {
+    const { isPrivate, contextKey, unknownContext } = getSenderContext(sender);
+    if (isPrivate || unknownContext) {
       return { success: true };
     }
 

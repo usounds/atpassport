@@ -40,14 +40,14 @@ sequenceDiagram
     ExtCont->>ExtCont: ネイティブ風アカウント選択シート表示
     Note over ExtCont: ユーザーがアカウントを選択
 
-    Note over ExtCont,Server: 【CORS プリフライト (OPTIONS)】
-    ExtCont->>Server: OPTIONS /api/fedcm/assertion (Origin: RP)
-    Server-->>ExtCont: 200 OK (CORS Headers 許可)
+    ExtCont->>ExtBG: PREPARE_ASSERTION（信頼された確認クリック後）
+    ExtBG-->>ExtCont: tab・POST限定の一時ルールとランダムURL
 
     Note over ExtCont,Server: 【アサーション要求 (POST)】
     ExtCont->>Server: POST /api/fedcm/assertion (client_id=RP_Origin, account_id=DID)<br/>※ DNRが Sec-Fetch-Dest: webidentity をネットワーク層で自動注入
     Server->>Server: validateFedCmClient: origin === client_id 確認 (未登録RPも許可)
     Server-->>ExtCont: 200 OK { token: "{\"v\":1,\"did\":\"...\",\"username\":\"...\"}" }
+    ExtCont->>ExtBG: RELEASE_ASSERTION（finally、失敗時も実行）
     ExtCont-->>RP: IdentityCredential { token } 返却
 ```
 
@@ -135,6 +135,7 @@ AtPassportが発行するトークンは、認証チケットや秘密情報で�
 拡張機能の `manifest.json` に `"storage"` 権限を追加します。
 ```typescript
 permissions: [
+  'cookies', // Firefoxでtab.cookieStoreIdを取得するため
   'activeTab',
   'storage',
   // firefox only
@@ -178,7 +179,7 @@ export const STORAGE_KEY_PREFIX = 'fedcm_idp_accounts:';
     var savePromise = new Promise(function(resolve, reject) {
       var timeoutId = setTimeout(function() {
         window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler);
-        resolve(); // 拡張機能無応答時のフォールバック
+        reject(new Error('Account storage acknowledgement timed out'));
       }, 3000);
 
       var responseHandler = function(e) {
@@ -206,7 +207,7 @@ export const STORAGE_KEY_PREFIX = 'fedcm_idp_accounts:';
       } catch (dispatchErr) {
         clearTimeout(timeoutId);
         window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler);
-        resolve();
+        reject(new Error('Failed to dispatch account storage request'));
       }
     });
 
@@ -244,23 +245,32 @@ resolve({ token: fakeToken });
 これは完全なローカルモックであり、サーバーとの整合性検証（セッションや関連付けの存在確認）が行われていませんでした。
 
 #### 正規エンドポイント `/api/fedcm/assertion` への接続
-Step 0 で導入・実機検証した `declarativeNetRequest` ルール（ルールID 1001）により、拡張機能から `https://atpassport.net/api/fedcm/*` へのリクエストにはブラウザネットワーク層で `Sec-Fetch-Dest: webidentity` が自動注入されます。
+旧ルール1001による全リクエストへの注入は撤去する。起動時に旧dynamic ruleと残存する専用session ruleを削除し、ユーザーの信頼された確認クリック後に限り `PREPARE_ASSERTION` を送る。
+
+backgroundはruntime senderのトップフレーム・タブ・Origin・コンテキストを確認し、推測困難な `extension_request` 付きURLを発行する。DNR session ruleはそのURLの完全一致・対象tabId・POSTだけを許可する。URLは拡張のisolated world内で扱い、ページイベントやログへ出さない。Content Scriptが10秒タイムアウト・リダイレクト拒否でfetchし、finallyで `RELEASE_ASSERTION` を送る。放置されたルールも15秒で削除する。これはセッション認証を代替せず、サーバーのOrigin/client_id・Cookie・関連付け検証は維持する。
+
+新経路のFirefox実機検証は別途必要であり、旧Step 0の検証結果をそのまま流用しない。
+
+一覧取得の制約：保存一覧が空でも、プライベート・非標準コンテナ・コンテキスト不明のタブではbackgroundのCookie付き一覧fetchへ戻らない。再訪によるPushが必要な失敗として扱う。標準コンテナの従来互換経路だけが `/api/user/handles` を使用する。コンテキスト不明の旧保存エントリは再利用しない。`cookies`権限のない状態を標準コンテナと仮定しない。
 
 アカウント選択時の処理フロー：
-1. ユーザーがポップアップでアカウントを選択。
+1. ユーザーがポップアップでアカウントを選択し、信頼された確認クリックを行う。合成クリックではAssertionを開始しない。
 2. 対象IdPの `id_assertion_endpoint`（例: `${idpOrigin}/api/fedcm/assertion`）に対して Content Script から `fetch` を実行：
    ```typescript
    const formData = new URLSearchParams();
    formData.append('client_id', window.location.origin);
    formData.append('account_id', selectedAccount.id);
 
-   const response = await fetch(idAssertionEndpoint, {
+   // PREPARE_ASSERTIONが返したランダムURLに対してのみ実行する。
+   const response = await fetch(grant.assertionUrl, {
      method: 'POST',
      headers: {
        'Content-Type': 'application/x-www-form-urlencoded',
      },
      body: formData.toString(),
-     credentials: 'include', // SameSite=None な FedCM セッションCookieを送信
+     credentials: 'include', // 要求元タブのコンテキストを維持
+     redirect: 'error',
+     signal: AbortSignal.timeout(10000),
    });
    ```
 3. **実行コンテキストに関する考慮とCSPハンドリング**:

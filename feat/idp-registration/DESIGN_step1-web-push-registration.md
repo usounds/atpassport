@@ -170,38 +170,18 @@ export function hasIdpRegistrationSupport(): boolean {
 
 ---
 
-### 4.2 アカウント変更イベントとの連動箇所
+### 4.2 アカウント変更イベントとの連動
 
-以下のすべてのハンドル変更ライフサイクルにおいて、バックグラウンドでの `syncAccountsPush` をトリガーします。
+`AssociationListClient` と `AuthAccountList` は `useAccountList` を共用する。
 
-1. **一覧読み込み完了・再訪時 (`AssociationListClient.tsx`)**:
-   - プロフィール解決完了時に最新一覧を全件Push。
-   ```typescript
-   useEffect(() => {
-     if (items.length > 0) {
-       void syncAccountsPush(items.map(toFedCmAccount));
-     }
-   }, [items]);
-   ```
-2. **ハンドル新規追加時 (`RegisterForm.tsx`)**:
-   - 既存のインライン `navigator.login.setStatus` を `syncAccountsPush` の呼び出しに置換。
-3. **ハンドル並べ替え時 (`AssociationListClient.tsx` `handleMove`)**:
-   - 順序変更後の並び順でPush。
-   ```typescript
-   setItems(newItems);
-   await moveAssociation(did, direction);
-   void syncAccountsPush(newItems.map(toFedCmAccount));
-   ```
-4. **ハンドル削除時 (`AssociationListClient.tsx` `handleDelete`)**:
-   - 削除後の残アカウントでPush。0件になった場合は自動的に `logged-out` が通知される。
-   ```typescript
-   const nextItems = items.filter(item => item.did !== did);
-   setItems(nextItems);
-   await removeAssociation(did);
-   void syncAccountsPush(nextItems.map(toFedCmAccount));
-   ```
-5. **端末間同期完了時 (`AuthAccountList.tsx`)**:
-   - 共有トークン等でセッションが切り替わり、新一覧を取得した直後にPush。
+- サーバーから受け取った初期一覧を全件Pushする。プロフィール取得結果はeffectの取消しと世代番号で検証し、削除・並べ替え・新しいprops・アンマウント後に古い一覧を再Pushしない。
+- 楽観的更新は画面表示だけに使う。同一コンポーネント内の変更は直列化する。
+- `removeAssociation` / `moveAssociation` は `{ success: true, associations }` または `{ success: false, error }` を返す。セッションなし・対象なしを成功扱いにしない。
+- 更新後はDynamoDBの整合性の強い読出しで確定一覧を取得し、その返却一覧だけをPushする。失敗時は画面を戻し、楽観的な一覧をPushしない。
+- `RegisterForm` も `registerHandle` が返す確定一覧をPushする。端末同期・再訪による新propsも同じ共通経路へ渡す。
+- プロフィールだけの再取得は画面表示に反映し、サーバーから再取得された一覧をPushの正本とする。
+
+回帰テストは遅延プロフィール応答、更新中の追加操作、セッション失効、サーバー一覧と画面の予測一覧が異なるケースを含む。
 
 ---
 

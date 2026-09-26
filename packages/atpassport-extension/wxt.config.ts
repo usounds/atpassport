@@ -21,7 +21,7 @@ export default defineConfig({
       'scripting',
       'clipboardWrite',
       'storage',
-      ...(env.browser === 'firefox' ? ['declarativeNetRequest'] : []),
+      ...(env.browser === 'firefox' ? ['declarativeNetRequest', 'cookies'] : []),
     ],
     host_permissions: [
       'https://atpassport.net/*',
