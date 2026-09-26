@@ -8,7 +8,7 @@ import {
   refreshSession,
   setFedCmSessionCookie,
 } from './session';
-import { getAssociations, updateAssociation, deleteAssociation, addAssociation } from './models';
+import { getAssociations, updateAssociation, deleteAssociation, addAssociation, type IdentityAssociation } from './models';
 import { resolveIdentity, resolveDidDocument } from './atproto-server';
 import { getUuidByShareToken, deleteShareToken } from './share';
 import { cookies, headers } from 'next/headers';
@@ -163,7 +163,7 @@ export async function withdrawDomainViaOAuth(did: string) {
   return await withdrawDomain(identity.handle, did);
 }
 
-export async function registerHandle(handle: string): Promise<{ success: boolean; error?: string }> {
+export async function registerHandle(handle: string): Promise<{ success: boolean; error?: string; associations?: IdentityAssociation[] }> {
   try {
     const validation = handleSchema.safeParse(handle);
     if (!validation.success) {
@@ -208,7 +208,8 @@ export async function registerHandle(handle: string): Promise<{ success: boolean
     
     revalidatePath('/[locale]', 'page');
     await refreshSession();
-    return { success: true };
+    const updatedAssociations = await getAssociations(uuid);
+    return { success: true, associations: updatedAssociations };
   } catch (error) {
     console.error('[ServerAction:registerHandle] ERROR:', error);
     return { success: false, error: "Internal server error" };

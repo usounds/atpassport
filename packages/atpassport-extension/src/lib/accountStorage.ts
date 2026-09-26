@@ -37,31 +37,50 @@ export function normalizeIdpOrigin(origin: string): string | null {
   }
 }
 
-export function getAccountStorageKey(origin: string): string | null {
+export const DEFAULT_CONTEXT_KEY = 'firefox-default';
+
+export function normalizeContextKey(contextKey?: string): string {
+  if (!contextKey || typeof contextKey !== 'string') return DEFAULT_CONTEXT_KEY;
+  const trimmed = contextKey.trim();
+  return trimmed.length > 0 ? trimmed : DEFAULT_CONTEXT_KEY;
+}
+
+export function getAccountStorageKey(
+  origin: string,
+  contextKey: string = DEFAULT_CONTEXT_KEY
+): string | null {
   const normalized = normalizeIdpOrigin(origin);
-  return normalized ? `${STORAGE_KEY_PREFIX}${normalized}` : null;
+  if (!normalized) return null;
+  const ctx = normalizeContextKey(contextKey);
+  return `${STORAGE_KEY_PREFIX}${ctx}:${normalized}`;
 }
 
 /**
- * Saves pushed accounts for a specific IdP origin in browser.storage.local.
+ * Saves pushed accounts for a specific IdP origin and context in browser.storage.local.
  * If accounts is empty, the stored entry for this IdP is removed (logged-out state).
  */
 export async function savePushedAccounts(
   origin: string,
-  accounts: StoredAccount[]
+  accounts: StoredAccount[],
+  contextKey: string = DEFAULT_CONTEXT_KEY
 ): Promise<void> {
-  const key = getAccountStorageKey(origin);
+  const key = getAccountStorageKey(origin, contextKey);
   if (!key) {
     throw new Error(`Invalid IdP origin: ${origin}`);
   }
 
+  const normalized = normalizeIdpOrigin(origin)!;
+
   if (!accounts || accounts.length === 0) {
     await browser.storage.local.remove(key);
+    if (normalizeContextKey(contextKey) === DEFAULT_CONTEXT_KEY) {
+      await browser.storage.local.remove(`${STORAGE_KEY_PREFIX}${normalized}`);
+    }
     return;
   }
 
   const entry: StoredIdpEntry = {
-    origin: normalizeIdpOrigin(origin)!,
+    origin: normalized,
     accounts: accounts.map((acc) => ({
       id: String(acc.id),
       name: String(acc.name || acc.username || acc.id),
@@ -75,14 +94,27 @@ export async function savePushedAccounts(
 }
 
 /**
- * Retrieves pushed accounts for a specific IdP origin.
+ * Retrieves pushed accounts for a specific IdP origin and context.
  */
-export async function getPushedAccounts(origin: string): Promise<StoredAccount[]> {
-  const key = getAccountStorageKey(origin);
+export async function getPushedAccounts(
+  origin: string,
+  contextKey: string = DEFAULT_CONTEXT_KEY
+): Promise<StoredAccount[]> {
+  const key = getAccountStorageKey(origin, contextKey);
   if (!key) return [];
 
-  const result = await browser.storage.local.get(key);
-  const entry = result[key] as StoredIdpEntry | undefined;
+  const normalized = normalizeIdpOrigin(origin)!;
+  const keysToQuery = [key];
+  const isDefault = normalizeContextKey(contextKey) === DEFAULT_CONTEXT_KEY;
+  if (isDefault) {
+    keysToQuery.push(`${STORAGE_KEY_PREFIX}${normalized}`);
+  }
+
+  const result = await browser.storage.local.get(keysToQuery);
+  const entry = (result[key] || (isDefault ? result[`${STORAGE_KEY_PREFIX}${normalized}`] : undefined)) as
+    | StoredIdpEntry
+    | undefined;
+
   if (!entry || !Array.isArray(entry.accounts)) {
     return [];
   }
@@ -91,10 +123,17 @@ export async function getPushedAccounts(origin: string): Promise<StoredAccount[]
 }
 
 /**
- * Clears pushed accounts for an IdP origin.
+ * Clears pushed accounts for an IdP origin and context.
  */
-export async function clearPushedAccounts(origin: string): Promise<void> {
-  const key = getAccountStorageKey(origin);
+export async function clearPushedAccounts(
+  origin: string,
+  contextKey: string = DEFAULT_CONTEXT_KEY
+): Promise<void> {
+  const key = getAccountStorageKey(origin, contextKey);
   if (!key) return;
   await browser.storage.local.remove(key);
+  if (normalizeContextKey(contextKey) === DEFAULT_CONTEXT_KEY) {
+    const normalized = normalizeIdpOrigin(origin)!;
+    await browser.storage.local.remove(`${STORAGE_KEY_PREFIX}${normalized}`);
+  }
 }

@@ -21,6 +21,9 @@ describe("FedCM helpers", () => {
       headers: { "sec-fetch-dest": "webidentity" },
     }))).toBe(true);
     expect(isFedCmRequest(new Request("https://atpassport.net"))).toBe(false);
+    expect(isFedCmRequest(new Request("https://atpassport.net", {
+      headers: { "x-atpassport-fedcm": "1" },
+    }))).toBe(false);
   });
 
   it("uses the public forwarded host for generated FedCM URLs", () => {

@@ -6,6 +6,7 @@ import { HandleManager } from '../HandleManager';
 vi.mock('../accountStorage', () => ({
   savePushedAccounts: vi.fn(),
   getPushedAccounts: vi.fn(),
+  clearPushedAccounts: vi.fn(),
   normalizeIdpOrigin: vi.fn((origin: string) => {
     try {
       const u = new URL(origin);
@@ -101,7 +102,6 @@ describe('handleBackgroundMessage', () => {
     });
   });
 
-
   describe('SAVE_PUSHED_ACCOUNTS', () => {
     it('should reject requests from unauthorized origins', async () => {
       const res = await handleBackgroundMessage(
@@ -114,6 +114,20 @@ describe('handleBackgroundMessage', () => {
       );
       expect(res.success).toBe(false);
       expect(res.error).toBe('Unauthorized sender origin');
+      expect(accountStorage.savePushedAccounts).not.toHaveBeenCalled();
+    });
+
+    it('should reject requests from private browsing context', async () => {
+      const res = await handleBackgroundMessage(
+        {
+          type: 'SAVE_PUSHED_ACCOUNTS',
+          origin: 'https://atpassport.net',
+          accounts: [],
+        },
+        { tab: { url: 'https://atpassport.net', incognito: true } }
+      );
+      expect(res.success).toBe(false);
+      expect(res.error).toContain('Private browsing');
       expect(accountStorage.savePushedAccounts).not.toHaveBeenCalled();
     });
 
@@ -131,7 +145,7 @@ describe('handleBackgroundMessage', () => {
       expect(accountStorage.savePushedAccounts).not.toHaveBeenCalled();
     });
 
-    it('should save accounts when sender is valid AtPassport origin', async () => {
+    it('should save accounts with sender container context', async () => {
       (accountStorage.savePushedAccounts as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
 
       const accounts = [{ id: 'did:plc:test', name: 'test', username: '@test.bsky.social' }];
@@ -141,11 +155,15 @@ describe('handleBackgroundMessage', () => {
           origin: 'https://atpassport.net',
           accounts,
         },
-        { tab: { url: 'https://atpassport.net/en' } }
+        { tab: { url: 'https://atpassport.net/en', cookieStoreId: 'firefox-container-2' } }
       );
 
       expect(res.success).toBe(true);
-      expect(accountStorage.savePushedAccounts).toHaveBeenCalledWith('https://atpassport.net', accounts);
+      expect(accountStorage.savePushedAccounts).toHaveBeenCalledWith(
+        'https://atpassport.net',
+        accounts,
+        'firefox-container-2'
+      );
     });
 
     it('should allow save accounts in local development', async () => {
@@ -161,12 +179,16 @@ describe('handleBackgroundMessage', () => {
       );
 
       expect(res.success).toBe(true);
-      expect(accountStorage.savePushedAccounts).toHaveBeenCalledWith('http://localhost:3000', []);
+      expect(accountStorage.savePushedAccounts).toHaveBeenCalledWith(
+        'http://localhost:3000',
+        [],
+        'firefox-default'
+      );
     });
   });
 
   describe('GET_STORED_ACCOUNTS', () => {
-    it('should retrieve accounts by origin', async () => {
+    it('should retrieve accounts by origin and contextKey', async () => {
       const mockAccounts = [{ id: 'did:plc:123', name: 'User', username: '@user' }];
       (accountStorage.getPushedAccounts as ReturnType<typeof vi.fn>).mockResolvedValue(mockAccounts);
 
@@ -175,12 +197,29 @@ describe('handleBackgroundMessage', () => {
           type: 'GET_STORED_ACCOUNTS',
           origin: 'https://atpassport.net',
         },
-        {}
+        { tab: { cookieStoreId: 'firefox-container-1' } }
       );
 
       expect(res.success).toBe(true);
       expect(res.accounts).toEqual(mockAccounts);
-      expect(accountStorage.getPushedAccounts).toHaveBeenCalledWith('https://atpassport.net');
+      expect(accountStorage.getPushedAccounts).toHaveBeenCalledWith(
+        'https://atpassport.net',
+        'firefox-container-1'
+      );
+    });
+
+    it('should return empty accounts in private browsing context', async () => {
+      const res = await handleBackgroundMessage(
+        {
+          type: 'GET_STORED_ACCOUNTS',
+          origin: 'https://atpassport.net',
+        },
+        { tab: { incognito: true } }
+      );
+
+      expect(res.success).toBe(true);
+      expect(res.accounts).toEqual([]);
+      expect(accountStorage.getPushedAccounts).not.toHaveBeenCalled();
     });
 
     it('should retrieve accounts by configURL', async () => {
@@ -197,7 +236,10 @@ describe('handleBackgroundMessage', () => {
 
       expect(res.success).toBe(true);
       expect(res.accounts).toEqual(mockAccounts);
-      expect(accountStorage.getPushedAccounts).toHaveBeenCalledWith('https://dev.atpassport.net');
+      expect(accountStorage.getPushedAccounts).toHaveBeenCalledWith(
+        'https://dev.atpassport.net',
+        'firefox-default'
+      );
     });
 
     it('should reject invalid origins', async () => {
@@ -211,6 +253,26 @@ describe('handleBackgroundMessage', () => {
 
       expect(res.success).toBe(false);
       expect(res.error).toBe('Invalid origin');
+    });
+  });
+
+  describe('CLEAR_STORED_ACCOUNTS', () => {
+    it('should clear stored accounts for origin and context', async () => {
+      (accountStorage.clearPushedAccounts as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+
+      const res = await handleBackgroundMessage(
+        {
+          type: 'CLEAR_STORED_ACCOUNTS',
+          origin: 'https://atpassport.net',
+        },
+        { tab: { cookieStoreId: 'firefox-container-1' } }
+      );
+
+      expect(res.success).toBe(true);
+      expect(accountStorage.clearPushedAccounts).toHaveBeenCalledWith(
+        'https://atpassport.net',
+        'firefox-container-1'
+      );
     });
   });
 });

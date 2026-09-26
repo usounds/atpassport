@@ -10,7 +10,7 @@ import { publicAgent } from '@/lib/atproto';
 import { Link } from '@/i18n/routing';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { ok } from '@atcute/client';
-import { ensureFedCmSession } from '@/lib/fedcm-session-client';
+import { ensureFedCmSession, syncAccountsPush, toFedCmAccount } from '@/lib/fedcm-session-client';
 
 const MAX_HANDLES = 15;
 
@@ -68,6 +68,9 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
           setError(res.error || t('invalid_handle'));
         }
         return;
+      }
+      if (res?.associations && res.associations.length > 0) {
+        void syncAccountsPush(res.associations.map(toFedCmAccount));
       }
       void ensureFedCmSession();
       setHandle('');

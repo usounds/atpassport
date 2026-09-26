@@ -14,8 +14,15 @@ vi.mock('wxt/browser', () => ({
   browser: {
     storage: {
       local: {
-        get: vi.fn(async (key: string) => {
-          return key in mockStorage ? { [key]: mockStorage[key] } : {};
+        get: vi.fn(async (keys: string | string[]) => {
+          if (Array.isArray(keys)) {
+            const res: Record<string, unknown> = {};
+            for (const k of keys) {
+              if (k in mockStorage) res[k] = mockStorage[k];
+            }
+            return res;
+          }
+          return keys in mockStorage ? { [keys]: mockStorage[keys] } : {};
         }),
         set: vi.fn(async (items: Record<string, unknown>) => {
           Object.assign(mockStorage, items);
@@ -45,9 +52,12 @@ describe('accountStorage', () => {
       expect(normalizeIdpOrigin('invalid-url')).toBeNull();
     });
 
-    it('generates correct storage keys', () => {
+    it('generates correct storage keys with context', () => {
       expect(getAccountStorageKey('https://atpassport.net')).toBe(
-        'fedcm_idp_accounts:https://atpassport.net'
+        'fedcm_idp_accounts:firefox-default:https://atpassport.net'
+      );
+      expect(getAccountStorageKey('https://atpassport.net', 'firefox-container-1')).toBe(
+        'fedcm_idp_accounts:firefox-container-1:https://atpassport.net'
       );
       expect(getAccountStorageKey('invalid')).toBeNull();
     });
@@ -68,6 +78,39 @@ describe('accountStorage', () => {
 
       const retrieved = await getPushedAccounts('https://atpassport.net');
       expect(retrieved).toEqual(accounts);
+    });
+
+    it('isolates accounts across containers', async () => {
+      const workAccounts = [
+        { id: 'did:plc:work', name: 'WorkAlice', username: '@work.bsky.social' },
+      ];
+      const personalAccounts = [
+        { id: 'did:plc:personal', name: 'PersonalAlice', username: '@personal.bsky.social' },
+      ];
+
+      await savePushedAccounts('https://atpassport.net', workAccounts, 'firefox-container-2');
+      await savePushedAccounts('https://atpassport.net', personalAccounts, 'firefox-container-1');
+
+      expect(await getPushedAccounts('https://atpassport.net', 'firefox-container-2')).toEqual(workAccounts);
+      expect(await getPushedAccounts('https://atpassport.net', 'firefox-container-1')).toEqual(personalAccounts);
+      expect(await getPushedAccounts('https://atpassport.net', 'firefox-default')).toEqual([]);
+    });
+
+    it('retrieves legacy stored accounts when using default context', async () => {
+      const legacyAccounts = [
+        { id: 'did:plc:legacy', name: 'LegacyUser', username: '@legacy' },
+      ];
+      mockStorage['fedcm_idp_accounts:https://atpassport.net'] = {
+        origin: 'https://atpassport.net',
+        accounts: legacyAccounts,
+        updatedAt: Date.now(),
+      };
+
+      const retrieved = await getPushedAccounts('https://atpassport.net', 'firefox-default');
+      expect(retrieved).toEqual(legacyAccounts);
+
+      // But non-default container does NOT see legacy accounts
+      expect(await getPushedAccounts('https://atpassport.net', 'firefox-container-1')).toEqual([]);
     });
 
     it('clears storage entry when empty array is saved', async () => {

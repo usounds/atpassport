@@ -118,15 +118,49 @@ export default defineUnlistedScript({
 
         const loginObj = {
           setStatus: async function (status: string, options?: unknown) {
-            try {
-              window.dispatchEvent(
-                new CustomEvent('atpassport-fedcm-setstatus', {
-                  detail: JSON.stringify({ status, options }),
-                })
-              );
-            } catch {
-              // ignore
-            }
+            const requestId = `status_${Math.random().toString(36).slice(2)}${Date.now()}`;
+
+            const savePromise = new Promise<void>((resolve, reject) => {
+              const timeoutId = setTimeout(() => {
+                window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler as EventListener);
+                resolve();
+              }, 3000);
+
+              const responseHandler = (e: CustomEvent) => {
+                try {
+                  const raw = e.detail;
+                  const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                  if (data && data.requestId === requestId) {
+                    clearTimeout(timeoutId);
+                    window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler as EventListener);
+                    if (data.success) {
+                      resolve();
+                    } else {
+                      reject(new Error(data.error || 'Failed to save pushed accounts in extension'));
+                    }
+                  }
+                } catch {
+                  // ignore
+                }
+              };
+
+              window.addEventListener('atpassport-fedcm-setstatus-response', responseHandler as EventListener);
+
+              try {
+                window.dispatchEvent(
+                  new CustomEvent('atpassport-fedcm-setstatus', {
+                    detail: JSON.stringify({ requestId, status, options }),
+                  })
+                );
+              } catch {
+                clearTimeout(timeoutId);
+                window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler as EventListener);
+                resolve();
+              }
+            });
+
+            await savePromise;
+
             if (origSetStatusFn) {
               try {
                 return await origSetStatusFn(status, options);

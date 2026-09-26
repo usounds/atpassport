@@ -162,10 +162,10 @@ export interface StoredIdpEntry {
 export const STORAGE_KEY_PREFIX = 'fedcm_idp_accounts:';
 ```
 - **秘密情報の非保持**: Cookie値、セッションJWT、OAuthトークン等は一切ストレージに保存しない。公開アカウント情報のみを保持。
-- **オリジン分離**: IdPのオリジン（`https://atpassport.net` や `https://dev.atpassport.net`、`http://localhost:3000`）ごとに分離して保存。
-- **ログアウト時**: `accounts` が空配列または `logged-out` の場合、対象オリジンのエントリを安全に削除。
+- **コンテキストおよびオリジン分離**: 送信元タブのコンテキスト（`cookieStoreId`）および IdPのオリジンを組み合わせたキー（`${STORAGE_KEY_PREFIX}${contextKey}:${normalizedOrigin}`）ごとに分離して保存。Firefoxのマルチアカウントコンテナ（仕事用・個人用等）間の候補混在を防止する。またプライベートブラウジング環境（`incognito`）では、永続ストレージへの書き込みを拒否し、取得時も空配列を返して漏洩を防ぐ。
+- **ログアウト・失効連動**: `accounts` が空配列または `logged-out` の場合、対象コンテキスト・オリジンのエントリを安全に削除。さらにアサーション照会で 401 Unauthorized が返された場合も、対象コンテキストの一覧を即座に失効（クリア）させる。
 
-#### 3. Main World での `navigator.login.setStatus` インターセプトと悪意ある注入防止
+#### 3. Main World での `navigator.login.setStatus` インターセプトとストレージ保存完了保証
 `fedcm.content.ts`（Main Worldに注入されるインラインPolyfill）において：
 - `navigator.login` が存在しない場合は初期化し、`setStatus` をラップ：
   ```javascript
@@ -174,22 +174,58 @@ export const STORAGE_KEY_PREFIX = 'fedcm_idp_accounts:';
   }
   var origSetStatus = navigator.login.setStatus ? navigator.login.setStatus.bind(navigator.login) : null;
   navigator.login.setStatus = function(status, options) {
-    // 拡張機能側のブリッジイベントを発火
-    try {
-      window.dispatchEvent(new CustomEvent('atpassport-fedcm-setstatus', {
-        detail: JSON.stringify({ status: status, options: options })
-      }));
-    } catch (e) {}
-    if (origSetStatus) {
-      return origSetStatus(status, options);
-    }
-    return Promise.resolve();
+    var requestId = 'status_' + Math.random().toString(36).slice(2) + Date.now();
+    var savePromise = new Promise(function(resolve, reject) {
+      var timeoutId = setTimeout(function() {
+        window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler);
+        resolve(); // 拡張機能無応答時のフォールバック
+      }, 3000);
+
+      var responseHandler = function(e) {
+        try {
+          var raw = e.detail;
+          var data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+          if (data && data.requestId === requestId) {
+            clearTimeout(timeoutId);
+            window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler);
+            if (data.success) {
+              resolve();
+            } else {
+              reject(new Error(data.error || 'Failed to save pushed accounts in extension'));
+            }
+          }
+        } catch (err) {}
+      };
+
+      window.addEventListener('atpassport-fedcm-setstatus-response', responseHandler);
+
+      try {
+        window.dispatchEvent(new CustomEvent('atpassport-fedcm-setstatus', {
+          detail: JSON.stringify({ requestId: requestId, status: status, options: options })
+        }));
+      } catch (dispatchErr) {
+        clearTimeout(timeoutId);
+        window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler);
+        resolve();
+      }
+    });
+
+    return savePromise.then(function() {
+      if (origSetStatus) {
+        try {
+          return origSetStatus(status, options);
+        } catch (e) {
+          return Promise.resolve();
+        }
+      }
+      return Promise.resolve();
+    });
   };
   ```
 - **セキュリティ要件（偽アカウント注入攻撃の防止）**:
   `fedcm.content.ts` は `<all_urls>` で動作するため、悪意ある第三者サイトが `atpassport-fedcm-setstatus` イベントを偽装してユーザーの拡張ストレージを汚染するリスクがあります。
-  - **Content Script側の検証**: イベント受信時、`isAtPassportDomain(window.location.hostname)` を確認し、AtPassportドメイン（`atpassport.net`、`*.atpassport.net`、開発用 `localhost` 等）以外のページからのPushイベントは **即座に破棄** する。
-  - **Background Script側の検証**: メッセージ受信時、`sender.tab?.url` または `sender.origin` が正当なAtPassportオリジンであることを二重検証する。
+  - **Content Script側の検証**: イベント受信時、`isAtPassportDomain(window.location.hostname)` を確認し、AtPassportドメイン（`atpassport.net`、`*.atpassport.net`、開発用 `localhost` 等）以外のページからのPushイベントは **即座に破棄** しエラー応答を返す。
+  - **Background Script側の検証**: メッセージ受信時、`sender.tab?.url` または `sender.origin` が正当なAtPassportオリジンであることを二重検証する。さらにプライベートブラウジングタブからの保存要求は拒絶する。
 
 ---
 
@@ -232,7 +268,8 @@ Step 0 で導入・実機検証した `declarativeNetRequest` ルール（ルー
    - もしRPが非常に厳格な `Content-Security-Policy: connect-src` を設定している場合、ブラウザによって `atpassport.net` へのfetchがブロックされる可能性があります。その場合、fetchは例外（TypeError）となるため、Polyfill側で適切にキャッチし、RP側の既存Webリダイレクトフォールバックへ委ねる（動作を破壊しない）。
 4. **サーバー応答の検証**:
    - `200 OK`: レスポンスの `{ token }` を取り出し、`IdentityCredential` オブジェクトとして RP の `navigator.credentials.get` Promise を解決。
-   - `401 Unauthorized` / `403 Forbidden` / 通信エラー: サーバー側でセッション失効またはアカウント不一致と判定された場合、偽のトークンは発行せず、適切な例外（`NetworkError`）をスローしてRP側のフォールバック処理に委ねる。
+   - `401 Unauthorized`: サーバー側でセッション失効またはアカウント不一致と判定された場合、偽のトークンは発行せず、対象コンテキストのローカル保存済みアカウント一覧を失効（`CLEAR_STORED_ACCOUNTS` メッセージを送信）させ、`IdentityCredentialError` をスローしてRP側のフォールバック処理に委ねる。
+   - `403 Forbidden` / 5xx / 通信エラー: 一時的な通信障害等では保存済み一覧を保持し、適切な例外（`NetworkError`）をスローしてRP側のフォールバック処理に委ねる。
 
 ---
 

@@ -167,23 +167,56 @@ const INLINE_POLYFILL_CODE = `
 
       var loginObj = {
         setStatus: function(status, options) {
-          try {
-            console.log('[@passport Polyfill] navigator.login.setStatus called:', status, options);
-            window.dispatchEvent(new CustomEvent('atpassport-fedcm-setstatus', {
-              detail: JSON.stringify({ status: status, options: options })
-            }));
-          } catch (e) {
-            console.warn('[@passport Polyfill] setStatus dispatch error:', e);
-          }
+          console.log('[@passport Polyfill] navigator.login.setStatus called:', status, options);
+          var requestId = 'status_' + Math.random().toString(36).slice(2) + Date.now();
 
-          if (origSetStatus) {
+          var savePromise = new Promise(function(resolve, reject) {
+            var timeoutId = setTimeout(function() {
+              window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler);
+              resolve();
+            }, 3000);
+
+            var responseHandler = function(e) {
+              try {
+                var raw = e.detail;
+                var data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                if (data && data.requestId === requestId) {
+                  clearTimeout(timeoutId);
+                  window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler);
+                  if (data.success) {
+                    resolve();
+                  } else {
+                    reject(new Error(data.error || 'Failed to save pushed accounts in extension'));
+                  }
+                }
+              } catch (err) {
+                // ignore
+              }
+            };
+
+            window.addEventListener('atpassport-fedcm-setstatus-response', responseHandler);
+
             try {
-              return origSetStatus(status, options);
-            } catch (e) {
-              return Promise.resolve();
+              window.dispatchEvent(new CustomEvent('atpassport-fedcm-setstatus', {
+                detail: JSON.stringify({ requestId: requestId, status: status, options: options })
+              }));
+            } catch (dispatchErr) {
+              clearTimeout(timeoutId);
+              window.removeEventListener('atpassport-fedcm-setstatus-response', responseHandler);
+              resolve();
             }
-          }
-          return Promise.resolve();
+          });
+
+          return savePromise.then(function() {
+            if (origSetStatus) {
+              try {
+                return origSetStatus(status, options);
+              } catch (e) {
+                return Promise.resolve();
+              }
+            }
+            return Promise.resolve();
+          });
         }
       };
 
@@ -290,25 +323,55 @@ export default defineContentScript({
           console.log('[@passport] onSelect callback invoked for account:', selectedAccount);
           try {
             const accountId = selectedAccount.did || selectedAccount.handle.replace(/^@/, '');
-            console.log('[@passport] Delegating assertion to background, accountId:', accountId, 'clientId:', window.location.origin);
+            const assertionUrl = `${idpOrigin}/api/fedcm/assertion`;
+            const formData = new URLSearchParams();
+            formData.append('client_id', window.location.origin);
+            formData.append('account_id', accountId);
 
-            const res = await browser.runtime.sendMessage({
-              type: 'EXECUTE_ASSERTION',
-              origin: idpOrigin,
-              clientId: window.location.origin,
-              accountId,
+            console.log('[@passport] Fetching assertion from content script:', assertionUrl, 'clientId:', window.location.origin);
+            const response = await fetch(assertionUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: formData.toString(),
+              credentials: 'include',
             });
 
-            console.log('[@passport] Background assertion response:', res);
-            if (!res?.success || !res?.token) {
-              const errorDetail = res?.error || 'Failed to retrieve assertion token';
-              console.warn('[@passport] Assertion failed in background:', errorDetail);
-              throw new DOMException(errorDetail, 'NetworkError');
+            console.log('[@passport] Assertion response status:', response.status);
+
+            if (!response.ok) {
+              if (response.status === 401) {
+                try {
+                  await browser.runtime.sendMessage({
+                    type: 'CLEAR_STORED_ACCOUNTS',
+                    origin: idpOrigin,
+                  });
+                } catch (clearErr) {
+                  console.warn('[@passport] Failed to clear stored accounts on 401:', clearErr);
+                }
+              }
+
+              let errorDetail = `Assertion failed with HTTP ${response.status}`;
+              try {
+                const errJson = await response.json();
+                if (errJson?.error) {
+                  errorDetail = `${errJson.error}: ${errJson.error_description || ''}`;
+                }
+              } catch {
+                // ignore
+              }
+              throw new DOMException(errorDetail, response.status === 401 ? 'IdentityCredentialError' : 'NetworkError');
+            }
+
+            const data = await response.json();
+            if (!data?.token) {
+              throw new DOMException('Missing token in assertion response', 'NetworkError');
             }
 
             console.log('[@passport] Assertion succeeded, received token');
             flowResolve({
-              token: res.token,
+              token: data.token,
               type: 'identity',
             });
           } catch (err) {
@@ -369,14 +432,8 @@ export default defineContentScript({
     window.addEventListener('atpassport-fedcm-setstatus', async (event: Event) => {
       console.log('[@passport ContentScript] Received atpassport-fedcm-setstatus event on:', window.location.origin);
       try {
-        // Only accept push events if currently running on an AtPassport origin
-        if (!isAtPassportOrigin(window.location.origin)) {
-          console.log('[@passport ContentScript] Ignored setstatus: not an AtPassport origin:', window.location.origin);
-          return;
-        }
-
-        const customEvent = event as CustomEvent<string | { status: string; options?: { accounts?: StoredAccount[] } }>;
-        let detail: { status: string; options?: { accounts?: StoredAccount[] } } | null = null;
+        const customEvent = event as CustomEvent<string | { requestId?: string; status: string; options?: { accounts?: StoredAccount[] } }>;
+        let detail: { requestId?: string; status: string; options?: { accounts?: StoredAccount[] } } | null = null;
         try {
           const raw = customEvent.detail;
           detail = typeof raw === 'string' ? JSON.parse(raw) : raw;
@@ -385,6 +442,27 @@ export default defineContentScript({
         }
 
         if (!detail || typeof detail.status !== 'string') return;
+        const requestId = detail.requestId;
+
+        const respond = (success: boolean, error?: string) => {
+          if (!requestId) return;
+          try {
+            window.dispatchEvent(
+              new CustomEvent('atpassport-fedcm-setstatus-response', {
+                detail: JSON.stringify({ requestId, success, error }),
+              })
+            );
+          } catch {
+            // ignore
+          }
+        };
+
+        // Only accept push events if currently running on an AtPassport origin
+        if (!isAtPassportOrigin(window.location.origin)) {
+          console.log('[@passport ContentScript] Ignored setstatus: not an AtPassport origin:', window.location.origin);
+          respond(false, 'Unauthorized origin');
+          return;
+        }
 
         // 1. If status is 'logged-out', clear pushed accounts
         if (detail.status === 'logged-out') {
@@ -395,6 +473,7 @@ export default defineContentScript({
             accounts: [],
           });
           console.log('[@passport ContentScript] Clear accounts response:', res);
+          respond(Boolean(res?.success), res?.error);
           return;
         }
 
@@ -402,6 +481,7 @@ export default defineContentScript({
         if (detail.status === 'logged-in') {
           if (!detail.options || !Array.isArray(detail.options.accounts)) {
             console.log('[@passport ContentScript] Baseline setStatus("logged-in") without accounts received. Preserving existing stored accounts.');
+            respond(true);
             return;
           }
 
@@ -417,6 +497,7 @@ export default defineContentScript({
             accounts,
           });
           console.log('[@passport ContentScript] SAVE_PUSHED_ACCOUNTS response from background:', res);
+          respond(Boolean(res?.success), res?.error);
         }
       } catch (err) {
         console.warn('[@passport ContentScript] Failed to process atpassport-fedcm-setstatus:', err);

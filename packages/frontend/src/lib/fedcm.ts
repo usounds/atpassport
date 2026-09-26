@@ -17,8 +17,7 @@ export function getPublicRequestOrigin(request: Request): string {
 
 export function isFedCmRequest(request: Request): boolean {
   const dest = request.headers.get("sec-fetch-dest")?.toLowerCase();
-  if (dest === "webidentity") return true;
-  return request.headers.get("x-atpassport-fedcm") === "1";
+  return dest === "webidentity";
 }
 
 export function normalizeClientOrigin(value: string | null): string | null {
@@ -93,28 +92,10 @@ export async function isRegisteredFedCmClient(origin: string): Promise<boolean> 
 export async function validateFedCmClient(
   originHeader: string | null,
   clientId: string | null,
-  isExtensionRequest: boolean = false,
 ): Promise<{ origin: string; registration: VerifiedDomain | null } | null> {
   const normalizedClientId = normalizeClientOrigin(clientId);
   if (!normalizedClientId) {
     return null;
-  }
-
-  if (isExtensionRequest) {
-    if (normalizedClientId === "https://atpassport.net") {
-      return { origin: normalizedClientId, registration: null };
-    }
-    const { hostname } = new URL(normalizedClientId);
-    const isLoopback =
-      hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
-      hostname === "[::1]" ||
-      hostname.endsWith(".localhost");
-    if (isLoopback && process.env.NODE_ENV !== "production") {
-      return { origin: normalizedClientId, registration: null };
-    }
-    const registration = await getFedCmClientRegistration(normalizedClientId);
-    return { origin: normalizedClientId, registration };
   }
 
   const origin = normalizeClientOrigin(originHeader);

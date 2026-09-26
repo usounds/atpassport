@@ -22,7 +22,7 @@ export async function OPTIONS(request: Request) {
     headers: {
       ...fedCmCorsHeaders(normalizedOrigin),
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, X-AtPassport-FedCM",
+      "Access-Control-Allow-Headers": "Content-Type",
       "Access-Control-Max-Age": "86400",
     },
   });
@@ -30,7 +30,7 @@ export async function OPTIONS(request: Request) {
 
 export async function POST(request: Request) {
   if (!isFedCmRequest(request)) {
-    console.warn("[FedCM Assertion] Rejected: not a FedCM request (missing Sec-Fetch-Dest or X-AtPassport-FedCM)");
+    console.warn("[FedCM Assertion] Rejected: not a FedCM request (missing Sec-Fetch-Dest)");
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 
@@ -46,12 +46,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 
-  const isExtension =
-    request.headers.get("x-atpassport-fedcm") === "1" ||
-    Boolean(request.headers.get("origin")?.startsWith("moz-extension://"));
-  const client = await validateFedCmClient(request.headers.get("origin"), clientId, isExtension);
+  const client = await validateFedCmClient(request.headers.get("origin"), clientId);
   if (!client) {
-    console.warn("[FedCM Assertion] Rejected: invalid client", { origin: request.headers.get("origin"), clientId, isExtension });
+    console.warn("[FedCM Assertion] Rejected: invalid client", { origin: request.headers.get("origin"), clientId });
     return NextResponse.json({ error: "invalid_client" }, { status: 403 });
   }
 

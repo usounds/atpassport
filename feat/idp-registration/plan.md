@@ -321,6 +321,17 @@ Q1の状態は「DNRによる正規エンドポイント一本化方針で確定
 - Webリダイレクトは既存のfallback callbackの契約で提供する。ライブラリが無条件にリダイレクトすると記載しない。
 - Chromeのネイティブ経路とFirefoxの拡張経路を別々に検証する。
 
+#### Step 3レビュー反映（2026-09-26）
+
+詳細契約とテストは [Step 3設計仕様書](./DESIGN_step3-client-sdk-discovery.md) を参照する。M3については次の確定事項を適用する。
+
+- RP側は単数の `provider.type`、IdP config側は配列の `types`。SDKは `type?: string` を追加し、`discovery: 'types'` はモード名としてのみ使用する。
+- 既定は必ず `discovery: 'config'`。同期・非同期fallbackと既存configモードの契約を維持し、インスタンスAPIにも新オプションを転送する。
+- 新モードではネイティブの `NetworkError` をキャンセルと区別できると仮定しない。自動切替は確実な未対応に限定し、候補なし・キャンセル・不明な失敗・サーバー拒否では自動遷移しない。利用者の明示操作で別経路を開始する。既存configの広いfallback契約は本Stepで変更しないため、この新保証の対象外とする。
+- 拡張の `message.type` は操作種別のままとし、探索型は `providerType` に分離する。解決済みIdPと選択を結び付け、Assertionの通信先まで維持する。
+- 登録型で保存候補がない場合はno-matchとし、暗黙の `FETCH_ACCOUNTS` を禁止する。旧保存スキーマはconfig経路で維持し、再訪時の検証済みPushで型情報を更新する。
+- 対象仕様の版とブラウザ版を固定し、Chromeの閉じる/ESC・未対応時の再試行・ユーザー操作要件、本番/開発IdPの分離を検証する。
+
 ## 6. セキュリティ・同意・通信
 
 - backgroundがruntime送信者のURL/Origin、tab、frame、プライベート状態を検証する。ページが送るorigin、contextKey、IdP識別子を信頼しない。
@@ -366,6 +377,7 @@ Q1の状態は「DNRによる正規エンドポイント一本化方針で確定
 
 ### M3: RP側を段階的に切替
 
+- [ ] [Step 3設計仕様書](./DESIGN_step3-client-sdk-discovery.md) のレビュー反映契約・完了基準を満たす。
 - [ ] 開発者向けopt-inで登録型経路を試し、能力判定と旧configURL経路を検証する。
 - [ ] 未対応時のfallback、同意拒否、キャンセル、認可失敗を別々に扱う。
 - [ ] 第8節の検証を通し、一覧/config/画像/選択後通信を分けて計測する。

@@ -8,6 +8,7 @@ describe("FedCM config endpoint", () => {
 
     expect(response.status).toBe(200);
     expect(body).toMatchObject({
+      types: ["https://dev.atpassport.net"],
       accounts_endpoint: "/api/fedcm/accounts",
       client_metadata_endpoint: "/api/fedcm/client_metadata",
       id_assertion_endpoint: "/api/fedcm/assertion",

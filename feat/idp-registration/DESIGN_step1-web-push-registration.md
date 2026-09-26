@@ -125,9 +125,9 @@ export async function syncAccountsPush(accounts: FedCmAccount[]): Promise<void> 
 ```typescript
 export function getFedCmConfigUrl(): string {
   if (typeof window !== 'undefined' && window.location.origin) {
-    return `${window.location.origin}/api/fedcm/config.json`;
+    return `${window.location.origin}/fedcm/config.json`;
   }
-  return 'https://atpassport.net/api/fedcm/config.json';
+  return 'https://atpassport.net/fedcm/config.json';
 }
 
 export async function registerIdp(configURL: string = getFedCmConfigUrl()): Promise<{ success: boolean; error?: string }> {

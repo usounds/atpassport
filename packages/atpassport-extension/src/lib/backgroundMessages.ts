@@ -3,6 +3,7 @@ import { HandleManager, getDefaultIdpOrigin } from '@/lib/HandleManager';
 import {
   savePushedAccounts,
   getPushedAccounts,
+  clearPushedAccounts,
   normalizeIdpOrigin,
   type StoredAccount,
 } from '@/lib/accountStorage';
@@ -23,6 +24,8 @@ export interface MessageSender {
   tab?: {
     id?: number;
     url?: string;
+    cookieStoreId?: string;
+    incognito?: boolean;
   };
   origin?: string;
 }
@@ -32,6 +35,16 @@ export interface BackgroundMessageResponse {
   accounts?: unknown[];
   token?: string;
   error?: string;
+}
+
+function getSenderContext(sender: MessageSender): { isPrivate: boolean; contextKey: string } {
+  const isPrivate = Boolean(
+    sender.tab?.incognito ||
+    sender.tab?.cookieStoreId === 'firefox-private' ||
+    sender.tab?.cookieStoreId?.includes('private')
+  );
+  const contextKey = sender.tab?.cookieStoreId || 'firefox-default';
+  return { isPrivate, contextKey };
 }
 
 /**
@@ -52,9 +65,6 @@ export async function handleBackgroundMessage(
       try {
         const response = await fetch(accountsEndpoint, {
           credentials: 'include',
-          headers: {
-            'X-AtPassport-FedCM': '1',
-          },
         });
         if (response.ok) {
           const data = await response.json();
@@ -85,6 +95,12 @@ export async function handleBackgroundMessage(
   }
 
   if (message.type === 'SAVE_PUSHED_ACCOUNTS') {
+    const { isPrivate, contextKey } = getSenderContext(sender);
+    if (isPrivate) {
+      console.warn('[Background] SAVE_PUSHED_ACCOUNTS rejected: Private browsing context not supported for account storage');
+      return { success: false, error: 'Private browsing context is not supported for account storage' };
+    }
+
     let rawSenderUrl = sender.url || sender.tab?.url || sender.origin;
     let senderOrigin: string | null = null;
     try {
@@ -112,6 +128,7 @@ export async function handleBackgroundMessage(
       messageOrigin: message.origin,
       senderOrigin,
       accountsCount: message.accounts?.length,
+      contextKey,
     });
 
     if (!senderOrigin || !isAtPassportOrigin(senderOrigin)) {
@@ -126,8 +143,8 @@ export async function handleBackgroundMessage(
     }
 
     try {
-      await savePushedAccounts(targetOrigin, message.accounts || []);
-      console.log('[Background] Successfully saved pushed accounts for:', targetOrigin, 'count:', message.accounts?.length);
+      await savePushedAccounts(targetOrigin, message.accounts || [], contextKey);
+      console.log('[Background] Successfully saved pushed accounts for:', targetOrigin, 'context:', contextKey, 'count:', message.accounts?.length);
       return { success: true };
     } catch (err) {
       console.error('[Background] Failed to save pushed accounts:', err);
@@ -139,6 +156,12 @@ export async function handleBackgroundMessage(
   }
 
   if (message.type === 'GET_STORED_ACCOUNTS') {
+    const { isPrivate, contextKey } = getSenderContext(sender);
+    if (isPrivate) {
+      console.log('[Background] GET_STORED_ACCOUNTS: Returning empty accounts in private browsing context');
+      return { success: true, accounts: [] };
+    }
+
     let origin = message.origin;
     if (!origin && message.configURL) {
       try {
@@ -154,8 +177,8 @@ export async function handleBackgroundMessage(
     }
 
     try {
-      const accounts = await getPushedAccounts(normalized);
-      console.log('[Background] GET_STORED_ACCOUNTS for origin:', normalized, 'found accounts:', accounts.length);
+      const accounts = await getPushedAccounts(normalized, contextKey);
+      console.log('[Background] GET_STORED_ACCOUNTS for origin:', normalized, 'context:', contextKey, 'found accounts:', accounts.length);
       return { success: true, accounts };
     } catch (err) {
       console.error('[Background] Failed to get stored accounts:', err);
@@ -166,47 +189,23 @@ export async function handleBackgroundMessage(
     }
   }
 
-  if (message.type === 'EXECUTE_ASSERTION') {
+  if (message.type === 'CLEAR_STORED_ACCOUNTS') {
+    const { isPrivate, contextKey } = getSenderContext(sender);
+    if (isPrivate) {
+      return { success: true };
+    }
+
+    const normalized = normalizeIdpOrigin(message.origin || '');
+    if (!normalized) {
+      return { success: false, error: 'Invalid origin' };
+    }
+
     try {
-      const idpOrigin = normalizeIdpOrigin(message.origin || getDefaultIdpOrigin()) || getDefaultIdpOrigin();
-      const assertionUrl = `${idpOrigin}/api/fedcm/assertion`;
-      const formData = new URLSearchParams();
-      formData.append('client_id', message.clientId || '');
-      formData.append('account_id', message.accountId || '');
-
-      console.log('[Background] Fetching assertion:', assertionUrl, 'clientId:', message.clientId);
-      const response = await fetch(assertionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-AtPassport-FedCM': '1',
-        },
-        body: formData.toString(),
-        credentials: 'include',
-      });
-
-      console.log('[Background] Assertion response status:', response.status);
-
-      if (!response.ok) {
-        let errorDetail = `Assertion failed with HTTP ${response.status}`;
-        try {
-          const errJson = await response.json();
-          if (errJson?.error) {
-            errorDetail = `${errJson.error}: ${errJson.error_description || ''}`;
-          }
-        } catch {
-          // ignore
-        }
-        return { success: false, error: errorDetail };
-      }
-
-      const data = await response.json();
-      if (!data?.token) {
-        return { success: false, error: 'Missing token in assertion response' };
-      }
-
-      return { success: true, token: data.token };
+      await clearPushedAccounts(normalized, contextKey);
+      console.log('[Background] CLEAR_STORED_ACCOUNTS for origin:', normalized, 'context:', contextKey);
+      return { success: true };
     } catch (err) {
+      console.error('[Background] Failed to clear stored accounts:', err);
       return {
         success: false,
         error: err instanceof Error ? err.message : String(err),

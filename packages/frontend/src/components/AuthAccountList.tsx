@@ -9,6 +9,7 @@ import { refreshAssociation, removeAssociation, moveAssociation } from '@/lib/ac
 import { type AssociationWithProfile } from '@/lib/models';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { useProfileStore } from '@/lib/profile-store';
+import { toFedCmAccount, syncAccountsPush } from '@/lib/fedcm-session-client';
 
 export function AuthAccountList({ 
   initialItems, 
@@ -45,9 +46,11 @@ export function AuthAccountList({
   const [selectedItem, setSelectedItem] = useState<AssociationWithProfile | null>(null);
 
   useEffect(() => {
+    void syncAccountsPush(initialItems.map(toFedCmAccount));
+
     const fetchProfiles = async () => {
       // Find DIDs that don't have a profile in the current items
-      const didsToFetch = items
+      const didsToFetch = initialItems
         .filter(item => !item.profile)
         .map(item => item.did);
       
@@ -56,17 +59,21 @@ export function AuthAccountList({
       console.log('[AuthAccountList] Fetching profiles for %s missing items...', didsToFetch.length);
       const profilesMap = await useProfileStore.getState().fetchProfiles(didsToFetch);
       
-      setItems(prev => prev.map(item => {
-        const fetchedProfile = profilesMap[item.did];
-        if (fetchedProfile) {
-          return { ...item, profile: fetchedProfile };
-        }
-        return item;
-      }));
+      setItems(prev => {
+        const updated = prev.map(item => {
+          const fetchedProfile = profilesMap[item.did];
+          if (fetchedProfile) {
+            return { ...item, profile: fetchedProfile };
+          }
+          return item;
+        });
+        void syncAccountsPush(updated.map(toFedCmAccount));
+        return updated;
+      });
     };
 
     fetchProfiles();
-  }, [items]); // Run whenever items change to catch missing profiles
+  }, [initialItems]);
 
   const normalizePds = (url: string) => {
     try {
@@ -81,7 +88,19 @@ export function AuthAccountList({
   };
 
   const handleRefresh = async (did: string) => {
-    await refreshAssociation(did);
+    try {
+      await refreshAssociation(did);
+      const profilesMap = await useProfileStore.getState().fetchProfiles([did]);
+      if (profilesMap[did]) {
+        setItems(prev => {
+          const updated = prev.map(item => item.did === did ? { ...item, profile: profilesMap[did] } : item);
+          void syncAccountsPush(updated.map(toFedCmAccount));
+          return updated;
+        });
+      }
+    } catch (e) {
+      console.error('[AuthAccountList] Failed to refresh association:', e);
+    }
   };
 
   const handleSelect = (item: AssociationWithProfile) => {
@@ -90,17 +109,16 @@ export function AuthAccountList({
   };
 
   const handleDelete = async (did: string) => {
-    const hasRemainingAccount = items.some(item => item.did !== did);
-    setItems(prev => prev.filter(item => item.did !== did));
-    await removeAssociation(did);
-    if (!hasRemainingAccount) {
-      try {
-        await (navigator as Navigator & {
-          login?: { setStatus: (status: 'logged-in' | 'logged-out') => Promise<void> };
-        }).login?.setStatus('logged-out');
-      } catch {
-        // Login Status API is optional and does not affect removal success.
-      }
+    const previousItems = items;
+    const nextItems = items.filter(item => item.did !== did);
+    setItems(nextItems);
+
+    try {
+      await removeAssociation(did);
+      void syncAccountsPush(nextItems.map(toFedCmAccount));
+    } catch (e) {
+      console.error('[AuthAccountList] Failed to delete association:', e);
+      setItems(previousItems);
     }
   };
 
@@ -117,8 +135,16 @@ export function AuthAccountList({
       return;
     }
 
+    const previousItems = items;
     setItems(newItems);
-    await moveAssociation(did, direction);
+
+    try {
+      await moveAssociation(did, direction);
+      void syncAccountsPush(newItems.map(toFedCmAccount));
+    } catch (e) {
+      console.error('[AuthAccountList] Failed to move association:', e);
+      setItems(previousItems);
+    }
   };
 
   if (authenticating && selectedItem) {

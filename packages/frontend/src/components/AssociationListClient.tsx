@@ -12,6 +12,8 @@ export function AssociationListClient({ initialItems }: { initialItems: Associat
   const [items, setItems] = useState(initialItems);
 
   useEffect(() => {
+    void syncAccountsPush(initialItems.map(toFedCmAccount));
+
     const fetchProfiles = async () => {
       const dids = initialItems.map(item => item.did);
       if (dids.length === 0) return;
@@ -19,10 +21,12 @@ export function AssociationListClient({ initialItems }: { initialItems: Associat
       console.log('[AssociationListClient] Fetching profiles for %s items...', dids.length);
       const profilesMap = await useProfileStore.getState().fetchProfiles(dids);
       
-      setItems(prev => prev.map(item => ({
+      const updated = initialItems.map(item => ({
         ...item,
         profile: profilesMap[item.did] || item.profile
-      })));
+      }));
+      setItems(updated);
+      void syncAccountsPush(updated.map(toFedCmAccount));
     };
 
     fetchProfiles();
@@ -34,11 +38,6 @@ export function AssociationListClient({ initialItems }: { initialItems: Associat
     setItems(initialItems);
     setPrevInitialItems(initialItems);
   }
-
-  // Synchronize current accounts list with browser via FedCM Accounts Push
-  useEffect(() => {
-    void syncAccountsPush(items.map(toFedCmAccount));
-  }, [items]);
 
   const handleMove = async (did: string, direction: 'up' | 'down') => {
     const index = items.findIndex(item => item.did === did);
@@ -53,22 +52,46 @@ export function AssociationListClient({ initialItems }: { initialItems: Associat
       return;
     }
 
+    const previousItems = items;
     setItems(newItems);
-    await moveAssociation(did, direction);
+
+    try {
+      await moveAssociation(did, direction);
+      void syncAccountsPush(newItems.map(toFedCmAccount));
+    } catch (e) {
+      console.error('[AssociationListClient] Failed to move association:', e);
+      setItems(previousItems);
+    }
   };
 
   const handleDelete = async (did: string) => {
+    const previousItems = items;
     const nextItems = items.filter(item => item.did !== did);
     setItems(nextItems);
-    void syncAccountsPush(nextItems.map(toFedCmAccount));
-    await removeAssociation(did);
+
+    try {
+      await removeAssociation(did);
+      void syncAccountsPush(nextItems.map(toFedCmAccount));
+    } catch (e) {
+      console.error('[AssociationListClient] Failed to remove association:', e);
+      setItems(previousItems);
+    }
   };
 
   const handleRefresh = async (did: string) => {
-    // For refresh, we might want to update the specific item after the server action
-    await refreshAssociation(did);
-    // Note: Since we're using client state, we might need a way to get the updated profile back.
-    // For now, let's just trigger the action.
+    try {
+      await refreshAssociation(did);
+      const profilesMap = await useProfileStore.getState().fetchProfiles([did]);
+      if (profilesMap[did]) {
+        setItems(prev => {
+          const updated = prev.map(item => item.did === did ? { ...item, profile: profilesMap[did] } : item);
+          void syncAccountsPush(updated.map(toFedCmAccount));
+          return updated;
+        });
+      }
+    } catch (e) {
+      console.error('[AssociationListClient] Failed to refresh association:', e);
+    }
   };
 
   return (
