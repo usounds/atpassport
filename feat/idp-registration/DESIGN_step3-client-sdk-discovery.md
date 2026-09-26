@@ -34,13 +34,16 @@ sequenceDiagram
         Store-->>BG: 保存一覧とIdP識別情報
         BG-->>Ext: { success: true, status: 'matched', idp, accounts }
         Ext->>Ext: 一覧表示・ユーザー選択
+        Ext->>BG: PREPARE_ASSERTION（信頼された確認クリック後）
+        BG-->>Ext: tab・POST限定の一時ルールとランダムURL
         Ext->>Server: 選択したアカウントのアサーションを直接要求 (Content Script fetch, Origin/Cookie保持)
         Server-->>Ext: token またはエラー (401時はBGへCLEAR_STORED_ACCOUNTS送信)
+        Ext->>BG: RELEASE_ASSERTION（finally）
         Ext-->>SDK: 選択した一件のtoken または失敗
         SDK-->>RP: 検証済み形式の入力補助結果 またはnull
     else 保存候補なし
         BG-->>Ext: { success: true, status: 'no-match' }
-        Ext-->>SDK: null（一覧・件数をRPへ返さない）
+        Ext-->>SDK: null（一覧・件数をRPへ返さず、Promiseをnull解決）
         SDK-->>RP: null（自動再試行・自動遷移なし）
     end
 ```
@@ -65,12 +68,24 @@ export interface HandleAssistOptions {
   fallback?: () => HandleAssistResult | null | Promise<HandleAssistResult | null>;
   onError?: (error: unknown) => void;
 }
+export interface AtPassportFedCmOptions {
+  configURL?: string;
+  clientId?: string;
+  type?: string;
+  discovery?: 'config' | 'types' | 'auto';
+}
+
+export type AtPassportHandleAssistOptions = Pick<
+  HandleAssistOptions,
+  "targetInput" | "fallback" | "onError" | "type" | "discovery"
+>;
 ```
 
 - デフォルトは必ず `'config'`。無指定で登録型探索を試さない。
 - `configURL`、`clientId`の既定値、`context: 'use'`、`mode: 'active'`、`fields: ['username', 'picture']`、トークン検証・入力反映を維持する。
 - `fallback` は同期・非同期の両方を維持する。SDK自身がURLを決めてリダイレクトしない。
-- `AtPassportFedCmOptions` にも `type`・`discovery` を追加し、インスタンスの `requestHandleAssist()` から関数型APIへ転送する。既存の `baseUrl` とconfigURLの関係は維持する。
+- `AtPassportFedCmOptions` および `AtPassportHandleAssistOptions` にも `type`・`discovery` を追加し、インスタンス生成時の既定値設定および `requestHandleAssist(options)` 呼出し単位での上書きを可能にする。既存の `baseUrl` とconfigURLの関係は維持する。
+- DOM標準の `IdentityProviderConfig` 型定義（`lib.dom.d.ts`）に `type?: string` が未定義の環境に備え、SDK内部では `interface RegisteredIdentityProviderConfig { type: string; clientId?: string; fields?: string[] }` 等のローカル型を用いて安全に型を扱う。
 - `type` は非空のURL形式として事前検証する。不正値をブラウザ非対応と誤認して旧経路へ切り替えない。開発Originとtypeの対応は明示設定し、RPのOriginから推測しない。
 - 登録型のproviderには `type`、`clientId`、`fields` を指定し、`configURL` は混在させない。configURLは旧経路用に保持する。
 
@@ -132,14 +147,24 @@ export interface HandleAssistOptions {
 { success: true, status: 'no-match' }
 ```
 
-backgroundは型に一致する保存エントリを解決して返す。contentはそのIdPと一覧・選択を同じ要求内で保持し、`EXECUTE_ASSERTION` のoriginへ引き継ぐ。typeからURLを組み立てたり、解決できなければ本番Originへ戻したりしない。
-
-Assertionは解決済みの許可Originの正規エンドポイントへ送る。backgroundは送信者のRP情報とclientId、IdPの許可範囲を再確認する。要求元・選択・IdPを結び付け、別要求や遅延応答との取り違えを防ぐ。
+- **`no-match` 時の Promise 解決**: `status: 'no-match'` 受信時、Content Script は `atpassport-fedcm-response` イベントに `{ requestId, noMatch: true }` を返却する。Main World Polyfill は例外（`IdentityCredentialError` 等）をスローせず、`navigator.credentials.get` の Promise を `null` で解決する。これにより、SDK の types / auto モードは不要なエラーログや不要なフォールバックを発生させず、クリーンに `null` を RP へ返却できる。
+- backgroundは型に一致する保存エントリを解決して返す。contentはそのIdPと一覧・選択を同じ要求内で保持し、Assertion要求のoriginへ引き継ぐ。typeからURLを組み立てたり、解決できなければ本番Originへ戻したりしない。
+- Assertionは解決済みの許可Originの正規エンドポイントへ送る。Content Script は Step 2 と同様に、ユーザーの信頼された確認クリック後に `PREPARE_ASSERTION` を送信して一時DNRセッションルールを取得し、Content Script から直接 fetch を実行、`finally` で `RELEASE_ASSERTION` を呼び出す。backgroundは送信者のRP情報とclientId、IdPの許可範囲を再確認する。要求元・選択・IdPを結び付け、別要求や遅延応答との取り違えを防ぐ。
 
 ### 4.3 保存と候補なし
 
-- `StoredIdpEntry` に `configURL` と `types: string[]` を追加する。IdP configのtypesと拡張の許可設定の対応を検証し、保存・更新経路から一貫して書き込む。
-- 開発用typeは開発エントリへ、本番typeは本番エントリへ対応させる。同じtypeに複数IdPが一致するケースは本Stepでは未対応として扱い、先頭や既定IdPを黙って選ばない。
+- `StoredIdpEntry` に `configURL: string` と `types: string[]` を追加する。
+- **Push保存時のメタデータ自動補完**: AtPassport Web での `navigator.login.setStatus('logged-in', { accounts })` 受信時、background の `SAVE_PUSHED_ACCOUNTS` は送信者Originを厳格検証（`isAtPassportOrigin`）した上で、追加のネットワーク通信を行わず以下の形式で `StoredIdpEntry` に保存・更新する：
+  ```typescript
+  const entry: StoredIdpEntry = {
+    origin: normalizedOrigin,
+    configURL: `${normalizedOrigin}/fedcm/config.json`,
+    types: [normalizedOrigin],
+    accounts: [...],
+    updatedAt: Date.now(),
+  };
+  ```
+  これにより、本番 `https://atpassport.net` は `types: ['https://atpassport.net']`、ローカル開発 `http://localhost:3000` は `types: ['http://localhost:3000']` として自動的に対応付けられる。同じtypeに複数IdPが一致するケースは本Stepでは未対応として扱い、先頭や既定IdPを黙って選ばない。
 - 旧スキーマには型情報がないため、config経路での読出しを維持し、登録型候補には含めない。IdP再訪時の検証済みPushでメタデータを付けて更新する。RP要求だけで登録済みへ昇格させない。
 - 拡張利用者の自動連携方針は維持する。候補資格と解除状態はマスター計画に従い、保存一覧の存在だけで拒否・解除を上書きしない。
 - 登録型では未登録・型不一致・Push未完了・空一覧をno-matchとして扱う。`FETCH_ACCOUNTS` へ暗黙に切り替えない。SDKのtypes/autoもno-matchを未対応と扱わない。

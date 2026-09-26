@@ -384,6 +384,10 @@ Webは共有hookで遅延プロフィール応答を無効化し、Actionが明�
 ### M3: RP側を段階的に切替
 
 - [ ] [Step 3設計仕様書](./DESIGN_step3-client-sdk-discovery.md) のレビュー反映契約・完了基準を満たす。
+  - [ ] `@atpassport/client`: `type?: string` / `discovery?: 'config' | 'types' | 'auto'` の型定義追加、モード別契約と慎重なエラー分類の実装、単体テスト。
+  - [ ] `atpassport-extension` (Storage & Background): `StoredIdpEntry` への `configURL`/`types` 追加、`savePushedAccounts` メタデータ自動補完、`GET_STORED_ACCOUNTS` での `providerType` 照合と `{ status: 'matched' | 'no-match' }` 返却。
+  - [ ] `atpassport-extension` (Polyfill & Content Script): `provider.type` インターセプト、`no-match` 時の Promise `null` 解決、ユーザー選択後の `PREPARE_ASSERTION` DNR一時ルール経由 fetch。
+  - [ ] `ExampleAppClient.tsx`: `/example` での `config` / `types` / `auto` モード選択と明示的フォールバックUIの確認。
 - [ ] 開発者向けopt-inで登録型経路を試し、能力判定と旧configURL経路を検証する。
 - [ ] 未対応時のfallback、同意拒否、キャンセル、認可失敗を別々に扱う。
 - [ ] 第8節の検証を通し、一覧/config/画像/選択後通信を分けて計測する。
