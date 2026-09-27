@@ -97,7 +97,7 @@ test.describe("FedCM handle input assist", () => {
     await page.goto("/en");
 
     // Click accordion to expand IdP registration control
-    const controlTitle = page.getByText("IdP Registration");
+    const controlTitle = page.getByText("IdP Registration", { exact: true });
     await expect(controlTitle).toBeVisible();
     await controlTitle.click();
 
@@ -119,7 +119,7 @@ test.describe("FedCM handle input assist", () => {
   test("hides IdP registration control when IdentityProvider is not available in browser", async ({ page }) => {
     await page.goto("/en");
 
-    await expect(page.getByText("IdP Registration")).not.toBeVisible();
+    await expect(page.getByText("IdP Registration", { exact: true })).not.toBeVisible();
   });
 
   test("synchronizes status to navigator.login.setStatus when available", async ({ page }) => {

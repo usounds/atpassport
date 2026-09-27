@@ -388,11 +388,11 @@ Webは共有hookで遅延プロフィール応答を無効化し、Actionが明�
   - [x] `atpassport-extension` (Storage & Background): `StoredIdpEntry` への `configURL`/`types` 追加、`savePushedAccounts` メタデータ自動補完、`GET_STORED_ACCOUNTS` での `providerType` 照合と `{ status: 'matched' | 'no-match' }` 返却。
   - [x] `atpassport-extension` (Polyfill & Content Script): `provider.type` インターセプト、`no-match` 時の Promise `null` 解決、ユーザー選択後の `PREPARE_ASSERTION` DNR一時ルール経由 fetch。
   - [x] `ExampleAppClient.tsx`: `/example` での `config` / `types` / `auto` モード選択と明示的フォールバックUIの確認。
-- [ ] 開発者向けopt-inで登録型経路を試し、能力判定と旧configURL経路を検証する。
-- [ ] 未対応時のfallback、同意拒否、キャンセル、認可失敗を別々に扱う。
-- [ ] 第8節の検証を通し、一覧/config/画像/選択後通信を分けて計測する。
-- [ ] 既存サイトの変更なしでも従来経路を利用できることを確認する。
-- [ ] 利用者向け保存・削除・復帰の説明を更新する。
+- [x] 開発者向けopt-inで登録型経路を試し、能力判定と旧configURL経路を検証する（Firefox拡張機能実機にて `types` 選択時の登録型探索・プロンプト表示・入力反映の正常動作を確認）。
+- [x] 未対応時のfallback、同意拒否、キャンセル、認可失敗を別々に扱う（`client.test.ts` にて `TypeError`/`NotSupportedError` のみ `fallback` 実行、`AbortError`/`NetworkError`/`null` は安全に `null` 返却することを単体テスト検証済み）。
+- [x] 第8節の検証を通し、一覧/config/画像/選択後通信を分けて計測する（登録型探索において accounts API への暗黙リクエストが 0件［Zero-Network］であり、ユーザー選択後にのみ短命 DNR ルール経由で assertion API への 1回のみの通信が発生することを実機および統合テストで計測・確認）。
+- [x] 既存サイトの変更なしでも従来経路を利用できることを確認する（オプション無指定で従来 `config` モードが 1回だけ走り、既存パラメータおよび動作契約を完全維持することをテスト検証済み）。
+- [x] 利用者向け保存・削除・復帰の説明を更新する（`developers-guide` および `privacy` ポリシーに、FedCM / Accounts Push / IdP Registration のローカル保存、Zero-Network 原則、自動削除・解除・復帰ライフサイクルを記載）。
 
 ### M4: 提供範囲の拡大と公開準備
 

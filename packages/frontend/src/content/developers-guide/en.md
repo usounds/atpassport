@@ -29,19 +29,37 @@ This library includes React components and helper classes for integration that c
 
 ### FedCM handle input assist
 
-Chrome and Chromium 141 or later can display the browser's native account chooser through `requestHandleAssist`. The returned handle is an input suggestion and must not be treated as authentication proof. Use it to start the complete atproto OAuth flow when signing a user in or accessing their PDS.
+Chrome / Chromium (141 or later) and Firefox (with the @passport extension installed) can display the browser's native account chooser through `requestHandleAssist`. The returned handle is an input suggestion and must not be treated as authentication proof. Use it to start the complete atproto OAuth flow when signing a user in or accessing their PDS.
 
 ```typescript
 import { requestHandleAssist } from '@atpassport/client/core';
 
 const result = await requestHandleAssist({
   targetInput: document.querySelector<HTMLInputElement>('[name="handle"]') ?? undefined,
+  // Discovery mode: 'config' (legacy configURL), 'types' (registered IdP), 'auto' (automatic)
+  discovery: 'auto',
+  // Registered IdP type identifier (defaults to 'https://atpassport.net')
+  type: 'https://atpassport.net',
+  // Optional fallback callback executed when FedCM is unsupported
+  fallback: async () => {
+    window.location.href = atp.generateAuthUrl().url;
+    return null;
+  },
 });
 
 if (result) {
   await startAtprotoOAuth(result.username);
 }
 ```
+
+#### Discovery Modes
+- **`config` (Default / Backward-compatible)**: Standard FedCM behavior using `configURL` to directly query endpoints.
+- **`types` (Registered IdP / Zero-Network)**: Discovers matching accounts stored locally in the browser or extension per the W3C IdP Registration proposal. No implicit network requests are made to unverified IdPs.
+- **`auto` (Automatic)**: Attempts registered IdP discovery via `types`, and automatically falls back to `config` retry if the browser does not support registered IdPs.
+
+#### Fallback Contracts and Error Handling
+- **Cancellation / Dismissal / No Match**: When the user dismisses the prompt or no accounts match, `requestHandleAssist` returns `null` safely without triggering unwanted automatic redirects or popping additional prompts.
+- **Unsupported Environments (`TypeError` / `NotSupportedError`)**: Only when the browser environment completely lacks FedCM or registered IdP support, the specified `fallback` callback is executed at most once.
 
 The returned `username`, `did`, and `token` are handle-selection hints, not authentication credentials. Do not use them to establish a session or authorize API requests. The `token` is not a bearer token or access token. Complete atproto OAuth and rely on its verified result.
 
