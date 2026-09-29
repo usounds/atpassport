@@ -81,16 +81,10 @@ export default defineBackground(() => {
               try {
                 return await new HandleManager().fetchAccounts(undefined, cookie.value);
               } catch (fetchErr) {
-                if (fetchErr instanceof Error && fetchErr.message === 'loginRequired') {
-                  throw fetchErr;
-                }
-                console.warn('[Safari Background] Bearer fetch failed, falling back:', fetchErr);
+                console.warn('[Safari Background] Bearer fetch failed (server may not be deployed yet), falling back to tab transport:', fetchErr);
               }
             }
           } catch (cookieErr) {
-            if (cookieErr instanceof Error && cookieErr.message === 'loginRequired') {
-              throw cookieErr;
-            }
             console.warn('[Safari Background] browser.cookies.get failed:', cookieErr);
           }
         }
