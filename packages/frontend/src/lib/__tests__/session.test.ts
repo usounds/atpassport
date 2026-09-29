@@ -43,6 +43,28 @@ describe('Session Library', () => {
     expect(uuid).toBe('test-uuid');
   });
 
+  it('should return uuid if valid Authorization Bearer header exists', async () => {
+    vi.mocked(jwtVerify).mockResolvedValue({ payload: { uuid: 'bearer-uuid' } } as any);
+    const req = new Request('https://atpassport.net', {
+      headers: { authorization: 'Bearer valid-jwt-token' },
+    });
+
+    const uuid = await getSessionUuid(req);
+    expect(uuid).toBe('bearer-uuid');
+    expect(jwtVerify).toHaveBeenCalledWith('valid-jwt-token', expect.anything());
+    expect(cookies).not.toHaveBeenCalled();
+  });
+
+  it('should fall back to cookie if Authorization header is invalid', async () => {
+    vi.mocked(jwtVerify).mockRejectedValueOnce(new Error('Invalid token'));
+    const req = new Request('https://atpassport.net', {
+      headers: { authorization: 'Bearer bad-token' },
+    });
+
+    const uuid = await getSessionUuid(req);
+    expect(uuid).toBeNull();
+  });
+
   it('should return null if session token is invalid', async () => {
     vi.mocked(cookies).mockResolvedValue({ get: vi.fn().mockReturnValue({ value: 'invalid-token' }) } as any);
     vi.mocked(jwtVerify).mockRejectedValue(new Error('Invalid token'));

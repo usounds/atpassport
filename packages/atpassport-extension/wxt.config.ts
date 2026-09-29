@@ -15,10 +15,12 @@ export default defineConfig({
     name: '__MSG_extensionName__',
     description: '__MSG_extensionDescription__',
     default_locale: 'en',
-    permissions: ['activeTab', 'scripting', 'clipboardWrite'],
+    permissions: ['activeTab', 'scripting', 'clipboardWrite',
+      ...(env.browser === 'safari' ? ['storage', 'webRequest', 'cookies'] : []),
+    ],
     host_permissions: [
       'https://atpassport.net/*',
-      ...(env.browser === 'firefox' ? ['<all_urls>'] : []),
+      ...(['firefox', 'safari'].includes(env.browser) ? ['<all_urls>'] : []),
     ],
     ...(env.browser === 'chrome'
       ? {
@@ -47,7 +49,10 @@ export default defineConfig({
           ],
         }
       : {}),
-    browser_specific_settings: {
+    ...(env.browser === 'safari' ? {
+      web_accessible_resources: [{ resources: ['icons/icon48.png'], matches: ['<all_urls>'] }],
+    } : {}),
+    ...(env.browser === 'firefox' ? { browser_specific_settings: {
       gecko: {
         id: 'extension@atpassport.net',
         strict_min_version: '142.0',
@@ -55,6 +60,6 @@ export default defineConfig({
           required: ['none'],
         },
       },
-    },
+    } } : {}),
   }),
 });

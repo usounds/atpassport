@@ -46,5 +46,20 @@
   },
   "footerNote": {
     "message": "追加・変更は@passportのサイトから"
+  },
+  "copyRetry": {
+    "message": "自動コピーできませんでした。コピーボタンを押してください。"
+  },
+  "copyHandle": {
+    "message": "コピー"
+  },
+  "safariOpenSite": {
+    "message": "アカウント一覧を取得できませんでした。atpassport.netを開いてログインし、拡張機能を開き直してください。"
+  },
+  "safariLoginRequired": {
+    "message": "@passportのログインを確認できません。ログイン後、拡張機能を開き直してください。"
+  },
+  "openAtPassport": {
+    "message": "@passportを開く"
   }
 }

@@ -46,5 +46,20 @@
   },
   "footerNote": {
     "message": "Add or change handles at the @passport site"
+  },
+  "copyRetry": {
+    "message": "Automatic copy failed. Click Copy to copy the handle."
+  },
+  "copyHandle": {
+    "message": "Copy"
+  },
+  "safariOpenSite": {
+    "message": "Could not load your accounts. Open atpassport.net, sign in, then reopen the extension."
+  },
+  "safariLoginRequired": {
+    "message": "Could not confirm your @passport login. Sign in, then reopen the extension."
+  },
+  "openAtPassport": {
+    "message": "Open @passport"
   }
 }

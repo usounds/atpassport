@@ -158,7 +158,7 @@ const INLINE_POLYFILL_CODE = `
 `;
 
 export default defineContentScript({
-  include: ['firefox'],
+  include: ['firefox', 'safari'],
   matches: ['<all_urls>'],
   runAt: 'document_start',
   main() {
@@ -179,6 +179,14 @@ export default defineContentScript({
       console.debug('[@passport] Accounts retrieved for FedCM:', accounts?.length ?? 0);
 
       if (!accounts || accounts.length === 0) {
+        if (import.meta.env.BROWSER === 'safari') {
+          try {
+            await browser.runtime.sendMessage({ type: 'OPEN_AT_PASSPORT_ONCE' });
+          } catch (err) {
+            console.warn('[@passport] Failed to open AtPassport tab:', err);
+          }
+          throw new DOMException('No AtPassport accounts found. Opened AtPassport.', 'AbortError');
+        }
         throw new DOMException('No AtPassport accounts found or user is not logged in.', 'IdentityCredentialError');
       }
 
@@ -212,25 +220,29 @@ export default defineContentScript({
       });
     };
 
-    // 1. Inject synchronous inline script into Main World
-    try {
-      const inlineScript = document.createElement('script');
-      inlineScript.textContent = INLINE_POLYFILL_CODE;
-      (document.head || document.documentElement).appendChild(inlineScript);
-      inlineScript.remove();
-    } catch (e) {
-      console.debug('[@passport] Inline script injection skipped/failed:', e);
-    }
+    // Safari uses a declarative MAIN-world script; DOM script tags are subject to page CSP.
+    if (import.meta.env.BROWSER !== 'safari') {
+      // 1. Inject synchronous inline script into Main World
+      try {
+        const inlineScript = document.createElement('script');
+        inlineScript.textContent = INLINE_POLYFILL_CODE;
+        (document.head || document.documentElement).appendChild(inlineScript);
+        inlineScript.remove();
+      } catch (e) {
+        console.debug('[@passport] Inline script injection skipped/failed:', e);
+      }
 
-    // 2. Also inject the external polyfill script tag as fallback
-    try {
-      const script = document.createElement('script');
-      script.src = browser.runtime.getURL('/injected.js');
-      script.async = false;
-      (document.head || document.documentElement).appendChild(script);
-      script.onload = () => script.remove();
-    } catch (e) {
-      console.debug('[@passport] Script tag injection fallback skipped/failed:', e);
+      // 2. Also inject the external polyfill script tag as fallback
+      try {
+        const script = document.createElement('script');
+        script.src = browser.runtime.getURL('/injected.js');
+        script.async = false;
+        (document.head || document.documentElement).appendChild(script);
+        script.onload = () => script.remove();
+      } catch (e) {
+        console.debug('[@passport] Script tag injection fallback skipped/failed:', e);
+      }
+
     }
 
     // 3. Listen for CustomEvent FedCM requests (bridge for injected scripts or web pages)

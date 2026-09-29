@@ -3,6 +3,12 @@ import { vi } from 'vitest';
 
 // Mock chrome API
 const chromeMock = {
+  runtime: {
+    sendMessage: vi.fn(),
+  },
+  storage: {
+    session: { get: vi.fn(), set: vi.fn(), remove: vi.fn() },
+  },
   i18n: {
     getMessage: vi.fn((key) => key),
   },

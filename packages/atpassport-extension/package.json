@@ -18,7 +18,9 @@
     "compile": "tsc --noEmit",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "test": "vitest run",
-    "test:e2e": "wxt build && playwright test"
+    "test:e2e": "wxt build && playwright test",
+    "build:safari": "wxt build -b safari --mv3",
+    "zip:safari": "wxt zip -b safari --mv3"
   },
   "dependencies": {
     "lucide-react": "^1.47.0",

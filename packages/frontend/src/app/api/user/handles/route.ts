@@ -14,7 +14,8 @@ function isAllowedOrigin(origin: string | null): boolean {
     origin === "http://localhost:3000" ||
     origin === "http://localhost:3001" ||
     origin === "chrome-extension://ollhnghmplgpoebaceomdaigpkihpfkn" ||
-    origin.startsWith("moz-extension://")
+    origin.startsWith("moz-extension://") ||
+    origin.startsWith("safari-web-extension://")
   );
 }
 
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
       return applyCors(NextResponse.json({ error: "Too many requests" }, { status: 429 }), origin);
     }
 
-    const uuid = await getSessionUuid();
+    const uuid = await getSessionUuid(request);
     if (!uuid) {
       return applyCors(NextResponse.json({ error: "Unauthorized" }, { status: 401 }), origin);
     }

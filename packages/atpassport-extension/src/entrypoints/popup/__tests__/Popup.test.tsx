@@ -97,7 +97,7 @@ describe('Popup', () => {
     expect(chrome.tabs.create).toHaveBeenCalledWith({ url: 'https://atpassport.net' });
   });
 
-  it('should handle applyHandle throwing an exception', async () => {
+  it('retries a failed copy in a new user gesture without claiming success', async () => {
     mockFetchAccounts.mockResolvedValue([{ handle: 'alice.test' }]);
     mockApplyHandle.mockRejectedValue(new Error('Internal error'));
 
@@ -107,8 +107,20 @@ describe('Popup', () => {
     fireEvent.click(screen.getByText('@alice.test'));
     
     await waitFor(() => {
-      expect(screen.getByText('copiedIncompatible')).toBeDefined();
+      expect(screen.getByText('copyRetry')).toBeDefined();
     });
+    expect(screen.queryByText('copiedIncompatible')).toBeNull();
+    vi.mocked(navigator.clipboard.writeText).mockRejectedValueOnce(new Error('Not allowed'));
+    fireEvent.click(screen.getByRole('button', { name: 'copyHandle' }));
+    await waitFor(() => expect(navigator.clipboard.writeText).toHaveBeenCalledOnce());
+    expect(screen.queryByText('copiedFallback')).toBeNull();
+
+    vi.mocked(navigator.clipboard.writeText).mockResolvedValueOnce(undefined);
+    fireEvent.click(screen.getByRole('button', { name: 'copyHandle' }));
+    await waitFor(() => expect(screen.getByText('copiedFallback')).toBeDefined());
+    expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith('alice.test');
+    expect(screen.queryByText('copyRetry')).toBeNull();
+    expect(mockApplyHandle).toHaveBeenCalledOnce();
   });
 
   it('should handle generic errors in fetchHandles', async () => {

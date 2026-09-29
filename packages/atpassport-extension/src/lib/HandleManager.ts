@@ -1,3 +1,5 @@
+import { fetchSafariAccounts, type AccountTabContext } from './safariAccounts';
+
 export interface AccountItem {
   handle: string;
   displayName?: string;
@@ -14,10 +16,22 @@ export class HandleManager {
   /**
    * Fetches full account information from the AtPassport API.
    */
-  async fetchAccounts(): Promise<AccountItem[]> {
+  async fetchAccounts(context?: AccountTabContext, token?: string): Promise<AccountItem[]> {
+    if (import.meta.env.BROWSER === 'safari' && !context && !token) {
+      const response = await browser.runtime.sendMessage({ type: 'FETCH_ACCOUNTS' });
+      if (!response?.success) throw new Error(response?.error || 'networkError');
+      return response.accounts;
+    }
     try {
-      const response = await fetch(this.apiEndpoint, {
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = (import.meta.env.BROWSER === 'safari' && !token)
+        ? await fetchSafariAccounts(context)
+        : await fetch(this.apiEndpoint, {
         credentials: 'include',
+        headers,
       });
 
       if (!response.ok) {
@@ -27,7 +41,7 @@ export class HandleManager {
         if (response.status === 429) {
           throw new Error('rateLimited');
         }
-        if (response.status >= 500) {
+        if (response.status !== undefined && response.status >= 500) {
           throw new Error(`serverError_${response.status}`);
         }
         throw new Error(`httpError_${response.status}`);

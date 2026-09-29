@@ -13,6 +13,7 @@ export const Popup = () => {
   const [accounts, setAccounts] = useState<AccountItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorState, setErrorState] = useState<ErrorState | null>(null);
+  const [pendingCopy, setPendingCopy] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const [toastExiting, setToastExiting] = useState(false);
   const [toastKey, setToastKey] = useState(0);
@@ -26,7 +27,11 @@ export const Popup = () => {
     }
     const code = err.message;
     if (code === 'loginRequired') {
-      return { message: chrome.i18n.getMessage('loginRequired'), isLogin: true };
+      const key = import.meta.env.BROWSER === 'safari' ? 'safariLoginRequired' : 'loginRequired';
+      return { message: chrome.i18n.getMessage(key), isLogin: true };
+    }
+    if (code === 'safariOpenSite') {
+      return { message: chrome.i18n.getMessage(code), isLogin: true };
     }
     if (code === 'networkError') {
       return {
@@ -89,13 +94,20 @@ export const Popup = () => {
     };
   }, [manager, reloadTrigger]);
 
-  const handleSelect = async (handle: string) => {
+  const handleSelect = async (handle: string, copyOnly = false) => {
     // Clear existing timeouts to prevent animation conflicts
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (exitTimeoutRef.current) clearTimeout(exitTimeoutRef.current);
 
     try {
-      const statusKey = await manager.applyHandle(handle);
+      let statusKey: string;
+      if (copyOnly) {
+        await navigator.clipboard.writeText(handle);
+        statusKey = 'copiedFallback';
+      } else {
+        statusKey = await manager.applyHandle(handle);
+      }
+      setPendingCopy(null);
       setCopyStatus(chrome.i18n.getMessage(statusKey));
       setToastExiting(false);
       setToastKey(prev => prev + 1);
@@ -111,7 +123,8 @@ export const Popup = () => {
         }, 300); // match animation duration
       }, 2700);
     } catch {
-      setCopyStatus(chrome.i18n.getMessage('copiedIncompatible'));
+      setCopyStatus(null);
+      setPendingCopy(handle);
     }
   };
 
@@ -147,7 +160,18 @@ export const Popup = () => {
           <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
           <div className="error-content">
             <span className="error-message">{errorState.message}</span>
-            {!errorState.isLogin && (
+            {errorState.isLogin && import.meta.env.BROWSER === 'safari' ? (
+              <button
+                type="button"
+                className="retry-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openAtPassport();
+                }}
+              >
+                <span>{chrome.i18n.getMessage('openAtPassport')}</span>
+              </button>
+            ) : !errorState.isLogin ? (
               <button
                 type="button"
                 className="retry-button"
@@ -159,14 +183,24 @@ export const Popup = () => {
                 <RefreshCw size={13} />
                 <span>{chrome.i18n.getMessage('retry') || 'Retry'}</span>
               </button>
-            )}
+            ) : null}
           </div>
         </div>
       )}
 
       {!loading && !errorState && accounts.length === 0 && (
         <div className="empty-state">
-          {chrome.i18n.getMessage('noHandles')}
+          <span>{chrome.i18n.getMessage('noHandles')}</span>
+          {import.meta.env.BROWSER === 'safari' && (
+            <button
+              type="button"
+              className="retry-button"
+              style={{ marginTop: '8px' }}
+              onClick={openAtPassport}
+            >
+              <span>{chrome.i18n.getMessage('openAtPassport')}</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -228,6 +262,17 @@ export const Popup = () => {
         </div>
       )}
 
+      {pendingCopy !== null && (
+        <div className="error-box" role="alert">
+          <div className="error-content">
+            <span>{chrome.i18n.getMessage('copyRetry')}</span>
+            <button className="retry-button" onClick={() => handleSelect(pendingCopy, true)}>
+              {chrome.i18n.getMessage('copyHandle')}
+            </button>
+          </div>
+        </div>
+      )}
+
       {copyStatus && (
         <div key={toastKey} className={`toast ${toastExiting ? 'exiting' : ''}`}>
           <CheckCircle size={16} />
@@ -239,4 +284,3 @@ export const Popup = () => {
 };
 
 export default Popup;
-
