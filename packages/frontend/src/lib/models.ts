@@ -56,11 +56,12 @@ export async function touchSession(uuid: string) {
   );
 }
 
-export async function getAssociations(uuid: string): Promise<IdentityAssociation[]> {
+export async function getAssociations(uuid: string, consistentRead = false): Promise<IdentityAssociation[]> {
   const result = (await db.send(
     new QueryCommand({
       TableName: SESSION_TABLE_NAME,
       KeyConditionExpression: "#uuid = :uuid",
+      ...(consistentRead ? { ConsistentRead: true } : {}),
       ExpressionAttributeNames: {
         "#uuid": "uuid",
       },

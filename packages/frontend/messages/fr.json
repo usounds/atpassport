@@ -28,7 +28,15 @@
     "share_description": "Synchronisez vos handles with d'autres appareils (PC ou smartphone) à l'aide d'un code QR ou d'une URL.",
     "handle_limit_reached": "Maximum 15 handles autorisés.",
     "reset_notice": "Dans le cadre d'une mise à jour du système visant à renforcer la sécurité et à protéger la confidentialité, nous avons réinitialisé la liste des pseudos enregistrés le 1er mai. Nous nous excusons pour la gêne occasionnée et vous demandons de bien vouloir enregistrer à nouveau vos pseudos.",
-    "fedcm_ready": "Assistance de saisie FedCM disponible"
+    "fedcm_ready": "Assistance de saisie FedCM disponible",
+    "idp_registration_title": "Enregistrement d'IdP (IdP Registration)",
+    "idp_registration_desc": "Enregistrez @passport dans votre navigateur à l'aide de l'API W3C IdP Registration pour afficher automatiquement vos comptes sur les sites pris en charge.",
+    "idp_register_button": "Enregistrer dans le navigateur",
+    "idp_unregister_button": "Désenregistrer",
+    "idp_not_supported": "Votre navigateur ne prend pas en charge l'API IdP Registration.",
+    "idp_register_success": "Enregistré avec succès dans le navigateur en tant qu'IdP",
+    "idp_unregister_success": "Désenregistré avec succès du navigateur",
+    "idp_action_failed": "L'opération a échoué: {error}"
   },
   "Auth": {
     "title": "Sélectionner un handle",

@@ -28,7 +28,15 @@
     "share_description": "Sincroniza tus handles con otros dispositivos (PC o smartphone) mediante un código QR o URL.",
     "handle_limit_reached": "Se permite un máximo de 15 handles.",
     "reset_notice": "Como parte de una actualización del sistema para mejorar la seguridad y proteger la privacidad, hemos restablecido la lista de identificadores registrados el 1 de mayo. Pedimos disculpas por las molestias y le solicitamos que vuelva a registrar sus identificadores.",
-    "fedcm_ready": "Asistencia de entrada FedCM disponible"
+    "fedcm_ready": "Asistencia de entrada FedCM disponible",
+    "idp_registration_title": "Registro de IdP (IdP Registration)",
+    "idp_registration_desc": "Registre @passport en su navegador mediante la API W3C IdP Registration para mostrar automáticamente sus cuentas en sitios compatibles.",
+    "idp_register_button": "Registrar en el navegador",
+    "idp_unregister_button": "Desregistrar",
+    "idp_not_supported": "Su navegador no admite la API IdP Registration.",
+    "idp_register_success": "Registrado correctamente en el navegador como IdP",
+    "idp_unregister_success": "Eliminado correctamente del navegador",
+    "idp_action_failed": "Operación fallida: {error}"
   },
   "Auth": {
     "title": "Selecciona un handle",

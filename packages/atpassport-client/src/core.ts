@@ -37,6 +37,10 @@ export interface HandleAssistOptions {
   targetInput?: HTMLInputElement;
   clientId?: string;
   configURL?: string;
+  /** Registered-provider type. Defaults to https://atpassport.net. */
+  type?: string;
+  /** Discovery mode. Defaults to 'config'. */
+  discovery?: 'config' | 'types' | 'auto';
   fallback?: () => HandleAssistResult | null | Promise<HandleAssistResult | null>;
   onError?: (error: unknown) => void;
 }
@@ -44,16 +48,34 @@ export interface HandleAssistOptions {
 export interface AtPassportFedCmOptions {
   configURL?: string;
   clientId?: string;
+  type?: string;
+  discovery?: 'config' | 'types' | 'auto';
 }
 
 export type AtPassportHandleAssistOptions = Pick<
   HandleAssistOptions,
-  "targetInput" | "fallback" | "onError"
+  "targetInput" | "fallback" | "onError" | "type" | "discovery"
 >;
 
 type IdentityCredentialResult = Credential & {
   token?: unknown;
 };
+
+interface RegisteredIdentityProviderConfig {
+  type: string;
+  clientId?: string;
+  fields?: string[];
+}
+
+function isValidTypeUrl(type: string): boolean {
+  if (typeof type !== "string" || !type.trim()) return false;
+  try {
+    const parsed = new URL(type);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
 
 const DID_PATTERN = /^did:[a-z]+:[a-zA-Z0-9._:%-]+$/;
 const HANDLE_PATTERN = /^(?=.{1,253}$)(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
@@ -143,21 +165,117 @@ export function isHandleAssistSupported(): boolean {
 export async function requestHandleAssist(
   options: HandleAssistOptions = {},
 ): Promise<HandleAssistResult | null> {
+  const discovery = options.discovery ?? "config";
+
   if (!isHandleAssistSupported()) {
     return options.fallback ? await options.fallback() : null;
   }
 
+  // 1. config mode (Default, backward-compatible)
+  if (discovery === "config") {
+    try {
+      const credential = (await navigator.credentials.get({
+        identity: {
+          context: "use",
+          providers: [
+            {
+              configURL: options.configURL ?? `${AT_PASSPORT_MAINNET}/fedcm/config.json`,
+              clientId: options.clientId ?? window.location.origin,
+              fields: ["username", "picture"],
+            },
+          ],
+          mode: "active",
+        },
+      } as CredentialRequestOptions)) as IdentityCredentialResult | null;
+
+      if (!credential || typeof credential.token !== "string") {
+        return null;
+      }
+
+      const result = parseHandleAssistToken(credential.token);
+      if (options.targetInput) {
+        fillInputValue(options.targetInput, result.username);
+      }
+      return result;
+    } catch (error) {
+      options.onError?.(error);
+      const errorName = typeof error === "object" && error !== null && "name" in error
+        ? String(error.name)
+        : "";
+      const shouldFallback =
+        error instanceof TypeError ||
+        errorName === "NotSupportedError" ||
+        errorName === "NetworkError" ||
+        errorName === "IdentityCredentialError";
+      if (shouldFallback && options.fallback) {
+        return await options.fallback();
+      }
+      return null;
+    }
+  }
+
+  // 2. types or auto mode
+  const rawType = options.type ?? AT_PASSPORT_MAINNET;
+  if (!isValidTypeUrl(rawType)) {
+    const err = new Error(`Invalid provider type URL: "${rawType}"`);
+    options.onError?.(err);
+    return null;
+  }
+  const normalizedType = rawType.replace(/\/$/, "");
+
+  const tryConfigRetry = async (): Promise<HandleAssistResult | null> => {
+    try {
+      const credential = (await navigator.credentials.get({
+        identity: {
+          context: "use",
+          providers: [
+            {
+              configURL: options.configURL ?? `${AT_PASSPORT_MAINNET}/fedcm/config.json`,
+              clientId: options.clientId ?? window.location.origin,
+              fields: ["username", "picture"],
+            },
+          ],
+          mode: "active",
+        },
+      } as CredentialRequestOptions)) as IdentityCredentialResult | null;
+
+      if (!credential || typeof credential.token !== "string") {
+        return null;
+      }
+
+      const result = parseHandleAssistToken(credential.token);
+      if (options.targetInput) {
+        fillInputValue(options.targetInput, result.username);
+      }
+      return result;
+    } catch (retryError) {
+      options.onError?.(retryError);
+      const retryErrorName = typeof retryError === "object" && retryError !== null && "name" in retryError
+        ? String(retryError.name)
+        : "";
+      // If config retry itself is completely unsupported (TypeError or NotSupportedError), fallback once
+      const isCompletelyUnsupported =
+        retryError instanceof TypeError ||
+        retryErrorName === "NotSupportedError";
+      if (isCompletelyUnsupported && options.fallback) {
+        return await options.fallback();
+      }
+      // Any other error (AbortError, NetworkError, SecurityError, NotAllowedError): return null, no fallback
+      return null;
+    }
+  };
+
   try {
+    const providerConfig: RegisteredIdentityProviderConfig = {
+      type: normalizedType,
+      clientId: options.clientId ?? window.location.origin,
+      fields: ["username", "picture"],
+    };
+
     const credential = (await navigator.credentials.get({
       identity: {
         context: "use",
-        providers: [
-          {
-            configURL: options.configURL ?? `${AT_PASSPORT_MAINNET}/fedcm/config.json`,
-            clientId: options.clientId ?? window.location.origin,
-            fields: ["username", "picture"],
-          },
-        ],
+        providers: [providerConfig as unknown as Record<string, unknown>],
         mode: "active",
       },
     } as CredentialRequestOptions)) as IdentityCredentialResult | null;
@@ -176,14 +294,21 @@ export async function requestHandleAssist(
     const errorName = typeof error === "object" && error !== null && "name" in error
       ? String(error.name)
       : "";
-    const shouldFallback =
+    const isUnsupported =
       error instanceof TypeError ||
-      errorName === "NotSupportedError" ||
-      errorName === "NetworkError" ||
-      errorName === "IdentityCredentialError";
-    if (shouldFallback && options.fallback) {
-      return await options.fallback();
+      errorName === "NotSupportedError";
+
+    if (isUnsupported) {
+      if (discovery === "auto") {
+        return await tryConfigRetry();
+      }
+      if (discovery === "types" && options.fallback) {
+        return await options.fallback();
+      }
     }
+
+    // Cancellation, no-match, NetworkError, IdentityCredentialError, SecurityError, NotAllowedError:
+    // Strictly return null without executing fallback or popping other UIs
     return null;
   }
 }
@@ -302,6 +427,8 @@ export class AtPassport {
 
     return requestHandleAssist({
       ...options,
+      type: options.type ?? this.fedCm.type ?? this.baseUrl,
+      discovery: options.discovery ?? this.fedCm.discovery ?? "config",
       configURL: this.fedCm.configURL ?? `${this.baseUrl}/fedcm/config.json`,
       clientId: this.fedCm.clientId,
     });

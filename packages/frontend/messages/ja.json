@@ -28,7 +28,15 @@
     "share_description": "QRコードまたはURLを使用して、他のデバイス（PCやスマートフォン）にハンドル情報を同期できます。",
     "handle_limit_reached": "ハンドルの登録は15個までです",
     "reset_notice": "セキュリティ強化およびプライバシー保護のためのシステム更新に伴い、5月1日にハンドル一覧をリセットいたしました。お手数ですが、再度登録をお願いいたします。",
-    "fedcm_ready": "FedCM 入力アシスト利用可能"
+    "fedcm_ready": "FedCM 入力アシスト利用可能",
+    "idp_registration_title": "IdP 登録 (IdP Registration)",
+    "idp_registration_desc": "W3C IdP Registration API を使用してブラウザに @passport を IdP として登録します。対応サイトでアカウント候補が自動表示されます。",
+    "idp_register_button": "ブラウザに登録",
+    "idp_unregister_button": "登録を解除",
+    "idp_not_supported": "お使いのブラウザは IdP Registration API に対応していません",
+    "idp_register_success": "ブラウザに IdP として登録しました",
+    "idp_unregister_success": "ブラウザから IdP 登録を解除しました",
+    "idp_action_failed": "操作に失敗しました: {error}"
   },
   "Auth": {
     "title": "ハンドルを選択してください",

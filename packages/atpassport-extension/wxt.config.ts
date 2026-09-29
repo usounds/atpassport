@@ -15,11 +15,17 @@ export default defineConfig({
     name: '__MSG_extensionName__',
     description: '__MSG_extensionDescription__',
     default_locale: 'en',
-    permissions: ['activeTab', 'scripting', 'clipboardWrite',
-      ...(env.browser === 'safari' ? ['storage', 'webRequest', 'cookies'] : []),
+    permissions: [
+      'activeTab',
+      'tabs',
+      'scripting',
+      'clipboardWrite',
+      'storage',
+      ...(env.browser === 'firefox' ? ['declarativeNetRequest', 'cookies'] : []),
     ],
     host_permissions: [
       'https://atpassport.net/*',
+      'https://*.atpassport.net/*',
       ...(['firefox', 'safari'].includes(env.browser) ? ['<all_urls>'] : []),
     ],
     ...(env.browser === 'chrome'
@@ -39,7 +45,7 @@ export default defineConfig({
         '128': 'icons/icon128.png',
       },
     },
-    ...(env.browser === 'firefox'
+    ...(['firefox', 'safari'].includes(env.browser)
       ? {
           web_accessible_resources: [
             {
@@ -49,17 +55,18 @@ export default defineConfig({
           ],
         }
       : {}),
-    ...(env.browser === 'safari' ? {
-      web_accessible_resources: [{ resources: ['icons/icon48.png'], matches: ['<all_urls>'] }],
-    } : {}),
-    ...(env.browser === 'firefox' ? { browser_specific_settings: {
-      gecko: {
-        id: 'extension@atpassport.net',
-        strict_min_version: '142.0',
-        data_collection_permissions: {
-          required: ['none'],
-        },
-      },
-    } } : {}),
+    ...(env.browser === 'firefox'
+      ? {
+          browser_specific_settings: {
+            gecko: {
+              id: 'extension@atpassport.net',
+              strict_min_version: '142.0',
+              data_collection_permissions: {
+                required: ['none'],
+              },
+            },
+          },
+        }
+      : {}),
   }),
 });

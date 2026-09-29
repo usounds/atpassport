@@ -7,9 +7,10 @@ import { useDebouncedCallback, useDisclosure } from '@mantine/hooks';
 import { registerHandle, initializeSession } from '@/lib/actions';
 import { IconPlus } from '@tabler/icons-react';
 import { publicAgent } from '@/lib/atproto';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { ok } from '@atcute/client';
+import { ensureFedCmSession, syncAccountsPush, toFedCmAccount } from '@/lib/fedcm-session-client';
 
 const MAX_HANDLES = 15;
 
@@ -25,6 +26,7 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
   const [agreed, setAgreed] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
   const t = useTranslations('Home');
+  const router = useRouter();
   const locale = useLocale();
   const legalLocale = locale === 'ja' ? 'ja' : 'en';
   const isLimitReached = handleCount >= MAX_HANDLES;
@@ -68,13 +70,11 @@ export function RegisterForm({ handleCount = 0 }: { handleCount?: number }) {
         }
         return;
       }
-      try {
-        await (navigator as Navigator & {
-          login?: { setStatus: (status: 'logged-in' | 'logged-out') => Promise<void> };
-        }).login?.setStatus('logged-in');
-      } catch {
-        // Login Status API is optional and does not affect registration success.
+      if (res?.associations && res.associations.length > 0) {
+        void syncAccountsPush(res.associations.map(toFedCmAccount));
       }
+      void ensureFedCmSession();
+      router.refresh();
       setHandle('');
       setAgreed(false);
       close();

@@ -56,20 +56,6 @@ describe('API: user/handles', () => {
       expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://atpassport.net');
     });
 
-    it('should set CORS for safari-web-extension origin', async () => {
-      vi.mocked(isRateLimited).mockReturnValue(false);
-      vi.mocked(getSessionUuid).mockResolvedValue('uuid');
-      vi.mocked(getAssociations).mockResolvedValue([]);
-
-      const origin = 'safari-web-extension://12345678-ABCD-EF01-2345-6789ABCDEF01';
-      const request = new NextRequest('http://localhost', { headers: { origin } });
-      const response = await GET(request);
-
-      expect(response.status).toBe(200);
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(origin);
-      expect(response.headers.get('Access-Control-Allow-Headers')).toContain('Authorization');
-    });
-
     it('should not set CORS for disallowed origin', async () => {
       vi.mocked(isRateLimited).mockReturnValue(false);
       vi.mocked(getSessionUuid).mockResolvedValue('uuid');

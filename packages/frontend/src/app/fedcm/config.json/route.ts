@@ -7,6 +7,7 @@ export function GET(request: Request) {
   const origin = getPublicRequestOrigin(request);
   return NextResponse.json(
     {
+      types: [origin],
       accounts_endpoint: "/api/fedcm/accounts",
       client_metadata_endpoint: "/api/fedcm/client_metadata",
       id_assertion_endpoint: "/api/fedcm/assertion",

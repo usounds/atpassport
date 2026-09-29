@@ -1,5 +1,3 @@
-import { fetchSafariAccounts, type AccountTabContext } from './safariAccounts';
-
 export interface AccountItem {
   handle: string;
   displayName?: string;
@@ -8,30 +6,38 @@ export interface AccountItem {
 }
 
 /**
+ * Returns the default IdP origin based on environment.
+ * Targets https://dev.atpassport.net in development mode or when WXT_IDP_ORIGIN is specified.
+ */
+export const getDefaultIdpOrigin = (): string => {
+  if (import.meta.env.WXT_IDP_ORIGIN) {
+    return import.meta.env.WXT_IDP_ORIGIN;
+  }
+  if (import.meta.env.DEV || import.meta.env.MODE === 'development') {
+    return 'https://dev.atpassport.net';
+  }
+  return 'https://atpassport.net';
+};
+
+/**
  * Handles the core logic for fetching and applying handles in the extension.
  */
 export class HandleManager {
-  private apiEndpoint = 'https://atpassport.net/api/user/handles';
+  private apiEndpoint = `${getDefaultIdpOrigin()}/api/user/handles`;
+
+  constructor(endpoint?: string) {
+    if (endpoint) {
+      this.apiEndpoint = endpoint;
+    }
+  }
 
   /**
    * Fetches full account information from the AtPassport API.
    */
-  async fetchAccounts(context?: AccountTabContext, token?: string): Promise<AccountItem[]> {
-    if (import.meta.env.BROWSER === 'safari' && !context && !token) {
-      const response = await browser.runtime.sendMessage({ type: 'FETCH_ACCOUNTS' });
-      if (!response?.success) throw new Error(response?.error || 'networkError');
-      return response.accounts;
-    }
+  async fetchAccounts(): Promise<AccountItem[]> {
     try {
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      const response = (import.meta.env.BROWSER === 'safari' && !token)
-        ? await fetchSafariAccounts(context)
-        : await fetch(this.apiEndpoint, {
+      const response = await fetch(this.apiEndpoint, {
         credentials: 'include',
-        headers,
       });
 
       if (!response.ok) {
@@ -41,7 +47,7 @@ export class HandleManager {
         if (response.status === 429) {
           throw new Error('rateLimited');
         }
-        if (response.status !== undefined && response.status >= 500) {
+        if (response.status >= 500) {
           throw new Error(`serverError_${response.status}`);
         }
         throw new Error(`httpError_${response.status}`);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2, AlertCircle, Copy, User, CheckCircle, RefreshCw } from 'lucide-react';
-import { HandleManager, type AccountItem } from '@/lib/HandleManager';
+import { HandleManager, getDefaultIdpOrigin, type AccountItem } from '@/lib/HandleManager';
+import { getPushedAccounts } from '@/lib/accountStorage';
 import './popup.css';
 
 interface ErrorState {
@@ -26,12 +27,9 @@ export const Popup = () => {
       return { message: String(err), isLogin: false };
     }
     const code = err.message;
-    if (code === 'loginRequired') {
+    if (code === 'loginRequired' || code === 'safariOpenSite') {
       const key = import.meta.env.BROWSER === 'safari' ? 'safariLoginRequired' : 'loginRequired';
-      return { message: chrome.i18n.getMessage(key), isLogin: true };
-    }
-    if (code === 'safariOpenSite') {
-      return { message: chrome.i18n.getMessage(code), isLogin: true };
+      return { message: chrome.i18n.getMessage(key) || chrome.i18n.getMessage('loginRequired'), isLogin: true };
     }
     if (code === 'networkError') {
       return {
@@ -72,7 +70,22 @@ export const Popup = () => {
       try {
         setLoading(true);
         setErrorState(null);
-        const result = await manager.fetchAccounts();
+        let result: AccountItem[] = [];
+        try {
+          result = await manager.fetchAccounts();
+        } catch (fetchErr) {
+          const stored = await getPushedAccounts(getDefaultIdpOrigin());
+          if (stored.length > 0) {
+            result = stored.map(a => ({
+              handle: a.username,
+              displayName: a.name,
+              avatar: a.picture,
+              did: a.id,
+            }));
+          } else {
+            throw fetchErr;
+          }
+        }
         setAccounts(result);
       } catch (err) {
         setErrorState(formatError(err));

@@ -16,7 +16,8 @@ export function getPublicRequestOrigin(request: Request): string {
 }
 
 export function isFedCmRequest(request: Request): boolean {
-  return request.headers.get("sec-fetch-dest")?.toLowerCase() === "webidentity";
+  const dest = request.headers.get("sec-fetch-dest")?.toLowerCase();
+  return dest === "webidentity";
 }
 
 export function normalizeClientOrigin(value: string | null): string | null {
@@ -92,9 +93,13 @@ export async function validateFedCmClient(
   originHeader: string | null,
   clientId: string | null,
 ): Promise<{ origin: string; registration: VerifiedDomain | null } | null> {
-  const origin = normalizeClientOrigin(originHeader);
   const normalizedClientId = normalizeClientOrigin(clientId);
-  if (!origin || !normalizedClientId || origin !== normalizedClientId) {
+  if (!normalizedClientId) {
+    return null;
+  }
+
+  const origin = normalizeClientOrigin(originHeader);
+  if (!origin || origin !== normalizedClientId) {
     return null;
   }
 
@@ -113,7 +118,7 @@ export async function validateFedCmClient(
   }
 
   const registration = await getFedCmClientRegistration(origin);
-  return registration ? { origin, registration } : null;
+  return { origin, registration };
 }
 
 export function createHandleAssistToken(did: string, username: string): string {

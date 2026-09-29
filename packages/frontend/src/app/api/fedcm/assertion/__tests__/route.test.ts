@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { POST } from "../route";
+import { OPTIONS, POST } from "../route";
 import { validateFedCmClient } from "@/lib/fedcm";
 import { getAssociations } from "@/lib/models";
 import { getFedCmSessionUuid } from "@/lib/session";
@@ -79,5 +79,28 @@ describe("FedCM assertion endpoint", () => {
       did: "did:plc:1",
       username: "alice.bsky.social",
     });
+  });
+
+  it("handles OPTIONS preflight requests with CORS headers", async () => {
+    const validPreflight = new Request("https://atpassport.net/api/fedcm/assertion", {
+      method: "OPTIONS",
+      headers: {
+        origin: "https://unregistered-rp.example",
+      },
+    });
+    const response = await OPTIONS(validPreflight);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe("https://unregistered-rp.example");
+    expect(response.headers.get("Access-Control-Allow-Credentials")).toBe("true");
+    expect(response.headers.get("Access-Control-Allow-Methods")).toContain("POST");
+
+    const invalidPreflight = new Request("https://atpassport.net/api/fedcm/assertion", {
+      method: "OPTIONS",
+      headers: {
+        origin: "not-a-valid-origin",
+      },
+    });
+    const invalidResponse = await OPTIONS(invalidPreflight);
+    expect(invalidResponse.status).toBe(400);
   });
 });

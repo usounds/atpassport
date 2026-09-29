@@ -28,7 +28,15 @@
     "share_description": "Synchronisieren Sie Ihre Handles mit anderen Geräten (PC oder smartphone) über einen QR-Code oder eine URL.",
     "handle_limit_reached": "Maximal 15 Handles erlaubt.",
     "reset_notice": "Als Teil eines System-Updates zur Verbesserung der Sicherheit und zum Schutz der Privatsphäre haben wir die Liste der registrierten Handles am 1. Mai zurückgesetzt. Wir entschuldigen uns für die Unannehmlichkeiten und bitten Sie, Ihre Handles neu zu registrieren.",
-    "fedcm_ready": "FedCM-Eingabehilfe verfügbar"
+    "fedcm_ready": "FedCM-Eingabehilfe verfügbar",
+    "idp_registration_title": "IdP-Registrierung (IdP Registration)",
+    "idp_registration_desc": "Registrieren Sie @passport über die W3C IdP Registration API in Ihrem Browser, um Kontokandidaten auf unterstützten Websites automatisch anzuzeigen.",
+    "idp_register_button": "Im Browser registrieren",
+    "idp_unregister_button": "Registrierung aufheben",
+    "idp_not_supported": "Ihr Browser unterstützt die IdP Registration API nicht.",
+    "idp_register_success": "Erfolgreich als IdP im Browser registriert",
+    "idp_unregister_success": "Erfolgreich aus dem Browser abgemeldet",
+    "idp_action_failed": "Vorgang fehlgeschlagen: {error}"
   },
   "Auth": {
     "title": "Handle auswählen",

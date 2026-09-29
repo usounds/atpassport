@@ -4,11 +4,10 @@ import { Text, Stack, Box, Title, Alert } from '@mantine/core';
 import { AuthAccountItem } from "./AuthAccountItem";
 import { RegisterForm } from "./RegisterForm";
 import { useTranslations } from "next-intl";
-import { useState, useEffect } from 'react';
-import { refreshAssociation, removeAssociation, moveAssociation } from '@/lib/actions';
+import { useState } from 'react';
 import { type AssociationWithProfile } from '@/lib/models';
 import { IconAlertTriangle } from '@tabler/icons-react';
-import { useProfileStore } from '@/lib/profile-store';
+import { useAccountList } from '@/lib/use-account-list';
 
 export function AuthAccountList({ 
   initialItems, 
@@ -26,47 +25,10 @@ export function AuthAccountList({
   isLoopback?: boolean;
 }) {
   const t = useTranslations('Auth');
-  const [items, setItems] = useState(initialItems);
-  const [prevInitialItems, setPrevInitialItems] = useState(initialItems);
-
-  // Sync state with prop if initialItems changes during render
-  if (initialItems !== prevInitialItems) {
-    setPrevInitialItems(initialItems);
-    setItems(initialItems.map(initialItem => {
-      const existing = items.find(p => p.did === initialItem.did);
-      return {
-        ...initialItem,
-        profile: existing?.profile || initialItem.profile
-      };
-    }));
-  }
+  const { items, handleDelete, handleMove, handleRefresh } = useAccountList(initialItems);
 
   const [authenticating, setAuthenticating] = useState(false);
   const [selectedItem, setSelectedItem] = useState<AssociationWithProfile | null>(null);
-
-  useEffect(() => {
-    const fetchProfiles = async () => {
-      // Find DIDs that don't have a profile in the current items
-      const didsToFetch = items
-        .filter(item => !item.profile)
-        .map(item => item.did);
-      
-      if (didsToFetch.length === 0) return;
-
-      console.log('[AuthAccountList] Fetching profiles for %s missing items...', didsToFetch.length);
-      const profilesMap = await useProfileStore.getState().fetchProfiles(didsToFetch);
-      
-      setItems(prev => prev.map(item => {
-        const fetchedProfile = profilesMap[item.did];
-        if (fetchedProfile) {
-          return { ...item, profile: fetchedProfile };
-        }
-        return item;
-      }));
-    };
-
-    fetchProfiles();
-  }, [items]); // Run whenever items change to catch missing profiles
 
   const normalizePds = (url: string) => {
     try {
@@ -80,45 +42,9 @@ export function AuthAccountList({
     }
   };
 
-  const handleRefresh = async (did: string) => {
-    await refreshAssociation(did);
-  };
-
   const handleSelect = (item: AssociationWithProfile) => {
     setSelectedItem(item);
     setAuthenticating(true);
-  };
-
-  const handleDelete = async (did: string) => {
-    const hasRemainingAccount = items.some(item => item.did !== did);
-    setItems(prev => prev.filter(item => item.did !== did));
-    await removeAssociation(did);
-    if (!hasRemainingAccount) {
-      try {
-        await (navigator as Navigator & {
-          login?: { setStatus: (status: 'logged-in' | 'logged-out') => Promise<void> };
-        }).login?.setStatus('logged-out');
-      } catch {
-        // Login Status API is optional and does not affect removal success.
-      }
-    }
-  };
-
-  const handleMove = async (did: string, direction: 'up' | 'down') => {
-    const index = items.findIndex(item => item.did === did);
-    if (index === -1) return;
-
-    const newItems = [...items];
-    if (direction === 'up' && index > 0) {
-      [newItems[index - 1], newItems[index]] = [newItems[index], newItems[index - 1]];
-    } else if (direction === 'down' && index < items.length - 1) {
-      [newItems[index + 1], newItems[index]] = [newItems[index], newItems[index + 1]];
-    } else {
-      return;
-    }
-
-    setItems(newItems);
-    await moveAssociation(did, direction);
   };
 
   if (authenticating && selectedItem) {

@@ -371,5 +371,239 @@ describe('AtPassport', () => {
 
       Reflect.deleteProperty(document, 'permissionsPolicy');
     });
+
+    describe('Step 3: registered IdP discovery (types / auto)', () => {
+      it('sends single type without configURL in types mode', async () => {
+        const get = vi.fn().mockResolvedValue({ token: validToken });
+        vi.stubGlobal('window', {
+          IdentityCredential: class {},
+          location: { origin: 'https://app.com' },
+        });
+        vi.stubGlobal('navigator', { credentials: { get } });
+        const input = document.createElement('input');
+
+        const result = await requestHandleAssist({
+          discovery: 'types',
+          type: 'https://atpassport.net/',
+          targetInput: input,
+        });
+
+        expect(result).toMatchObject({ username: 'alice.bsky.social' });
+        expect(input.value).toBe('alice.bsky.social');
+        expect(get).toHaveBeenCalledWith(expect.objectContaining({
+          identity: expect.objectContaining({
+            mode: 'active',
+            providers: [{
+              type: 'https://atpassport.net',
+              clientId: 'https://app.com',
+              fields: ['username', 'picture'],
+            }],
+          }),
+        }));
+        // Verify configURL was omitted
+        const calledProvider = get.mock.calls[0][0].identity.providers[0];
+        expect(calledProvider.configURL).toBeUndefined();
+      });
+
+      it('rejects invalid type URL without calling navigator.credentials.get or fallback', async () => {
+        const get = vi.fn();
+        const fallback = vi.fn();
+        const onError = vi.fn();
+        vi.stubGlobal('window', {
+          IdentityCredential: class {},
+          location: { origin: 'https://app.com' },
+        });
+        vi.stubGlobal('navigator', { credentials: { get } });
+
+        const result = await requestHandleAssist({
+          discovery: 'types',
+          type: 'not-a-valid-url',
+          fallback,
+          onError,
+        });
+
+        expect(result).toBeNull();
+        expect(get).not.toHaveBeenCalled();
+        expect(fallback).not.toHaveBeenCalled();
+        expect(onError).toHaveBeenCalledWith(expect.objectContaining({
+          message: expect.stringContaining('Invalid provider type URL'),
+        }));
+      });
+
+      it('in types mode: calls fallback when type is unsupported (TypeError / NotSupportedError)', async () => {
+        const get = vi.fn().mockRejectedValue(new TypeError('Member configURL required'));
+        const fallbackResult = {
+          did: 'did:plc:fallback',
+          username: 'fallback.example',
+          token: JSON.stringify({ v: 1, did: 'did:plc:fallback', username: 'fallback.example' }),
+        };
+        const fallback = vi.fn().mockResolvedValue(fallbackResult);
+        vi.stubGlobal('window', {
+          IdentityCredential: class {},
+          location: { origin: 'https://app.com' },
+        });
+        vi.stubGlobal('navigator', { credentials: { get } });
+
+        const result = await requestHandleAssist({
+          discovery: 'types',
+          fallback,
+        });
+
+        expect(result).toEqual(fallbackResult);
+        expect(fallback).toHaveBeenCalledOnce();
+      });
+
+      it('in types mode: returns null without fallback on cancel (AbortError), NetworkError, or IdentityCredentialError', async () => {
+        const errors = [
+          new DOMException('User dismissed', 'AbortError'),
+          new DOMException('Network failure', 'NetworkError'),
+          new DOMException('Credential error', 'IdentityCredentialError'),
+          new DOMException('Not allowed', 'NotAllowedError'),
+        ];
+
+        for (const err of errors) {
+          const get = vi.fn().mockRejectedValue(err);
+          const fallback = vi.fn();
+          const onError = vi.fn();
+          vi.stubGlobal('window', {
+            IdentityCredential: class {},
+            location: { origin: 'https://app.com' },
+          });
+          vi.stubGlobal('navigator', { credentials: { get } });
+
+          const result = await requestHandleAssist({
+            discovery: 'types',
+            fallback,
+            onError,
+          });
+
+          expect(result).toBeNull();
+          expect(fallback).not.toHaveBeenCalled();
+          expect(onError).toHaveBeenCalledWith(err);
+        }
+      });
+
+      it('in auto mode: retries with configURL once when type throws TypeError or NotSupportedError', async () => {
+        const get = vi.fn()
+          .mockRejectedValueOnce(new TypeError('type is not supported'))
+          .mockResolvedValueOnce({ token: validToken });
+        const fallback = vi.fn();
+        vi.stubGlobal('window', {
+          IdentityCredential: class {},
+          location: { origin: 'https://app.com' },
+        });
+        vi.stubGlobal('navigator', { credentials: { get } });
+
+        const result = await requestHandleAssist({
+          discovery: 'auto',
+          fallback,
+        });
+
+        expect(result).toMatchObject({ username: 'alice.bsky.social' });
+        expect(get).toHaveBeenCalledTimes(2);
+        // First call used type
+        expect(get.mock.calls[0][0].identity.providers[0]).toHaveProperty('type');
+        // Second call used configURL
+        expect(get.mock.calls[1][0].identity.providers[0]).toHaveProperty('configURL');
+        expect(fallback).not.toHaveBeenCalled();
+      });
+
+      it('in auto mode: does not retry configURL and returns null on user cancel (AbortError) or NetworkError', async () => {
+        const get = vi.fn().mockRejectedValue(new DOMException('Prompt closed', 'NetworkError'));
+        const fallback = vi.fn();
+        const onError = vi.fn();
+        vi.stubGlobal('window', {
+          IdentityCredential: class {},
+          location: { origin: 'https://app.com' },
+        });
+        vi.stubGlobal('navigator', { credentials: { get } });
+
+        const result = await requestHandleAssist({
+          discovery: 'auto',
+          fallback,
+          onError,
+        });
+
+        expect(result).toBeNull();
+        expect(get).toHaveBeenCalledTimes(1);
+        expect(fallback).not.toHaveBeenCalled();
+        expect(onError).toHaveBeenCalledWith(expect.objectContaining({ name: 'NetworkError' }));
+      });
+
+      it('in auto mode: falls back if both type and configURL are unsupported', async () => {
+        const get = vi.fn()
+          .mockRejectedValueOnce(new TypeError('type unsupported'))
+          .mockRejectedValueOnce(new DOMException('FedCM disabled', 'NotSupportedError'));
+        const fallbackResult = {
+          did: 'did:plc:fb',
+          username: 'fb.example',
+          token: JSON.stringify({ v: 1, did: 'did:plc:fb', username: 'fb.example' }),
+        };
+        const fallback = vi.fn().mockResolvedValue(fallbackResult);
+        vi.stubGlobal('window', {
+          IdentityCredential: class {},
+          location: { origin: 'https://app.com' },
+        });
+        vi.stubGlobal('navigator', { credentials: { get } });
+
+        const result = await requestHandleAssist({
+          discovery: 'auto',
+          fallback,
+        });
+
+        expect(result).toEqual(fallbackResult);
+        expect(get).toHaveBeenCalledTimes(2);
+        expect(fallback).toHaveBeenCalledOnce();
+      });
+
+      it('in auto mode: returns null without fallback if configURL retry encounters gesture expiration (SecurityError)', async () => {
+        const get = vi.fn()
+          .mockRejectedValueOnce(new TypeError('type unsupported'))
+          .mockRejectedValueOnce(new DOMException('User activation expired', 'SecurityError'));
+        const fallback = vi.fn();
+        const onError = vi.fn();
+        vi.stubGlobal('window', {
+          IdentityCredential: class {},
+          location: { origin: 'https://app.com' },
+        });
+        vi.stubGlobal('navigator', { credentials: { get } });
+
+        const result = await requestHandleAssist({
+          discovery: 'auto',
+          fallback,
+          onError,
+        });
+
+        expect(result).toBeNull();
+        expect(get).toHaveBeenCalledTimes(2);
+        expect(fallback).not.toHaveBeenCalled();
+        expect(onError).toHaveBeenLastCalledWith(expect.objectContaining({ name: 'SecurityError' }));
+      });
+
+      it('forwards type and discovery from AtPassport instance, inheriting baseUrl as type default', async () => {
+        const get = vi.fn().mockResolvedValue({ token: validToken });
+        vi.stubGlobal('window', {
+          IdentityCredential: class {},
+          location: { origin: 'https://app.com' },
+        });
+        vi.stubGlobal('navigator', { credentials: { get } });
+
+        const passport = new AtPassport({
+          baseUrl: 'http://localhost:3000',
+          callbackUrl: 'https://app.com/cb',
+          fedcm: { discovery: 'types' },
+        });
+
+        const result = await passport.requestHandleAssist();
+        expect(result).toMatchObject({ username: 'alice.bsky.social' });
+        expect(get).toHaveBeenCalledWith(expect.objectContaining({
+          identity: expect.objectContaining({
+            providers: [expect.objectContaining({
+              type: 'http://localhost:3000',
+            })],
+          }),
+        }));
+      });
+    });
   });
 });

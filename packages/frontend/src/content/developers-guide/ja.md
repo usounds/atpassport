@@ -29,19 +29,37 @@ Reactコンポーネントや連携用のヘルパークラスが含まれてお
 
 ### FedCMによるハンドル入力支援
 
-ChromeおよびChromium 141以降では、`requestHandleAssist` を使ってブラウザ標準のアカウント選択UIを表示できます。返されたハンドルは入力候補であり、本人確認の証明として扱ってはいけません。ログインやPDSアクセスを行う場合は、このハンドルからatproto OAuthの完全なフローを開始してください。
+Chrome / Chromium（141以降）および Firefox（@passport 拡張機能導入環境）では、`requestHandleAssist` を使ってブラウザ標準のアカウント選択UIを表示できます。返されたハンドルは入力候補であり、本人確認の証明として扱ってはいけません。ログインやPDSアクセスを行う場合は、このハンドルからatproto OAuthの完全なフローを開始してください。
 
 ```typescript
 import { requestHandleAssist } from '@atpassport/client/core';
 
 const result = await requestHandleAssist({
   targetInput: document.querySelector<HTMLInputElement>('[name="handle"]') ?? undefined,
+  // 探索モード: 'config' (従来・configURL直接指定), 'types' (登録型IdP), 'auto' (自動)
+  discovery: 'auto',
+  // 登録型IdPの識別子（省略時は 'https://atpassport.net'）
+  type: 'https://atpassport.net',
+  // 未対応環境でリダイレクト等の代替手段に進めるためのコールバック
+  fallback: async () => {
+    window.location.href = atp.generateAuthUrl().url;
+    return null;
+  },
 });
 
 if (result) {
   await startAtprotoOAuth(result.username);
 }
 ```
+
+#### 探索モード（Discovery Mode）
+- **`config` (既定・後方互換)**: `configURL` を指定してIdPサーバーから直接候補を取得する従来のFedCM動作です。
+- **`types` (登録型IdP / Zero-Network)**: W3C IdP Registration 提案仕様に基づき、ブラウザや拡張機能に事前保存されたIdPアカウントから探索します。未合致のIdPに対する暗黙のネットワーク通信は一切発生しません。
+- **`auto` (自動)**: まず `types` による登録型探索を試み、ブラウザが未対応の場合は自動的に `config` 経路へフォールバックします。
+
+#### フォールバック契約とエラー処理
+- **キャンセル・同意拒否・候補なし（no-match）**: ユーザーがダイアログを閉じた場合や候補が存在しない場合は、`requestHandleAssist` は安全に `null` を返却します。意図しないリダイレクトや再度のUIポップアップは発生しません。
+- **未対応環境（TypeError / NotSupportedError）**: ブラウザがFedCMや指定モードに対応していない場合のみ、指定された `fallback` コールバックが最大1回実行されます。
 
 返される`username`、`did`、`token`はハンドル選択を補助する情報であり、認証情報ではありません。これらを使ってセッションを確立したり、APIリクエストを認可したりしないでください。`token`はBearerトークンやアクセストークンではありません。atproto OAuthを完了し、その検証済み結果を使用してください。
 

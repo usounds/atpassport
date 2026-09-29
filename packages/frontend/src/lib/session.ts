@@ -49,26 +49,10 @@ export function getSecretKey() {
   return new TextEncoder().encode(sessionSecret);
 }
 
-export async function getSessionUuid(request?: Request): Promise<string | null> {
+export async function getSessionUuid(): Promise<string | null> {
   const secretKey = getSecretKey();
 
   try {
-    const authHeader = request?.headers?.get("authorization");
-    if (authHeader?.startsWith("Bearer ")) {
-      const token = authHeader.slice(7).trim();
-      if (token) {
-        try {
-          const { payload } = await jwtVerify(token, secretKey);
-          if (typeof payload.uuid === "string") {
-            return payload.uuid;
-          }
-        } catch (e) {
-          console.warn('[Session] Bearer jwtVerify failed:', e);
-          return null;
-        }
-      }
-    }
-
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
     if (!sessionCookie) return null;
