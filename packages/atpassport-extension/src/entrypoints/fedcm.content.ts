@@ -283,11 +283,10 @@ export default defineContentScript({
       const identity = (options as { identity?: { providers?: Array<{ configURL?: string; type?: string }> } })?.identity;
       const providers = identity?.providers;
 
-      if (!Array.isArray(providers) || providers.length !== 1) {
+      const provider = Array.isArray(providers) && providers.length === 1 ? providers[0] : undefined;
+      if (!provider) {
         throw new DOMException('Multiple providers are not supported.', 'NotSupportedError');
       }
-
-      const provider = providers[0];
       const isAtp = (provider.configURL && isAtPassportConfigUrl(provider.configURL)) ||
                     (provider.type && isAtPassportType(provider.type));
 

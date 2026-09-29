@@ -188,12 +188,12 @@ describe('accountStorage', () => {
     });
 
     it('isolates findStoredIdpEntryByType across containers', async () => {
-      const workAccounts = [{ id: 'did:plc:work', name: 'WorkAlice' }];
+      const workAccounts = [{ id: 'did:plc:work', name: 'WorkAlice', username: '@work.bsky.social' }];
       await savePushedAccounts('https://atpassport.net', workAccounts, 'firefox-container-1');
 
       // Found in container-1
       const foundInCont1 = await findStoredIdpEntryByType('https://atpassport.net', 'firefox-container-1');
-      expect(foundInCont1?.accounts[0].id).toBe('did:plc:work');
+      expect(foundInCont1?.accounts[0]?.id).toBe('did:plc:work');
 
       // Not found in default context
       const notFoundDefault = await findStoredIdpEntryByType('https://atpassport.net', 'firefox-default');
@@ -201,7 +201,7 @@ describe('accountStorage', () => {
     });
 
     it('returns null if providerType does not match any entry', async () => {
-      const accounts = [{ id: 'did:plc:123', name: 'Alice' }];
+      const accounts = [{ id: 'did:plc:123', name: 'Alice', username: '@alice.bsky.social' }];
       await savePushedAccounts('https://atpassport.net', accounts);
 
       const result = await findStoredIdpEntryByType('https://other-idp.com');

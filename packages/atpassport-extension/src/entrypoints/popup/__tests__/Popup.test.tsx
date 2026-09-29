@@ -14,8 +14,12 @@ vi.mock('@/lib/HandleManager', () => {
       fetchHandles = mockFetchAccounts;
       applyHandle = mockApplyHandle;
     },
+    getDefaultIdpOrigin: () => 'https://atpassport.net',
   };
 });
+vi.mock('@/lib/accountStorage', () => ({
+  getPushedAccounts: vi.fn().mockResolvedValue([]),
+}));
 
 describe('Popup', () => {
   beforeEach(() => {

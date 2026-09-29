@@ -56,8 +56,8 @@ function getSenderContext(sender: MessageSender): { isPrivate: boolean; contextK
     sender.tab?.cookieStoreId?.includes('private')
   );
   const contextKey = sender.tab?.cookieStoreId || 'firefox-default';
-  const isFirefox = import.meta.env.BROWSER === 'firefox';
-  const unknownContext = isFirefox && Boolean(sender.tab && !sender.tab.cookieStoreId);
+  const isSafari = import.meta.env.BROWSER === 'safari';
+  const unknownContext = !isSafari && Boolean(sender.tab && !sender.tab.cookieStoreId);
   return { isPrivate, contextKey, unknownContext };
 }
 

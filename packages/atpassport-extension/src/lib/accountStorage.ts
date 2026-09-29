@@ -162,7 +162,7 @@ export async function findStoredIdpEntryByType(
     }
   }
 
-  if (matchedEntries.length !== 1) {
+  if (matchedEntries.length !== 1 || !matchedEntries[0]) {
     return null;
   }
 
