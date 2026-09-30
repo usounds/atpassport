@@ -2,6 +2,7 @@ import { showFedCmPrompt } from '@/lib/fedcm-prompt';
 import { getDefaultIdpOrigin, type AccountItem } from '@/lib/HandleManager';
 import { isAtPassportOrigin, isAtPassportConfigUrl, isAtPassportType } from '@/lib/fedcm-url';
 import type { StoredAccount } from '@/lib/accountStorage';
+import { resolveSafariDevProvider } from '@/lib/safariDevProvider';
 
 declare global {
   function exportFunction(
@@ -270,7 +271,7 @@ const INLINE_POLYFILL_CODE = `
 
 export default defineContentScript({
   include: ['firefox', 'safari'],
-  matches: ['<all_urls>'],
+  matches: ['<all_urls>', 'http://localhost/*', 'http://127.0.0.1/*'],
   runAt: 'document_start',
   main() {
     console.log('[@passport] FedCM content script main() initialized on:', window.location.href);
@@ -283,7 +284,8 @@ export default defineContentScript({
       const identity = (options as { identity?: { providers?: Array<{ configURL?: string; type?: string }> } })?.identity;
       const providers = identity?.providers;
 
-      const provider = Array.isArray(providers) && providers.length === 1 ? providers[0] : undefined;
+      const requestedProvider = Array.isArray(providers) && providers.length === 1 ? providers[0] : undefined;
+      const provider = requestedProvider ? resolveSafariDevProvider(requestedProvider) : undefined;
       if (!provider) {
         throw new DOMException('Multiple providers are not supported.', 'NotSupportedError');
       }
@@ -388,7 +390,7 @@ export default defineContentScript({
 
         // 3. Fallback to FETCH_ACCOUNTS if stored accounts are empty
         if (accounts.length === 0) {
-          console.warn('[@passport] No pushed accounts found in extension storage. Falling back to network FETCH_ACCOUNTS (/api/fedcm/accounts)...');
+          console.warn('[@passport] No pushed accounts found for', idpOrigin, 'falling back to FETCH_ACCOUNTS (/api/user/handles)');
           try {
             const response = await browser.runtime.sendMessage({
               type: 'FETCH_ACCOUNTS',
@@ -396,6 +398,8 @@ export default defineContentScript({
             });
             if (response?.success && Array.isArray(response.accounts)) {
               accounts = response.accounts;
+            } else {
+              console.warn('[@passport] FETCH_ACCOUNTS failed:', response?.error);
             }
           } catch (err) {
             console.warn('[@passport] Error fetching accounts from background fallback:', err);
@@ -421,6 +425,7 @@ export default defineContentScript({
       showFedCmPrompt({
         accounts,
         iconUrl,
+        idpOrigin,
         rpDomain: window.location.hostname,
         onSelect: async (selectedAccount) => {
           console.log('[@passport] onSelect callback invoked for account:', selectedAccount);
@@ -687,4 +692,3 @@ export default defineContentScript({
     window.addEventListener('atpassport-fedcm-request', handleCustomEvent);
   },
 });
-

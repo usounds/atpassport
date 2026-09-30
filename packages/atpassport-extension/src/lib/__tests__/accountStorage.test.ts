@@ -8,7 +8,6 @@ import {
   getAccountStorageKey,
   normalizeIdpOrigin,
 } from '../accountStorage';
-import { browser } from 'wxt/browser';
 
 const mockStorage: Record<string, unknown> = {};
 
@@ -59,10 +58,10 @@ describe('accountStorage', () => {
 
     it('generates correct storage keys with context', () => {
       expect(getAccountStorageKey('https://atpassport.net')).toBe(
-        'fedcm_idp_accounts:firefox-default:https://atpassport.net'
+        'fedcm_idp_accounts:default:https://atpassport.net'
       );
       expect(getAccountStorageKey('https://atpassport.net', 'firefox-container-1')).toBe(
-        'fedcm_idp_accounts:firefox-container-1:https://atpassport.net'
+        'fedcm_idp_accounts:container-1:https://atpassport.net'
       );
       expect(getAccountStorageKey('invalid')).toBeNull();
     });
@@ -210,7 +209,7 @@ describe('accountStorage', () => {
 
     it('returns null if entry has empty accounts', async () => {
       // Direct storage mock with empty accounts
-      mockStorage['fedcm_idp_accounts:firefox-default:https://atpassport.net'] = {
+      mockStorage['fedcm_idp_accounts:default:https://atpassport.net'] = {
         origin: 'https://atpassport.net',
         configURL: 'https://atpassport.net/fedcm/config.json',
         types: ['https://atpassport.net'],
@@ -223,14 +222,14 @@ describe('accountStorage', () => {
     });
 
     it('returns null if multiple entries match the same providerType', async () => {
-      mockStorage['fedcm_idp_accounts:firefox-default:https://atpassport.net'] = {
+      mockStorage['fedcm_idp_accounts:default:https://atpassport.net'] = {
         origin: 'https://atpassport.net',
         configURL: 'https://atpassport.net/fedcm/config.json',
         types: ['https://shared-type.example.com'],
         accounts: [{ id: 'did:1', name: 'User 1' }],
         updatedAt: Date.now(),
       };
-      mockStorage['fedcm_idp_accounts:firefox-default:https://idp2.atpassport.net'] = {
+      mockStorage['fedcm_idp_accounts:default:https://idp2.atpassport.net'] = {
         origin: 'https://idp2.atpassport.net',
         configURL: 'https://idp2.atpassport.net/fedcm/config.json',
         types: ['https://shared-type.example.com'],

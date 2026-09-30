@@ -17,6 +17,11 @@ vi.mock('../accountStorage', () => ({
       return null;
     }
   }),
+  normalizeContextKey: vi.fn((contextKey?: string) => {
+    if (!contextKey || contextKey === 'firefox-default') return 'default';
+    return contextKey.startsWith('firefox-container-') ? contextKey.slice('firefox-'.length) : contextKey;
+  }),
+  DEFAULT_CONTEXT_KEY: 'default',
 }));
 
 const mockFetchAccounts = vi.fn();
@@ -170,7 +175,7 @@ describe('handleBackgroundMessage', () => {
       expect(accountStorage.savePushedAccounts).toHaveBeenCalledWith(
         'https://atpassport.net',
         accounts,
-        'firefox-container-2'
+        'container-2'
       );
     });
 
@@ -190,7 +195,7 @@ describe('handleBackgroundMessage', () => {
       expect(accountStorage.savePushedAccounts).toHaveBeenCalledWith(
         'http://localhost:3000',
         [],
-        'firefox-default'
+        'default'
       );
     });
   });
@@ -212,7 +217,7 @@ describe('handleBackgroundMessage', () => {
       expect(res.accounts).toEqual(mockAccounts);
       expect(accountStorage.getPushedAccounts).toHaveBeenCalledWith(
         'https://atpassport.net',
-        'firefox-container-1'
+        'container-1'
       );
     });
 
@@ -246,7 +251,7 @@ describe('handleBackgroundMessage', () => {
       expect(res.accounts).toEqual(mockAccounts);
       expect(accountStorage.getPushedAccounts).toHaveBeenCalledWith(
         'https://dev.atpassport.net',
-        'firefox-default'
+        'default'
       );
     });
 
@@ -290,7 +295,7 @@ describe('handleBackgroundMessage', () => {
       expect(res.accounts).toEqual(mockEntry.accounts);
       expect(accountStorage.findStoredIdpEntryByType).toHaveBeenCalledWith(
         'https://atpassport.net',
-        'firefox-container-1'
+        'container-1'
       );
       expect(mockFetchAccounts).not.toHaveBeenCalled();
     });
@@ -360,7 +365,7 @@ describe('handleBackgroundMessage', () => {
       expect(res.success).toBe(true);
       expect(accountStorage.clearPushedAccounts).toHaveBeenCalledWith(
         'https://atpassport.net',
-        'firefox-container-1'
+        'container-1'
       );
     });
   });

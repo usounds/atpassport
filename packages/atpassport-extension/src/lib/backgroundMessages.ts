@@ -7,6 +7,8 @@ import {
   clearPushedAccounts,
   findStoredIdpEntryByType,
   normalizeIdpOrigin,
+  normalizeContextKey,
+  DEFAULT_CONTEXT_KEY,
   type StoredAccount,
 } from '@/lib/accountStorage';
 import { isAtPassportOrigin } from '@/lib/fedcm-url';
@@ -55,7 +57,7 @@ function getSenderContext(sender: MessageSender): { isPrivate: boolean; contextK
     sender.tab?.cookieStoreId === 'firefox-private' ||
     sender.tab?.cookieStoreId?.includes('private')
   );
-  const contextKey = sender.tab?.cookieStoreId || 'firefox-default';
+  const contextKey = normalizeContextKey(sender.tab?.cookieStoreId);
   const isSafari = import.meta.env.BROWSER === 'safari';
   const unknownContext = !isSafari && Boolean(sender.tab && !sender.tab.cookieStoreId);
   return { isPrivate, contextKey, unknownContext };
@@ -98,7 +100,7 @@ export async function handleBackgroundMessage(
 
   if (message.type === 'FETCH_ACCOUNTS') {
     const { isPrivate, contextKey, unknownContext } = getSenderContext(sender);
-    if (isPrivate || unknownContext || contextKey !== 'firefox-default') {
+    if (isPrivate || unknownContext || contextKey !== DEFAULT_CONTEXT_KEY) {
       return { success: false, error: 'Open AtPassport in this context to synchronize accounts' };
     }
     try {
@@ -119,7 +121,7 @@ export async function handleBackgroundMessage(
       return { success: false, error: 'Private browsing context is not supported for account storage' };
     }
 
-    let rawSenderUrl = sender.url || sender.tab?.url || sender.origin;
+    const rawSenderUrl = sender.url || sender.tab?.url || sender.origin;
     let senderOrigin: string | null = null;
     try {
       senderOrigin = rawSenderUrl ? new URL(rawSenderUrl).origin : null;

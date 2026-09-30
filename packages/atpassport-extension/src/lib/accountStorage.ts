@@ -53,12 +53,14 @@ export function normalizeTypeUrl(url: string): string {
   return url.trim().replace(/\/$/, '').toLowerCase();
 }
 
-export const DEFAULT_CONTEXT_KEY = 'firefox-default';
+export const DEFAULT_CONTEXT_KEY = 'default';
 
 export function normalizeContextKey(contextKey?: string): string {
   if (!contextKey || typeof contextKey !== 'string') return DEFAULT_CONTEXT_KEY;
   const trimmed = contextKey.trim();
-  return trimmed.length > 0 ? trimmed : DEFAULT_CONTEXT_KEY;
+  if (!trimmed || trimmed === 'firefox-default') return DEFAULT_CONTEXT_KEY;
+  if (trimmed.startsWith('firefox-container-')) return trimmed.slice('firefox-'.length);
+  return trimmed;
 }
 
 export function getAccountStorageKey(

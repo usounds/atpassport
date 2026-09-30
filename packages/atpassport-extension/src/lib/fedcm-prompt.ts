@@ -1,9 +1,10 @@
-import type { AccountItem } from './HandleManager';
+import { getDefaultIdpOrigin, type AccountItem } from './HandleManager';
 
 export interface PromptOptions {
   accounts: AccountItem[];
   iconUrl: string;
   rpDomain?: string;
+  idpOrigin?: string;
   onSelect: (account: AccountItem) => void;
   onDismiss: () => void;
 }
@@ -580,7 +581,7 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
     const footerLink = document.createElement('a');
     footerLink.className = 'atp-footer-link';
     footerLink.textContent = i18n.learnMore;
-    footerLink.href = 'https://atpassport.net';
+    footerLink.href = options.idpOrigin || getDefaultIdpOrigin();
     footerLink.target = '_blank';
     footer.appendChild(footerLink);
     return footer;

@@ -141,8 +141,17 @@ export const Popup = () => {
     }
   };
 
+  const defaultOrigin = getDefaultIdpOrigin();
+  const defaultHostname = (() => {
+    try {
+      return new URL(defaultOrigin).hostname;
+    } catch {
+      return 'atpassport.net';
+    }
+  })();
+
   const openAtPassport = () => {
-    chrome.tabs.create({ url: 'https://atpassport.net' });
+    chrome.tabs.create({ url: defaultOrigin });
   };
 
   return (
@@ -150,7 +159,7 @@ export const Popup = () => {
       <div 
         className="header"
         onClick={openAtPassport}
-        title="Go to atpassport.net"
+        title={`Go to ${defaultHostname}`}
       >
         <img src="/icons/icon48.png" alt="icon" />
         <h2>@passport</h2>
