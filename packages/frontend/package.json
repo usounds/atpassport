@@ -14,7 +14,7 @@
     "test:e2e:ui": "playwright test --ui",
     "check": "pnpm test && pnpm lint && pnpm run test:e2e && pnpm build",
     "deploy": "pnpm test && npx sst deploy --stage production",
-    "update": "npx ncu -u -x eslint && pnpm install",
+    "update": "npx ncu -u -x eslint,typescript && pnpm install",
     "lint": "eslint"
   },
   "dependencies": {
@@ -75,7 +75,7 @@
     "jsdom": "^30.1.1",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
-    "typescript": "^7.0.2",
+    "typescript": "6.0.3",
     "vitest": "^5.0.3"
   }
 }
