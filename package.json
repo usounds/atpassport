@@ -14,7 +14,7 @@
   "devDependencies": {
     "@atcute/lex-cli": "^2.8.2",
     "npm-check-updates": "^17.1.18",
-    "sst": "^4.15.2",
+    "sst": "^4.17.1",
     "typescript": "^5.9.3"
   }
 }

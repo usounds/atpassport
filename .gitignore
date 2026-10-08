@@ -5,7 +5,9 @@ node_modules
 # Next.js
 .next/
 out/
+A：atproto / AT Protocol
 
+B：Atmosphere
 # Build
 dist/
 build/
@@ -14,6 +16,8 @@ build/
 .vscode/
 .idea/
 .DS_Store
+UserInterfaceState.xcuserstate
+xcschememanagement.plist
 
 # Env
 .env

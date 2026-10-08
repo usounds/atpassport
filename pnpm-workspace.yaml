@@ -10,7 +10,7 @@ overrides:
   '@types/react': 19.2.14
   '@types/react-dom': 19.2.3
   adm-zip: ^0.6.1
-  brace-expansion: 5.0.9
+  brace-expansion: 5.0.12
   esbuild: 0.28.1
   fast-xml-builder: ^1.1.7
   fast-xml-parser: ^5.7.0
@@ -20,14 +20,17 @@ overrides:
   'multimatch@6.0.0': 8.0.0
   'nanoid@<3.3.18': 3.3.18
   'nanoid@>=4.0.0 <5.1.16': 5.1.16
-  next: 16.3.6
+  'wxt>web-ext': '-'
+  '@devicefarmer/adbkit>node-forge': '-'
+  next: 16.3.8
   next-intl: 4.11.0
   picomatch: 4.0.4
   postcss: ^8.5.18
   react: 19.2.5
   react-dom: 19.2.5
   sharp: ^0.35.4
-  shell-quote: ^1.9.0
+  shell-quote: ^1.12.0
+  source-map-js: ^1.2.2
   tmp: '>=0.2.6'
   undici: ^7.29.0
   uuid: ^14.0.0
