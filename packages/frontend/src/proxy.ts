@@ -4,6 +4,8 @@ import { routing } from './i18n/routing';
 import { jwtVerify } from 'jose';
 import { getSecretKey, SESSION_COOKIE_NAME } from './lib/session';
 
+import { createContentSecurityPolicy } from './lib/csp';
+
 const intlMiddleware = createMiddleware(routing);
 
 export default async function middleware(request: NextRequest) {
@@ -31,9 +33,22 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isHttps = request.nextUrl.protocol === 'https:';
+  const csp = createContentSecurityPolicy(nonce, isDevelopment, isHttps);
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('Content-Security-Policy', csp);
+
+  const reqWithHeaders = new NextRequest(request, {
+    headers: requestHeaders,
+  });
+
   let response = (pathname.startsWith('/api') || pathname.startsWith('/xrpc'))
-    ? NextResponse.next()
-    : intlMiddleware(request);
+    ? NextResponse.next({ request: { headers: requestHeaders } })
+    : intlMiddleware(reqWithHeaders);
 
   // Check if the middleware triggered a temporary redirect (307)
   // and convert it to a permanent redirect (308) for better SEO configuration.
@@ -63,7 +78,20 @@ export default async function middleware(request: NextRequest) {
   response.headers.set('Cloudflare-CDN-Cache-Control', 'no-store');
   response.headers.append('Vary', 'Cookie');
   response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  response.headers.set('Content-Security-Policy', csp);
   
+  // Ensure all cookies on secure connections have the Secure flag
+  if (isHttps || process.env.NODE_ENV === 'production') {
+    response.cookies.getAll().forEach((cookie) => {
+      if (!cookie.secure) {
+        response.cookies.set({
+          ...cookie,
+          secure: true,
+        });
+      }
+    });
+  }
+
   // Debug header to confirm middleware execution
   response.headers.set('X-Proxy-Status', 'active');
 

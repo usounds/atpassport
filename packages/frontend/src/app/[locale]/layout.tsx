@@ -77,6 +77,7 @@ export const viewport: Viewport = {
   themeColor: '#000000',
 };
 
+import { headers } from 'next/headers';
 import { MantineThemeProvider } from '@/providers/MantineThemeProvider';
 
 export default async function RootLayout({
@@ -88,14 +89,17 @@ export default async function RootLayout({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const headersList = await headers();
+  const nonce = headersList.get('x-nonce') ?? undefined;
   const messages = await getMessages();
   const colorScheme = 'light';
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        <MantineScript defaultColorScheme={colorScheme} />
+        <MantineScript defaultColorScheme={colorScheme} nonce={nonce} />
         <script
+          nonce={nonce}
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
