@@ -89,6 +89,9 @@ export default async function middleware(request: NextRequest) {
     });
   });
 
+  // Ensure response does not leak server technology via X-Powered-By
+  response.headers.delete('x-powered-by');
+
   // Debug header to confirm middleware execution
   response.headers.set('X-Proxy-Status', 'active');
 
