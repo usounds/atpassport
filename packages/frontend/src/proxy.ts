@@ -62,6 +62,7 @@ export default async function middleware(request: NextRequest) {
   response.headers.set('CDN-Cache-Control', 'no-store');
   response.headers.set('Cloudflare-CDN-Cache-Control', 'no-store');
   response.headers.append('Vary', 'Cookie');
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   
   // Debug header to confirm middleware execution
   response.headers.set('X-Proxy-Status', 'active');
