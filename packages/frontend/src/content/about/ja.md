@@ -19,7 +19,7 @@ atprotoは分散型であるがゆえに、「Blueskyでログイン」のよう
 
 chavatar.app
 skyblur.uk
-rito.blue<br><br><a href="https://bsky.app/profile/did:plc:7qu7hsthk2mtm5ilru4umrsf/post/3mjwiio2yns2s?ref_src=embed">[image or embed]</a></p>&mdash; @passport (<a href="https://bsky.app/profile/did:plc:7qu7hsthk2mtm5ilru4umrsf?ref_src=embed">@atpassport.net</a>) <a href="https://bsky.app/profile/did:plc:7qu7hsthk2mtm5ilru4umrsf/post/3mjwiio2yns2s?ref_src=embed">2026年4月20日 21:41</a></blockquote><script async src="https://embed.bsky.app/static/embed.js" charset="utf-8"></script>
+rito.blue<br><br><a href="https://bsky.app/profile/did:plc:7qu7hsthk2mtm5ilru4umrsf/post/3mjwiio2yns2s?ref_src=embed">[image or embed]</a></p>&mdash; @passport (<a href="https://bsky.app/profile/did:plc:7qu7hsthk2mtm5ilru4umrsf?ref_src=embed">@atpassport.net</a>) <a href="https://bsky.app/profile/did:plc:7qu7hsthk2mtm5ilru4umrsf/post/3mjwiio2yns2s?ref_src=embed">2026年4月20日 21:41</a></blockquote>
 ```
 
 あくまでも「ハンドル(例: @alice.bsky.social)」のみが本サーバーに保存され、パスワードを始めとしたJWTトークンなどの認証情報は一切本サーバーには保存されませんので、安心してご利用いただけます。
