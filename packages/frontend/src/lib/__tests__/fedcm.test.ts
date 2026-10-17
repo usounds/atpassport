@@ -35,6 +35,18 @@ describe("FedCM helpers", () => {
     expect(getPublicRequestOrigin(request)).toBe("https://dev.atpassport.net");
   });
 
+  it("falls back to atpassport.net for untrusted forwarded hosts to prevent open redirects", () => {
+    const request = new Request("http://0.0.0.0:3001/fedcm/config.json", {
+      headers: {
+        host: "internal:3001",
+        "x-forwarded-host": "evilsite.com",
+        "x-forwarded-proto": "https",
+      },
+    });
+
+    expect(getPublicRequestOrigin(request)).toBe("https://atpassport.net");
+  });
+
   it.each([
     "javascript:alert(1)",
     "http://example.com",

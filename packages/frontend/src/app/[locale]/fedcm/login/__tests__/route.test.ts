@@ -75,6 +75,23 @@ describe("FedCM login endpoint", () => {
     expect(response.headers.get("location")).toBe("https://dev.atpassport.net/en?fedcm=1");
   });
 
+  it("prevents open redirect when an untrusted host header is provided", async () => {
+    vi.mocked(getSessionUuid).mockResolvedValue(null);
+    const response = await GET(
+      new NextRequest("http://0.0.0.0:3001/en/fedcm/login", {
+        headers: {
+          host: "evilsite.com",
+          "x-forwarded-host": "evilsite.com",
+          "x-forwarded-proto": "https",
+        },
+      }),
+      { params: Promise.resolve({ locale: "en" }) },
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://atpassport.net/en?fedcm=1");
+  });
+
   it("closes the FedCM login window when explicitly requested with close=1", async () => {
     vi.mocked(getSessionUuid).mockResolvedValue("uuid");
     const response = await GET(
