@@ -80,17 +80,14 @@ export default async function middleware(request: NextRequest) {
   response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   response.headers.set('Content-Security-Policy', csp);
   
-  // Ensure all cookies on secure connections have the Secure flag
-  if (isHttps || process.env.NODE_ENV === 'production') {
-    response.cookies.getAll().forEach((cookie) => {
-      if (!cookie.secure) {
-        response.cookies.set({
-          ...cookie,
-          secure: true,
-        });
-      }
+  // Ensure all response cookies have HttpOnly and (on secure connections) Secure flags
+  response.cookies.getAll().forEach((cookie) => {
+    response.cookies.set({
+      ...cookie,
+      httpOnly: true,
+      secure: isHttps || process.env.NODE_ENV === 'production' ? true : cookie.secure,
     });
-  }
+  });
 
   // Debug header to confirm middleware execution
   response.headers.set('X-Proxy-Status', 'active');
