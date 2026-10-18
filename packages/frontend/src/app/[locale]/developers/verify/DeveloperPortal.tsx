@@ -19,9 +19,27 @@ import { isActorIdentifier } from '@atcute/lexicons/syntax';
 import { NetAtpassportVerifyList, NetAtpassportVerifySubmit, NetAtpassportVerifyWithdraw } from '@/lexicons/index';
 
 const accountHeaderStyles = {
-  backgroundColor: 'var(--mantine-color-gray-0)',
-  borderBottom: '1px solid var(--mantine-color-gray-2)',
+  backgroundColor: 'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6))',
+  borderBottom: '1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4))',
 };
+
+function isSessionExpiredError(err: unknown): boolean {
+  if (!err) return false;
+  const error = err as { status?: number; name?: string; message?: string; error?: string; kind?: string };
+  return (
+    error.status === 401 ||
+    error.name === 'TokenRefreshError' ||
+    (error.name === 'OAuthResponseError' && error.status === 400 && error.error === 'invalid_grant') ||
+    (typeof error.message === 'string' && (
+      error.message.includes('expired') ||
+      error.message.includes('session was revoked') ||
+      error.message.includes('invalid_grant') ||
+      error.message.includes('TokenRefreshError')
+    )) ||
+    error.error === 'invalid_grant' ||
+    error.kind === 'invalid_grant'
+  );
+}
 
 const accountHeaderTextStyles = {
   primary: {
@@ -85,10 +103,18 @@ export function DeveloperPortal({
   const handleLogout = useCallback(async () => {
     if (session) {
       await deleteStoredSession(session.info.sub);
-      setSession(null);
-      setProfile(null);
-      setDomains([]);
     }
+    try {
+      const stored = listStoredSessions();
+      for (const sub of stored) {
+        await deleteStoredSession(sub);
+      }
+    } catch (err) {
+      console.warn('Failed to delete stored sessions:', err);
+    }
+    setSession(null);
+    setProfile(null);
+    setDomains([]);
   }, [session]);
 
   const fetchData = useCallback(async (s: Session, options: { skipProfile?: boolean } = {}) => {
@@ -143,11 +169,15 @@ export function DeveloperPortal({
             }
           }
         } catch (err: unknown) {
-          const error = err as { status?: number; name?: string; message?: string };
           // セッション切れのチェック
-          if (error?.status === 401 || error?.name === 'TokenRefreshError' || error?.message?.includes('expired')) {
+          if (isSessionExpiredError(err)) {
             console.warn('Session expired or unauthorized, logging out...');
             await handleLogout();
+            notifications.show({
+              title: t('error_title'),
+              message: t('session_expired'),
+              color: 'red'
+            });
             return;
           }
 
@@ -248,6 +278,11 @@ export function DeveloperPortal({
     fetchDataRef.current = fetchData;
   }, [fetchData]);
 
+  const handleLogoutRef = useRef(handleLogout);
+  useEffect(() => {
+    handleLogoutRef.current = handleLogout;
+  }, [handleLogout]);
+
   useEffect(() => {
     setTimeout(() => setMounted(true), 0);
     const callbackUri = `${window.location.origin}/${locale}/developers/verify/callback`;
@@ -263,9 +298,22 @@ export function DeveloperPortal({
             if (existingSession) {
               setSession(existingSession);
               await fetchDataRef.current(existingSession);
+            } else {
+              await handleLogoutRef.current();
+              notifications.show({
+                title: t('error_title'),
+                message: t('session_expired'),
+                color: 'red',
+              });
             }
           } catch (e) {
             console.warn('Failed to restore session:', e);
+            await handleLogoutRef.current();
+            notifications.show({
+              title: t('error_title'),
+              message: t('session_expired'),
+              color: 'red',
+            });
           }
         }
       } catch (err) {
@@ -276,7 +324,7 @@ export function DeveloperPortal({
     };
 
     checkState();
-  }, [locale]); // Run on mount and locale change
+  }, [locale, t]);
 
 
 
@@ -348,6 +396,19 @@ export function DeveloperPortal({
       setActiveTab('dashboard');
     } catch (error: unknown) {
       console.error('[Verify Proxy] Error:', error);
+      if (isSessionExpiredError(error)) {
+        await handleLogout();
+        notifications.update({
+          id,
+          title: t('error_title'),
+          message: t('session_expired'),
+          color: 'red',
+          loading: false,
+          autoClose: true,
+          withCloseButton: true,
+        });
+        return;
+      }
       const err = error as { message?: string; kind?: string; error?: string };
       
       // Extract error key - handle both XRPCError and our custom error throw above
@@ -419,6 +480,19 @@ export function DeveloperPortal({
       setActiveTab('dashboard');
     } catch (error: unknown) {
       console.error('[Verify File] Error:', error);
+      if (isSessionExpiredError(error)) {
+        await handleLogout();
+        notifications.update({
+          id,
+          title: t('error_title'),
+          message: t('session_expired'),
+          color: 'red',
+          loading: false,
+          autoClose: true,
+          withCloseButton: true,
+        });
+        return;
+      }
       const err = error as { message?: string; kind?: string; error?: string };
       
       let errorKey = err?.kind || err?.error;
@@ -468,6 +542,19 @@ export function DeveloperPortal({
       notifications.update({ id, title: t('success_title'), message: t('withdraw_success'), color: 'blue', loading: false, autoClose: true, withCloseButton: true });
     } catch (error: unknown) {
       console.error('[Withdraw Proxy] Error:', error);
+      if (isSessionExpiredError(error)) {
+        await handleLogout();
+        notifications.update({
+          id,
+          title: t('error_title'),
+          message: t('session_expired'),
+          color: 'red',
+          loading: false,
+          autoClose: true,
+          withCloseButton: true,
+        });
+        return;
+      }
       const err = error as { message?: string; kind?: string; error?: string };
       
       let errorKey = err?.kind || err?.error;
@@ -706,11 +793,11 @@ export function DeveloperPortal({
               </Stack>
             </Group>
             <Button
-              variant="subtle"
-              color="gray"
+              variant="default"
               size="xs"
               onClick={handleLogout}
               leftSection={<IconLogout size={14} />}
+              style={{ flexShrink: 0 }}
             >
               {t('logout')}
             </Button>

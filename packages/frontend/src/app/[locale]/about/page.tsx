@@ -73,11 +73,13 @@ function BlueskyEmbed({ raw }: { raw: string }) {
   const pMatch = raw.match(/<p[^>]*>([\s\S]*?)<\/p>/);
   let fallbackText = '';
   if (pMatch) {
-    fallbackText = pMatch[1]
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/\[image or embed\]/g, '')
-      .trim();
+    let text = pMatch[1].replace(/<br\s*\/?>/gi, '\n');
+    let previous: string;
+    do {
+      previous = text;
+      text = text.replace(/<[^>]+>/g, '');
+    } while (text !== previous);
+    fallbackText = text.replace(/\[image or embed\]/g, '').trim();
   }
 
   // Extract link or construct from URI

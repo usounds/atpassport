@@ -171,6 +171,7 @@
     "login_button": "Anmelden",
     "go_back": "Zurück",
     "logout": "Abmelden",
+    "session_expired": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
     "login_failed": "Anmeldung konnte nicht gestartet werden",
     "withdraw_success": "Verifizierung erfolgreich zurückgezogen.",
     "update_success": "Einstellungen aktualisiert.",

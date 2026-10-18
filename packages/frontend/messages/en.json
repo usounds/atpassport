@@ -171,6 +171,7 @@
     "login_button": "Login",
     "go_back": "Back",
     "logout": "Log out",
+    "session_expired": "Your session has expired. Please log in again.",
     "login_failed": "Failed to start login",
     "withdraw_success": "Withdrawal successful.",
     "update_success": "Settings updated.",

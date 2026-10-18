@@ -171,6 +171,7 @@
     "login_button": "Se connecter",
     "go_back": "Retour",
     "logout": "Se déconnecter",
+    "session_expired": "Votre session a expiré. Veuillez vous reconnecter.",
     "login_failed": "Impossible de démarrer la connexion",
     "withdraw_success": "Retrait réussi.",
     "update_success": "Paramètres mis à jour.",
