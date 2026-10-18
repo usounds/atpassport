@@ -40,6 +40,80 @@ export async function generateMetadata({
   });
 }
 
+function BlueskyEmbed({ raw }: { raw: string }) {
+  const uriMatch = raw.match(/data-bluesky-uri="([^"]+)"/);
+  const cidMatch = raw.match(/data-bluesky-cid="([^"]+)"/);
+  const colorModeMatch = raw.match(/data-bluesky-embed-color-mode="([^"]+)"/);
+
+  const uri = uriMatch?.[1];
+  const cid = cidMatch?.[1];
+  const colorMode = colorModeMatch?.[1] || 'system';
+
+  if (!uri) {
+    return (
+      <pre
+        style={{
+          whiteSpace: 'pre-wrap',
+          overflowWrap: 'break-word',
+          backgroundColor: 'light-dark(rgba(0, 0, 0, 0.03), rgba(255, 255, 255, 0.05))',
+          padding: '12px',
+          borderRadius: '8px',
+          fontSize: 'var(--mantine-font-size-sm)',
+          border: '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+          marginBottom: '16px',
+          marginTop: '8px',
+        }}
+      >
+        {raw}
+      </pre>
+    );
+  }
+
+  // Extract fallback text
+  const pMatch = raw.match(/<p[^>]*>([\s\S]*?)<\/p>/);
+  let fallbackText = '';
+  if (pMatch) {
+    fallbackText = pMatch[1]
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\[image or embed\]/g, '')
+      .trim();
+  }
+
+  // Extract link or construct from URI
+  const linkMatch = raw.match(/href="([^"]+ref_src=embed[^"]*)"/);
+  const postUrl =
+    linkMatch?.[1] ||
+    (uri.startsWith('at://')
+      ? `https://bsky.app/profile/${uri.replace('at://', '').replace('/app.bsky.feed.post/', '/post/')}`
+      : undefined);
+
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      <blockquote
+        className="bluesky-embed"
+        data-bluesky-uri={uri}
+        data-bluesky-cid={cid}
+        data-bluesky-embed-color-mode={colorMode}
+      >
+        {fallbackText && (
+          <p style={{ whiteSpace: 'pre-line', margin: '0 0 8px 0' }}>
+            {fallbackText}
+          </p>
+        )}
+        <p style={{ margin: 0 }}>
+          &mdash; @passport{' '}
+          {postUrl && (
+            <a href={postUrl} target="_blank" rel="noopener noreferrer">
+              (Bluesky)
+            </a>
+          )}
+        </p>
+      </blockquote>
+    </div>
+  );
+}
+
 export default async function AboutPage({
   params,
 }: {
@@ -105,12 +179,7 @@ export default async function AboutPage({
                   ),
                   code: ({ className, children }) => {
                     if (className === 'language-bluesky-embed' && typeof children === 'string') {
-                      return (
-                        <div 
-                          dangerouslySetInnerHTML={{ __html: children }} 
-                          style={{ marginBottom: '16px' }}
-                        />
-                      );
+                      return <BlueskyEmbed raw={children} />;
                     }
 
                     const isBlock = className?.includes('language-') || (typeof children === 'string' && children.includes('\n'));

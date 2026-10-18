@@ -6,13 +6,34 @@ export type FedCmHandleAssistPayload = {
   username: string;
 };
 
+const ALLOWED_HOST_PATTERN = /^(?:[a-zA-Z0-9-]+\.)*atpassport\.net(?::\d+)?$/;
+
+export function isAllowedPublicHost(host: string): boolean {
+  if (ALLOWED_HOST_PATTERN.test(host)) {
+    return true;
+  }
+  const isLoopback =
+    host.startsWith("localhost") ||
+    host.startsWith("127.0.0.1") ||
+    host.startsWith("0.0.0.0") ||
+    host.startsWith("[::1]");
+  if (isLoopback) {
+    return true;
+  }
+  return false;
+}
+
 export function getPublicRequestOrigin(request: Request): string {
   const requestUrl = new URL(request.url);
   const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
   const host = forwardedHost || request.headers.get("host") || requestUrl.host;
   const forwardedProtocol = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
   const protocol = forwardedProtocol || requestUrl.protocol.replace(":", "");
-  return `${protocol}://${host}`;
+
+  const safeHost = isAllowedPublicHost(host) ? host : "atpassport.net";
+  const safeProtocol = protocol === "http" || protocol === "https" ? protocol : "https";
+
+  return `${safeProtocol}://${safeHost}`;
 }
 
 export function isFedCmRequest(request: Request): boolean {
