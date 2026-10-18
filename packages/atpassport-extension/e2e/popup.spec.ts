@@ -90,7 +90,7 @@ test.describe('popup', () => {
     const popup = await context.newPage();
     await popup.goto(`chrome-extension://${extensionId}/popup.html`);
 
-    const loginMessage = popup.getByText(/Please register at the @passport site|利用登録をしてください/);
+    const loginMessage = popup.getByText(/Please register at the @passport site|利用登録/);
     await expect(loginMessage).toBeVisible();
 
     const pagePromise = context.waitForEvent('page');
