@@ -171,6 +171,7 @@
     "login_button": "Iniciar sesión",
     "go_back": "Volver",
     "logout": "Cerrar sesión",
+    "session_expired": "Su sesión ha expirado. Por favor, inicie sesión de nuevo.",
     "login_failed": "No se pudo iniciar la sesión",
     "withdraw_success": "Retirada exitosa.",
     "update_success": "Ajustes actualizados.",
