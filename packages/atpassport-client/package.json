@@ -70,7 +70,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/node": "^25.9.3",
     "@types/react": "19.2.14",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "^4.1.12",
     "eslint": "^9.39.5",
     "eslint-plugin-react": "^7.37.5",
     "jsdom": "^29.1.1",
@@ -79,6 +79,6 @@
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.0",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   }
 }

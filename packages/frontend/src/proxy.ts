@@ -50,6 +50,16 @@ export default async function middleware(request: NextRequest) {
     ? NextResponse.next({ request: { headers: requestHeaders } })
     : intlMiddleware(reqWithHeaders);
 
+  // Apply flags before redirect conversion: copied Set-Cookie headers are not
+  // reflected in the new response's cookies collection.
+  response.cookies.getAll().forEach((cookie) => {
+    response.cookies.set({
+      ...cookie,
+      httpOnly: true,
+      secure: isHttps || process.env.NODE_ENV === 'production' ? true : cookie.secure,
+    });
+  });
+
   // Check if the middleware triggered a temporary redirect (307)
   // and convert it to a permanent redirect (308) for better SEO configuration.
   if (response.status === 307 && response.headers.get('location')) {
@@ -80,15 +90,6 @@ export default async function middleware(request: NextRequest) {
   response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   response.headers.set('Content-Security-Policy', csp);
   
-  // Ensure all response cookies have HttpOnly and (on secure connections) Secure flags
-  response.cookies.getAll().forEach((cookie) => {
-    response.cookies.set({
-      ...cookie,
-      httpOnly: true,
-      secure: isHttps || process.env.NODE_ENV === 'production' ? true : cookie.secure,
-    });
-  });
-
   // Ensure response does not leak server technology via X-Powered-By
   response.headers.delete('x-powered-by');
 
