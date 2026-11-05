@@ -12,6 +12,7 @@
     "update": "pnpm -r update"
   },
   "devDependencies": {
+    "@atcute/cid": "^2.5.0",
     "@atcute/lex-cli": "^2.8.2",
     "npm-check-updates": "^17.1.18",
     "sst": "^4.17.1",
