@@ -7,7 +7,7 @@ describe('createContentSecurityPolicy', () => {
     const policy = createContentSecurityPolicy(nonce, false, true);
 
     expect(policy).toContain("default-src 'self'");
-    expect(policy).toContain("script-src 'self' 'nonce-test-nonce-123' 'strict-dynamic'");
+    expect(policy).toContain("script-src 'nonce-test-nonce-123' 'strict-dynamic'");
     expect(policy).not.toContain("'unsafe-eval'");
     expect(policy).not.toContain("script-src 'self' 'unsafe-inline'");
     expect(policy).toContain("object-src 'none'");
@@ -16,7 +16,18 @@ describe('createContentSecurityPolicy', () => {
     expect(policy).toContain("frame-ancestors 'none'");
     expect(policy).toContain('upgrade-insecure-requests');
     expect(policy).toContain('https://embed.bsky.app');
-    expect(policy).toContain('https://static.cloudflareinsights.com');
+    expect(policy).toContain("style-src 'self' 'nonce-test-nonce-123'");
+    expect(policy).toContain("style-src-attr 'unsafe-inline'");
+    expect(policy.split('; ').find((part) => part.startsWith('connect-src '))!.split(' ')).not.toContain('https:');
+  });
+
+  it('limits arbitrary HTTPS to browser OAuth entry and callback pages', () => {
+    for (const path of ['/de/developers/verify', '/en/developers/verify/callback', '/developers/verify', '/developers']) {
+      expect(createContentSecurityPolicy('nonce', false, true, path).split('; ').find((part) => part.startsWith('connect-src '))!.split(' ')).toContain('https:');
+    }
+    for (const path of ['/de', '/de/developers/guide', '/de/developers/verify-other']) {
+      expect(createContentSecurityPolicy('nonce', false, true, path).split('; ').find((part) => part.startsWith('connect-src '))!.split(' ')).not.toContain('https:');
+    }
   });
 
   it('allows unsafe-eval only in development mode', () => {

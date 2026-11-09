@@ -1,6 +1,7 @@
 'use client';
 
 import { MantineProvider, createTheme } from '@mantine/core';
+import { setNonce } from 'get-nonce';
 
 export const theme = createTheme({
   colors: {
@@ -56,13 +57,20 @@ export const theme = createTheme({
 
 export function MantineThemeProvider({ 
   children, 
-  defaultColorScheme 
+  defaultColorScheme,
+  nonce,
 }: { 
   children: React.ReactNode;
   defaultColorScheme: 'light' | 'dark' | 'auto';
+  nonce?: string;
 }) {
+  // Keep the document nonce across client navigation. Scroll-lock styles use
+  // get-nonce rather than Mantine's context. Never set its global state on SSR.
+  const styleNonce = (typeof document !== 'undefined' ? document.querySelector<HTMLScriptElement>('script[nonce]')?.nonce : undefined) || nonce || '';
+  if (typeof document !== 'undefined') setNonce(styleNonce);
   return (
-    <MantineProvider theme={theme} defaultColorScheme={defaultColorScheme}>
+    <MantineProvider theme={theme} defaultColorScheme={defaultColorScheme}
+      getStyleNonce={() => styleNonce}>
       {children}
     </MantineProvider>
   );

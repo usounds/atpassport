@@ -36,7 +36,7 @@ export default async function middleware(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const isDevelopment = process.env.NODE_ENV === 'development';
   const isHttps = request.nextUrl.protocol === 'https:';
-  const csp = createContentSecurityPolicy(nonce, isDevelopment, isHttps);
+  const csp = createContentSecurityPolicy(nonce, isDevelopment, isHttps, pathname);
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);

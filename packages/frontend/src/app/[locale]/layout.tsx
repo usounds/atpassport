@@ -126,9 +126,9 @@ export default async function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <NextIntlClientProvider messages={messages}>
-          <MantineThemeProvider defaultColorScheme={colorScheme}>
+          <MantineThemeProvider defaultColorScheme={colorScheme} nonce={nonce}>
             <FedCmSessionMigration />
-            <NextTopLoader color="#58A7F6" showSpinner={false} height={3} />
+            <NextTopLoader color="#58A7F6" showSpinner={false} height={3} nonce={nonce} />
             <Notifications position="top-right" zIndex={1000} />
             <Stack gap={0} style={{ minHeight: '100vh' }}>
               <Suspense fallback={<div style={{ height: 60 }} />}>
