@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          persist-credentials: true # Required to push client tags
 
       - name: Check if version changed
         id: version_check
