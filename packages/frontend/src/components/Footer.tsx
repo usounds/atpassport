@@ -21,7 +21,8 @@ export function Footer() {
           <Anchor component={Link} size="xs" c="dimmed" href="/developers/guide" locale={contentLocale}>
             {t('guide')}
           </Anchor>
-          <Anchor component={Link} size="xs" c="dimmed" href="/developers/verify">
+          {/* OAuth needs a fresh document with its route-specific connect-src. */}
+          <Anchor size="xs" c="dimmed" href={`/${locale}/developers/verify`}>
             {t('developers')}
           </Anchor>
           <Group gap={14} align="center">

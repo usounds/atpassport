@@ -21,7 +21,6 @@ overrides:
   'multimatch@6.0.0': 8.0.0
   'nanoid@<3.3.18': 3.3.18
   'nanoid@>=4.0.0 <5.1.16': 5.1.16
-  'wxt>web-ext': '-'
   '@devicefarmer/adbkit>node-forge': '-'
   next-intl: 4.11.0
   picomatch: 4.0.4
