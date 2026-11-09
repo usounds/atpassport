@@ -62,6 +62,27 @@ describe("FedCM helpers", () => {
     expect(normalizeClientOrigin("http://localhost:3000")).toBe("http://localhost:3000");
   });
 
+  it.each(['https://atpassport.net', 'https://dev.atpassport.net', 'https://preview.atpassport.net'])(
+    'accepts the official first-party client %s without domain registration', async (origin) => {
+      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue(null);
+      await expect(validateFedCmClient(origin, origin)).resolves.toEqual({ origin, registration: null });
+      await expect(isRegisteredFedCmClient(origin)).resolves.toBe(true);
+      expect(getVerifiedDomainFromDb).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['https://preview.atpassport.net.evil.example', 'https://evil.atpassport.net', 'http://preview.atpassport.net'])(
+    'does not grant first-party trust to %s', async (origin) => {
+      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue(null);
+      await expect(validateFedCmClient(origin, origin)).resolves.toBeNull();
+      await expect(isRegisteredFedCmClient(origin)).resolves.toBe(false);
+    },
+  );
+
+  it('still rejects a mismatched first-party Origin and client ID', async () => {
+    await expect(validateFedCmClient('https://preview.atpassport.net', 'https://atpassport.net')).resolves.toBeNull();
+  });
+
   it("accepts an OAuth-verified domain and its subdomains", async () => {
     vi.mocked(getVerifiedDomainFromDb).mockImplementation(async (domain) => (
       domain === "example.com"

@@ -80,4 +80,19 @@ describe("FedCM assertion endpoint", () => {
       username: "alice.bsky.social",
     });
   });
+
+  it.each(['https://dev.atpassport.net', 'https://preview.atpassport.net'])(
+    'accepts a developer portal assertion from %s using real client validation', async (origin) => {
+      const actual = await vi.importActual<typeof import('@/lib/fedcm')>('@/lib/fedcm');
+      vi.mocked(validateFedCmClient).mockImplementation(actual.validateFedCmClient);
+      vi.mocked(getFedCmSessionUuid).mockResolvedValue('uuid');
+      vi.mocked(getAssociations).mockResolvedValue([
+        { uuid: 'uuid', did: 'did:plc:1', handle: 'alice.bsky.social', pdsUrl: 'https://pds.example', createdAt: 'now' },
+      ]);
+      const response = await POST(makeRequest({ client_id: origin, account_id: 'did:plc:1' }, { origin }));
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(origin);
+      expect(JSON.parse((await response.json()).token)).toEqual({ v: 1, did: 'did:plc:1', username: 'alice.bsky.social' });
+    },
+  );
 });

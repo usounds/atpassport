@@ -7,6 +7,13 @@ export type FedCmHandleAssistPayload = {
 };
 
 const ALLOWED_HOST_PATTERN = /^(?:[a-zA-Z0-9-]+\.)*atpassport\.net(?::\d+)?$/;
+// Official application origins also act as RPs for their own developer portal.
+// Keep this exact: arbitrary subdomains still require domain verification.
+const FIRST_PARTY_CLIENT_ORIGINS = new Set([
+  'https://atpassport.net',
+  'https://dev.atpassport.net',
+  'https://preview.atpassport.net',
+]);
 
 export function isAllowedPublicHost(host: string): boolean {
   if (ALLOWED_HOST_PATTERN.test(host)) {
@@ -79,7 +86,7 @@ export async function getFedCmClientRegistration(
     lowerHostname === "[::1]" ||
     lowerHostname.endsWith(".localhost");
 
-  if (isLoopback || normalizedOrigin === "https://atpassport.net") return null;
+  if (isLoopback || FIRST_PARTY_CLIENT_ORIGINS.has(normalizedOrigin)) return null;
 
   const parts = lowerHostname.split(".");
   for (let index = 0; index < parts.length - 1; index += 1) {
@@ -105,7 +112,7 @@ export async function isRegisteredFedCmClient(origin: string): Promise<boolean> 
     hostname.endsWith(".localhost");
 
   if (isLoopback) return process.env.NODE_ENV !== "production";
-  if (normalizedOrigin === "https://atpassport.net") return true;
+  if (FIRST_PARTY_CLIENT_ORIGINS.has(normalizedOrigin)) return true;
   return (await getFedCmClientRegistration(normalizedOrigin)) !== null;
 }
 
@@ -119,7 +126,7 @@ export async function validateFedCmClient(
     return null;
   }
 
-  if (origin === "https://atpassport.net") {
+  if (FIRST_PARTY_CLIENT_ORIGINS.has(origin)) {
     return { origin, registration: null };
   }
 
