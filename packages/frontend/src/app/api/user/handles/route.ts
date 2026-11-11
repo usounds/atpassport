@@ -8,11 +8,15 @@ export const dynamic = 'force-dynamic';
 
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false;
+
+  const isDev = process.env.NODE_ENV !== "production";
+  if (isDev && (origin === "http://localhost:3000" || origin === "http://localhost:3001")) {
+    return true;
+  }
+
   return (
     origin === "https://atpassport.net" ||
     origin === "https://preview.atpassport.net" ||
-    origin === "http://localhost:3000" ||
-    origin === "http://localhost:3001" ||
     origin === "chrome-extension://ollhnghmplgpoebaceomdaigpkihpfkn" ||
     origin.startsWith("moz-extension://")
   );

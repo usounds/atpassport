@@ -1,0 +1,42 @@
+{
+  "lexicon": 1,
+  "id": "net.atpassport.verify.update",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "description": "Update domain settings for a verified domain.",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "ref",
+          "ref": "#input"
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "ref",
+          "ref": "#output"
+        }
+      }
+    },
+    "input": {
+      "type": "object",
+      "required": ["domain", "isPublic"],
+      "properties": {
+        "domain": { "type": "string" },
+        "isPublic": { "type": "boolean" },
+        "privacyPolicyUrl": { "type": "string" },
+        "termsOfServiceUrl": { "type": "string" }
+      }
+    },
+    "output": {
+      "type": "object",
+      "required": ["success"],
+      "properties": {
+        "success": { "type": "boolean" },
+        "error": { "type": "string" }
+      }
+    }
+  }
+}

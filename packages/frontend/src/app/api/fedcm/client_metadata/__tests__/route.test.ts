@@ -61,4 +61,25 @@ describe("FedCM client metadata endpoint", () => {
 
     expect(await (await GET(request)).json()).toEqual({});
   });
+
+  it("supports extension validation via x-atpassport-client header", async () => {
+    vi.mocked(validateFedCmClient).mockResolvedValue({
+      origin: "https://rp.example",
+      registration: {
+        domain: "rp.example",
+        verifiedByDid: "did:plc:1",
+        status: "approved",
+        verifiedAt: "now",
+      },
+    });
+
+    const request = new Request(
+      "https://atpassport.net/api/fedcm/client_metadata?client_id=https%3A%2F%2Frp.example",
+      { headers: { "x-atpassport-client": "extension" } },
+    );
+
+    const response = await GET(request);
+    expect(response.status).toBe(200);
+    expect(validateFedCmClient).toHaveBeenCalledWith("https://rp.example", "https://rp.example");
+  });
 });

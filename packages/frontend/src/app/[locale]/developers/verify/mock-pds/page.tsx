@@ -1,11 +1,34 @@
 'use client';
 
-import { Container, Paper, Title, Text, Button, Stack, Group, Box, Code, Divider } from '@mantine/core';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { IconShieldCheck, IconArrowRight } from '@tabler/icons-react';
-import { Suspense } from 'react';
+import { Container, Paper, Title, Text, Button, Stack, Group, Box, Code, Divider, Alert } from '@mantine/core';
+import { useSearchParams, useRouter, notFound } from 'next/navigation';
+import { IconShieldCheck, IconArrowRight, IconAlertTriangle } from '@tabler/icons-react';
+import { Suspense, useMemo } from 'react';
+
+function isAllowedRedirectUri(uri: string | null): boolean {
+  if (!uri) return false;
+  try {
+    const parsed = new URL(uri);
+    if (parsed.protocol === 'https:') {
+      return true;
+    }
+    if (
+      parsed.protocol === 'http:' &&
+      (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1' || parsed.hostname === '[::1]')
+    ) {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
 
 function MockPDSContent() {
+  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_ENABLE_MOCK_PDS !== 'true') {
+    notFound();
+  }
+
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -15,8 +38,10 @@ function MockPDSContent() {
   const scope = searchParams.get('scope');
   const loginHint = searchParams.get('login_hint');
 
+  const isValidRedirect = useMemo(() => isAllowedRedirectUri(redirectUri), [redirectUri]);
+
   const handleApprove = () => {
-    if (!redirectUri) return;
+    if (!redirectUri || !isValidRedirect) return;
 
     try {
       const callbackUrl = new URL(redirectUri);
@@ -55,6 +80,12 @@ function MockPDSContent() {
             <Code block>{redirectUri}</Code>
           </Box>
 
+          {redirectUri && !isValidRedirect && (
+            <Alert icon={<IconAlertTriangle size={16} />} title="Security Warning" color="red">
+              The provided redirect URI is invalid or insecure. Only https:// schemes or http://localhost are permitted.
+            </Alert>
+          )}
+
           <Box>
             <Text fw={700} size="sm">Requested Scopes:</Text>
             <Text size="xs">{scope}</Text>
@@ -75,6 +106,7 @@ function MockPDSContent() {
               color="blue" 
               rightSection={<IconArrowRight size={18} />}
               onClick={handleApprove}
+              disabled={!isValidRedirect}
             >
               Approve
             </Button>

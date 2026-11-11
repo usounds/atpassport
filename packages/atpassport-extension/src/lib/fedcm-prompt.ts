@@ -745,10 +745,6 @@ export function showFedCmPrompt(options: PromptOptions): () => void {
     body.appendChild(confirmBtn);
 
     card.appendChild(body);
-
-    setTimeout(() => {
-      confirmBtn.focus();
-    }, 50);
   };
 
   if (options.accounts.length === 1 && options.accounts[0]) {

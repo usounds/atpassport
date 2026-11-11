@@ -67,6 +67,35 @@ describe('API: user/handles', () => {
       expect(response.headers.get('Access-Control-Allow-Origin')).toBeNull();
     });
 
+    it('should allow moz-extension origins for Firefox compatibility', async () => {
+      vi.mocked(isRateLimited).mockReturnValue(false);
+      vi.mocked(getSessionUuid).mockResolvedValue('uuid');
+      vi.mocked(getAssociations).mockResolvedValue([]);
+
+      const request = new NextRequest('http://localhost', { headers: { origin: 'moz-extension://random-uuid-12345' } });
+      const response = await GET(request);
+      
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('moz-extension://random-uuid-12345');
+    });
+
+    it('should reject localhost origins in production', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      const envObj = process.env as Record<string, string | undefined>;
+      try {
+        envObj.NODE_ENV = 'production';
+        vi.mocked(isRateLimited).mockReturnValue(false);
+        vi.mocked(getSessionUuid).mockResolvedValue('uuid');
+        vi.mocked(getAssociations).mockResolvedValue([]);
+
+        const request = new NextRequest('http://localhost', { headers: { origin: 'http://localhost:3000' } });
+        const response = await GET(request);
+        
+        expect(response.headers.get('Access-Control-Allow-Origin')).toBeNull();
+      } finally {
+        envObj.NODE_ENV = originalEnv;
+      }
+    });
+
     it('should return handles successfully without origin header', async () => {
       vi.mocked(isRateLimited).mockReturnValue(false);
       vi.mocked(getSessionUuid).mockResolvedValue('uuid');

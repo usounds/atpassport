@@ -9,12 +9,13 @@ import {
 import { NodeDnsHandleResolver } from "@atcute/identity-resolver-node";
 import { isActorIdentifier, isDid } from "@atcute/lexicons/syntax";
 import type { AtprotoDid, Handle } from "@atcute/lexicons/syntax";
+import { safeFetch } from "./verification-fetch";
 
 // Setup handle resolver with DNS and HTTP methods
 const handleResolver = new CompositeHandleResolver({
   methods: {
     dns: new NodeDnsHandleResolver(),
-    http: new WellKnownHandleResolver(),
+    http: new WellKnownHandleResolver({ fetch: safeFetch }),
   },
 });
 
@@ -23,7 +24,7 @@ const handleResolver = new CompositeHandleResolver({
 const didResolver = new CompositeDidDocumentResolver({
   methods: {
     plc: new PlcDidDocumentResolver(),
-    web: new WebDidDocumentResolver(),
+    web: new WebDidDocumentResolver({ fetch: safeFetch }),
   },
 });
 

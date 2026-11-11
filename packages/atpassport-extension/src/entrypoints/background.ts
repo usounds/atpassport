@@ -21,5 +21,26 @@ export default defineBackground(() => {
         });
       return true; // Keep message channel open for async response
     }
+
+    if (message?.type === 'VALIDATE_RP') {
+      const origin = typeof message.origin === 'string' ? message.origin : '';
+      if (!origin) {
+        sendResponse({ valid: false });
+        return;
+      }
+      fetch(
+        `https://atpassport.net/api/fedcm/client_metadata?client_id=${encodeURIComponent(origin)}`,
+        {
+          headers: { 'x-atpassport-client': 'extension' },
+        }
+      )
+        .then((res) => {
+          sendResponse({ valid: res.ok });
+        })
+        .catch(() => {
+          sendResponse({ valid: false });
+        });
+      return true; // Keep message channel open for async response
+    }
   });
 });

@@ -7,6 +7,7 @@ export type FedCmHandleAssistPayload = {
 };
 
 const ALLOWED_HOST_PATTERN = /^(?:[a-zA-Z0-9-]+\.)*atpassport\.net(?::\d+)?$/;
+const LOOPBACK_HOST_PATTERN = /^(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(?::\d+)?$/;
 // Official application origins also act as RPs for their own developer portal.
 // Keep this exact: arbitrary subdomains still require domain verification.
 const FIRST_PARTY_CLIENT_ORIGINS = new Set([
@@ -19,12 +20,8 @@ export function isAllowedPublicHost(host: string): boolean {
   if (ALLOWED_HOST_PATTERN.test(host)) {
     return true;
   }
-  const isLoopback =
-    host.startsWith("localhost") ||
-    host.startsWith("127.0.0.1") ||
-    host.startsWith("0.0.0.0") ||
-    host.startsWith("[::1]");
-  if (isLoopback) {
+  const isLoopback = LOOPBACK_HOST_PATTERN.test(host);
+  if (isLoopback && process.env.NODE_ENV !== "production") {
     return true;
   }
   return false;

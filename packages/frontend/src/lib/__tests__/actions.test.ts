@@ -5,14 +5,11 @@ import {
   syncWithToken, 
   refreshAssociation, 
   initializeSession,
-  withdrawDomain,
-  updateDomainSettings,
   removeAssociation,
   setPrimaryAssociation,
   resolveActorDid,
   resolveHandle,
   resolveDidDoc,
-  withdrawDomainViaOAuth,
   getVerificationStatus,
   getVerifiedDomains
 } from '../actions';
@@ -27,7 +24,7 @@ import { resolveIdentity, resolveDidDocument } from '../atproto-server';
 import { getUuidByShareToken, deleteShareToken } from '../share';
 import { cookies, headers } from 'next/headers';
 import { isRateLimited } from '../rate-limit';
-import { verifyDomainInDb, getVerifiedDomainFromDb, deleteVerifiedDomainFromDb, getVerifiedDomainsByDid } from '../security';
+import { getVerifiedDomainFromDb, getVerifiedDomainsByDid } from '../security';
 import { revalidatePath } from 'next/cache';
 
 vi.mock('../session');
@@ -63,187 +60,6 @@ describe('Actions Library', () => {
     // Default mock for rate-limit
     vi.mocked(isRateLimited).mockReturnValue(false);
     vi.stubGlobal('fetch', vi.fn());
-  });
-
-  describe('withdrawDomain', () => {
-    const domain = 'remove.me';
-
-    it('should delete if user is owner', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid } as unknown as AssociationWithProfile
-      ]);
-      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
-        domain, verifiedByDid: mockDid, status: 'approved', verifiedAt: 't'
-      });
-      vi.mocked(deleteVerifiedDomainFromDb).mockResolvedValue({} as any);
-
-      const result = await withdrawDomain(domain, mockDid);
-
-      expect(result.success).toBe(true);
-      expect(deleteVerifiedDomainFromDb).toHaveBeenCalledWith(domain);
-    });
-
-    it('should fail if no session', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(null);
-      const result = await withdrawDomain(domain, mockDid);
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('No session found');
-    });
-
-    it('should fail if DID not associated', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([]);
-      const result = await withdrawDomain(domain, mockDid);
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('DID not associated with your account');
-    });
-
-    it('should fail if user is not owner', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid } as unknown as AssociationWithProfile
-      ]);
-      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
-        domain, verifiedByDid: 'other', status: 'approved', verifiedAt: 't'
-      });
-
-      const result = await withdrawDomain(domain, mockDid);
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Unauthorized or domain not found');
-    });
-
-    it('should fail if domain not found', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid } as unknown as AssociationWithProfile
-      ]);
-      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue(null);
-      const result = await withdrawDomain(domain, mockDid);
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Unauthorized or domain not found');
-    });
-
-    it('should handle errors during withdrawal', async () => {
-      vi.spyOn(console, 'error').mockImplementation(() => {});
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid } as unknown as AssociationWithProfile
-      ]);
-      vi.mocked(getVerifiedDomainFromDb).mockRejectedValue(new Error('DB Error'));
-      const result = await withdrawDomain(domain, mockDid);
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Internal server error');
-      expect(console.error).toHaveBeenCalled();
-    });
-  });
-
-  describe('updateDomainSettings', () => {
-    it('should update isPublic setting', async () => {
-      const domain = 'update.me';
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid } as unknown as AssociationWithProfile
-      ]);
-      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
-        domain, verifiedByDid: mockDid, status: 'approved', verifiedAt: 't', method: 'file'
-      });
-      vi.mocked(verifyDomainInDb).mockResolvedValue({} as any);
-
-      const result = await updateDomainSettings(domain, mockDid, false);
-
-      expect(result.success).toBe(true);
-      expect(verifyDomainInDb).toHaveBeenCalledWith(domain, mockDid, false, 'file', {
-        privacyPolicyUrl: undefined,
-        termsOfServiceUrl: undefined,
-      });
-    });
-
-    it('should update optional FedCM policy URLs', async () => {
-      const domain = 'example.com';
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid } as unknown as AssociationWithProfile
-      ]);
-      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
-        domain, verifiedByDid: mockDid, status: 'approved', verifiedAt: 't', method: 'oauth'
-      });
-
-      const result = await updateDomainSettings(
-        domain,
-        mockDid,
-        true,
-        'https://legal.example.com/privacy',
-        'https://example.com/legal/terms',
-      );
-
-      expect(result.success).toBe(true);
-      expect(verifyDomainInDb).toHaveBeenCalledWith(domain, mockDid, true, 'oauth', {
-        privacyPolicyUrl: 'https://legal.example.com/privacy',
-        termsOfServiceUrl: 'https://example.com/legal/terms',
-      });
-    });
-
-    it('should reject policy URLs outside the verified domain', async () => {
-      const domain = 'example.com';
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid } as unknown as AssociationWithProfile
-      ]);
-      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
-        domain, verifiedByDid: mockDid, status: 'approved', verifiedAt: 't', method: 'oauth'
-      });
-
-      const result = await updateDomainSettings(
-        domain,
-        mockDid,
-        true,
-        'https://example.net/privacy',
-      );
-
-      expect(result).toEqual({ success: false, error: 'invalid_policy_url' });
-      expect(verifyDomainInDb).not.toHaveBeenCalled();
-    });
-
-    it('should fail if no session in updateDomainSettings', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(null);
-      const result = await updateDomainSettings('d', mockDid, true);
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('No session found');
-    });
-
-    it('should fail if DID not associated in updateDomainSettings', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([]);
-      const result = await updateDomainSettings('d', mockDid, true);
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('DID not associated with your account');
-    });
-
-    it('should fail if unauthorized in updateDomainSettings', async () => {
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid } as unknown as AssociationWithProfile
-      ]);
-      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({
-        domain: 'd', verifiedByDid: 'other', status: 'approved', verifiedAt: 't'
-      });
-      const result = await updateDomainSettings('d', mockDid, true);
-      expect(result.success).toBe(false);
-    });
-
-    it('should handle errors in updateDomainSettings', async () => {
-      vi.spyOn(console, 'error').mockImplementation(() => {});
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([
-        { did: mockDid } as unknown as AssociationWithProfile
-      ]);
-      vi.mocked(getVerifiedDomainFromDb).mockRejectedValue(new Error('DB Error'));
-      const result = await updateDomainSettings('d', mockDid, true);
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Internal server error');
-      expect(console.error).toHaveBeenCalled();
-    });
   });
 
   describe('registerHandle', () => {
@@ -571,22 +387,6 @@ describe('Actions Library', () => {
       expect(resolveDidDocument).toHaveBeenCalledWith(mockDid);
     });
 
-    it('withdrawDomainViaOAuth should withdraw using resolved handle', async () => {
-      vi.mocked(resolveIdentity).mockResolvedValue({ did: mockDid, handle: mockHandle, pdsUrl: 'p' } as any);
-      vi.mocked(getSessionUuid).mockResolvedValue(mockUuid);
-      vi.mocked(getAssociations).mockResolvedValue([{ did: mockDid } as any]);
-      vi.mocked(getVerifiedDomainFromDb).mockResolvedValue({ domain: mockHandle, verifiedByDid: mockDid } as any);
-
-      const result = await withdrawDomainViaOAuth(mockDid);
-      expect(result.success).toBe(true);
-      expect(deleteVerifiedDomainFromDb).toHaveBeenCalledWith(mockHandle);
-    });
-
-    it('withdrawDomainViaOAuth should return failure if identity not found', async () => {
-      vi.mocked(resolveIdentity).mockResolvedValue(null);
-      const result = await withdrawDomainViaOAuth(mockDid);
-      expect(result.success).toBe(false);
-    });
 
     it('getVerificationStatus should return status from DB', async () => {
       vi.mocked(resolveIdentity).mockResolvedValue({ handle: mockHandle } as any);
