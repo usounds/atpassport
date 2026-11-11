@@ -41,10 +41,22 @@ describe("verification-fetch", () => {
 
   it("blocks private and reserved IPv6 ranges", () => {
     expect(isUnsafeIp("::1")).toBe(true);
+    expect(isUnsafeIp("0:0:0:0:0:0:0:1")).toBe(true);
+    expect(isUnsafeIp("::")).toBe(true);
+    expect(isUnsafeIp("::ffff:127.0.0.1")).toBe(true);
+    expect(isUnsafeIp("::ffff:169.254.169.254")).toBe(true);
+    expect(isUnsafeIp("::ffff:10.0.0.1")).toBe(true);
+    expect(isUnsafeIp("::ffff:8.8.8.8")).toBe(false);
+    expect(isUnsafeIp("64:ff9b::127.0.0.1")).toBe(true);
+    expect(isUnsafeIp("64:ff9b::8.8.8.8")).toBe(false);
+    expect(isUnsafeIp("64:ff9b:1::1")).toBe(true);
+    expect(isUnsafeIp("2002:7f00:0001::")).toBe(true);
     expect(isUnsafeIp("fe80::1")).toBe(true);
+    expect(isUnsafeIp("fe90::1")).toBe(true);
     expect(isUnsafeIp("fc00::1")).toBe(true);
     expect(isUnsafeIp("fd00::1")).toBe(true);
     expect(isUnsafeIp("ff02::1")).toBe(true);
+    expect(isUnsafeIp("2001:db8::1")).toBe(true);
     expect(isUnsafeIp("2606:2800:220:1:248:1893:25c8:1946")).toBe(false);
   });
 

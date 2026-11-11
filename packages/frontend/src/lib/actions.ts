@@ -13,7 +13,7 @@ import { resolveIdentity, resolveDidDocument } from './atproto-server';
 import { getUuidByShareToken, deleteShareToken } from './share';
 import { cookies, headers } from 'next/headers';
 import { isRateLimited } from './rate-limit';
-import { verifyDomainInDb, getVerifiedDomainFromDb, getVerifiedDomainsByDid, VerifiedDomain, deleteVerifiedDomainFromDb } from './security';
+import { getVerifiedDomainFromDb, getVerifiedDomainsByDid, VerifiedDomain } from './security';
 import { didSchema, handleSchema, domainSchema } from './schemas';
 import { isActorIdentifier } from '@atcute/lexicons/syntax';
 
@@ -113,55 +113,6 @@ export async function resolveDidDoc(did: string) {
   }
 }
 
-/**
- * ドメインの所有権確認を解除します。
- */
-export async function withdrawDomain(domain: string, did: string) {
-  try {
-    const domainValidation = domainSchema.safeParse(domain);
-    const didValidation = didSchema.safeParse(did);
-    
-    if (!domainValidation.success || !didValidation.success) {
-      return { success: false, error: "Invalid input format" };
-    }
-
-    const uuid = await getSessionUuid();
-    if (!uuid) return { success: false, error: "No session found" };
-
-    // 権限チェック: 
-    // 1. セッションにそのDIDが紐付いていること (Passportとしての所有)
-    const associations = await getAssociations(uuid);
-    if (!associations.some(a => a.did === did)) {
-      return { success: false, error: "DID not associated with your account" };
-    }
-
-    // 2. DB上の登録者がそのDIDであること (ドメイン自体の所有者)
-    const existing = await getVerifiedDomainFromDb(domain);
-    if (!existing || existing.verifiedByDid !== did) {
-      return { success: false, error: "Unauthorized or domain not found" };
-    }
-
-    await deleteVerifiedDomainFromDb(domain);
-    
-    revalidatePath('/[locale]/directory');
-    revalidatePath('/[locale]/developers/verify');
-    
-    await refreshSession();
-    return { success: true };
-  } catch (error) {
-    console.error('[ServerAction:withdrawDomain] ERROR:', error);
-    return { success: false, error: "Internal server error" };
-  }
-}
-
-/**
- * OAuth 経由でドメインの所有権確認を解除します。
- */
-export async function withdrawDomainViaOAuth(did: string) {
-  const identity = await resolveIdentity(did);
-  if (!identity || !identity.handle) return { success: false };
-  return await withdrawDomain(identity.handle, did);
-}
 
 export async function registerHandle(handle: string): Promise<{ success: boolean; error?: string }> {
   try {
@@ -403,94 +354,4 @@ export async function getVerifiedDomains(did: string): Promise<VerifiedDomain[]>
   return await getVerifiedDomainsByDid(did);
 }
 
-/**
- * ドメインの設定（公開状態など）を更新します。
- */
-function normalizeVerifiedDomainPolicyUrl(
-  value: string | null | undefined,
-  domain: string,
-): string | null | undefined {
-  if (value === undefined) return undefined;
-  if (value === null) return null;
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  if (trimmed.length > 2048) throw new Error("invalid_policy_url");
 
-  let url: URL;
-  try {
-    url = new URL(trimmed);
-  } catch {
-    throw new Error("invalid_policy_url");
-  }
-
-  const hostname = url.hostname.toLowerCase();
-  const verifiedDomain = domain.toLowerCase();
-  if (
-    url.protocol !== "https:" ||
-    url.username ||
-    url.password ||
-    (hostname !== verifiedDomain && !hostname.endsWith(`.${verifiedDomain}`))
-  ) {
-    throw new Error("invalid_policy_url");
-  }
-
-  return url.href;
-}
-
-export async function updateDomainSettings(
-  domain: string,
-  did: string,
-  isPublic: boolean,
-  privacyPolicyUrl?: string | null,
-  termsOfServiceUrl?: string | null,
-) {
-  try {
-    const uuid = await getSessionUuid();
-    if (!uuid) return { success: false, error: "No session found" };
-
-    // 権限チェック:
-    // 1. セッションにそのDIDが紐付いていること
-    const associations = await getAssociations(uuid);
-    if (!associations.some(a => a.did === did)) {
-      return { success: false, error: "DID not associated with your account" };
-    }
-
-    // 2. DB上の登録者がそのDIDであること
-    const existing = await getVerifiedDomainFromDb(domain);
-    if (!existing || existing.verifiedByDid !== did) {
-      return { success: false, error: "Unauthorized or domain not found" };
-    }
-
-    const normalizedPrivacyPolicyUrl = normalizeVerifiedDomainPolicyUrl(
-      privacyPolicyUrl,
-      domain,
-    );
-    const normalizedTermsOfServiceUrl = normalizeVerifiedDomainPolicyUrl(
-      termsOfServiceUrl,
-      domain,
-    );
-
-    await verifyDomainInDb(domain, did, isPublic, existing.method || 'oauth', {
-      privacyPolicyUrl:
-        normalizedPrivacyPolicyUrl === undefined
-          ? existing.privacyPolicyUrl
-          : normalizedPrivacyPolicyUrl,
-      termsOfServiceUrl:
-        normalizedTermsOfServiceUrl === undefined
-          ? existing.termsOfServiceUrl
-          : normalizedTermsOfServiceUrl,
-    });
-    
-    revalidatePath('/[locale]/directory');
-    revalidatePath('/[locale]/developers/verify');
-    
-    await refreshSession();
-    return { success: true };
-  } catch (error) {
-    console.error('[ServerAction:updateDomainSettings] ERROR:', error);
-    if (error instanceof Error && error.message === "invalid_policy_url") {
-      return { success: false, error: "invalid_policy_url" };
-    }
-    return { success: false, error: "Internal server error" };
-  }
-}

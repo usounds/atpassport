@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, ChangeEvent, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { initOAuth } from '@/lib/oauth';
 import { createAuthorizationUrl, getSession, listStoredSessions, deleteStoredSession, OAuthUserAgent, Session } from '@atcute/oauth-browser-client';
-import { resolveHandle, updateDomainSettings } from '@/lib/actions';
+import { resolveHandle } from '@/lib/actions';
 import { DomainList } from './DomainList';
 import { VerifyDomainStepper } from './VerifyDomainStepper';
 import Link from 'next/link';
@@ -16,7 +16,7 @@ import { AtPassportIcon } from '@atpassport/client/ui';
 import { getProfile } from '@/lib/atproto';
 import { Client } from '@atcute/client';
 import { isActorIdentifier } from '@atcute/lexicons/syntax';
-import { NetAtpassportVerifyList, NetAtpassportVerifySubmit, NetAtpassportVerifyWithdraw } from '@/lexicons/index';
+import { NetAtpassportVerifyList, NetAtpassportVerifySubmit, NetAtpassportVerifyWithdraw, NetAtpassportVerifyUpdate } from '@/lexicons/index';
 
 const accountHeaderStyles = {
   backgroundColor: 'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6))',
@@ -593,25 +593,47 @@ export function DeveloperPortal({
     setActionLoading(true);
     const id = notifications.show({ title: t('processing'), message: '', loading: true, autoClose: false, withCloseButton: false });
     try {
-      const result = await updateDomainSettings(
+      const proxyClient = getProxyClient();
+      if (!proxyClient) throw new Error('Client setup failed');
+
+      const input: NetAtpassportVerifyUpdate.Input = {
         domain,
-        session.info.sub,
         isPublic,
-        privacyPolicyUrl,
-        termsOfServiceUrl,
-      );
-      if (!result.success) {
-        const message = result.error === 'invalid_policy_url'
-          ? t('invalid_policy_url')
-          : t('failed_to_update_settings');
-        notifications.update({ id, title: t('error_title'), message, color: 'red', loading: false, autoClose: true, withCloseButton: true });
-        return false;
+        privacyPolicyUrl: privacyPolicyUrl ?? undefined,
+        termsOfServiceUrl: termsOfServiceUrl ?? undefined,
+      };
+      const res = await proxyClient.post('net.atpassport.verify.update', { input }) as { data?: NetAtpassportVerifyUpdate.Output };
+      if (res?.data && !res.data.success) {
+        throw new Error(res.data.error || 'failed');
       }
+
       await fetchData(session, { skipProfile: true });
       notifications.update({ id, title: t('success_title'), message: t('update_success'), color: 'green', loading: false, autoClose: true, withCloseButton: true });
       return true;
-    } catch {
-      notifications.update({ id, title: t('error_title'), message: t('failed_to_update_settings'), color: 'red', loading: false, autoClose: true, withCloseButton: true });
+    } catch (error: unknown) {
+      console.error('[Update Settings Proxy] Error:', error);
+      if (isSessionExpiredError(error)) {
+        await handleLogout();
+        notifications.update({
+          id,
+          title: t('error_title'),
+          message: t('session_expired'),
+          color: 'red',
+          loading: false,
+          autoClose: true,
+          withCloseButton: true,
+        });
+        return false;
+      }
+      const err = error as { message?: string; kind?: string; error?: string };
+      let errorKey = err?.kind || err?.error || err?.message;
+      if (errorKey?.includes('#')) {
+        errorKey = errorKey.split('#')[1];
+      }
+      const message = errorKey === 'invalid_policy_url'
+        ? t('invalid_policy_url')
+        : t('failed_to_update_settings');
+      notifications.update({ id, title: t('error_title'), message, color: 'red', loading: false, autoClose: true, withCloseButton: true });
       return false;
     } finally {
       setActionLoading(false);

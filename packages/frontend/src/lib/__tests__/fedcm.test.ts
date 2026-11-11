@@ -3,6 +3,7 @@ import { getVerifiedDomainFromDb } from "../security";
 import {
   createHandleAssistToken,
   getPublicRequestOrigin,
+  isAllowedPublicHost,
   isFedCmRequest,
   isRegisteredFedCmClient,
   normalizeClientOrigin,
@@ -45,6 +46,22 @@ describe("FedCM helpers", () => {
     });
 
     expect(getPublicRequestOrigin(request)).toBe("https://atpassport.net");
+  });
+
+  it("rejects prefix-spoofed loopback hosts such as localhost.attacker.com", () => {
+    expect(isAllowedPublicHost("localhost.attacker.com")).toBe(false);
+    expect(isAllowedPublicHost("localhost.attacker.com:3000")).toBe(false);
+    expect(isAllowedPublicHost("127.0.0.1.attacker.com")).toBe(false);
+    expect(isAllowedPublicHost("0.0.0.0.attacker.com")).toBe(false);
+    expect(isAllowedPublicHost("[::1].attacker.com")).toBe(false);
+
+    const spoofedRequest = new Request("http://0.0.0.0:3001/fedcm/config.json", {
+      headers: {
+        "x-forwarded-host": "localhost.attacker.com",
+        "x-forwarded-proto": "https",
+      },
+    });
+    expect(getPublicRequestOrigin(spoofedRequest)).toBe("https://atpassport.net");
   });
 
   it.each([

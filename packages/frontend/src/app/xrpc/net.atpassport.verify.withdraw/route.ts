@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       return response;
     }
 
-    await deleteVerifiedDomainFromDb(domain);
+    await deleteVerifiedDomainFromDb(lowerDomain);
 
     const output: NetAtpassportVerifyWithdraw.Output = { success: true };
     const response = NextResponse.json(output);

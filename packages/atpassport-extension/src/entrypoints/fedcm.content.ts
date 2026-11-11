@@ -166,6 +166,31 @@ export default defineContentScript({
     // Shared flow to fetch accounts via background and display the FedCM prompt
     const executeFedCmFlow = async (): Promise<FedCmResponse> => {
       console.log('[@passport] executeFedCmFlow requested');
+      const rpOrigin = window.location.origin;
+
+      // 1. Verify that the relying party is registered
+      try {
+        const rpCheck = await browser.runtime.sendMessage({
+          type: 'VALIDATE_RP',
+          origin: rpOrigin,
+        });
+        if (!rpCheck?.valid) {
+          console.warn('[@passport] RP origin is not registered:', rpOrigin);
+          throw new DOMException(
+            'The relying party is not registered with AtPassport.',
+            'IdentityCredentialError'
+          );
+        }
+      } catch (err) {
+        if (err instanceof DOMException) throw err;
+        console.warn('[@passport] Error validating RP origin:', err);
+        throw new DOMException(
+          'Failed to validate relying party.',
+          'IdentityCredentialError'
+        );
+      }
+
+      // 2. Fetch accounts
       let accounts: AccountItem[] = [];
       try {
         const response = await browser.runtime.sendMessage({ type: 'FETCH_ACCOUNTS' });
@@ -179,7 +204,11 @@ export default defineContentScript({
       console.debug('[@passport] Accounts retrieved for FedCM:', accounts?.length ?? 0);
 
       if (!accounts || accounts.length === 0) {
-        throw new DOMException('No AtPassport accounts found or user is not logged in.', 'IdentityCredentialError');
+        // Return a generic error to prevent leaking whether the user is logged in
+        throw new DOMException(
+          'The user did not select an account or authentication could not be completed.',
+          'IdentityCredentialError'
+        );
       }
 
       const iconUrl = browser.runtime.getURL('/icons/icon48.png');

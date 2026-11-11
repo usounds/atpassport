@@ -8,14 +8,17 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  if (!isFedCmRequest(request)) {
+  const isExtension = request.headers.get("x-atpassport-client") === "extension";
+  if (!isFedCmRequest(request) && !isExtension) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 
   const url = new URL(request.url);
+  const clientId = url.searchParams.get("client_id");
+  const originHeader = request.headers.get("origin") || (isExtension ? clientId : null);
   const client = await validateFedCmClient(
-    request.headers.get("origin"),
-    url.searchParams.get("client_id"),
+    originHeader,
+    clientId,
   );
   if (!client) {
     return NextResponse.json({ error: "invalid_client" }, { status: 403 });

@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { AuthAccountList } from '@/components/AuthAccountList';
 import { getAssociations, type AssociationWithProfile } from '@/lib/models';
 import { getSessionUuid } from '@/lib/session';
-import { verifyDomain, getVerifiedDomainFromDb, verifyDomainInDb } from '@/lib/security';
+import { verifyDomain, getVerifiedDomainFromDb } from '@/lib/security';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { getCallbackUrlError } from '@/lib/callback-url';
 import { noIndexMetadata } from '@/lib/seo';
@@ -94,21 +94,6 @@ export default async function AuthPage({
     const result = verifyDomain(domain, handles);
     verified = result.verified;
     reason = result.reason;
-
-    // 3. If verified by handle, save to DB for future use (default to public)
-    if (verified && reason === 'match') {
-      // Find which handle matched (exact or parent)
-      const matchingHandle = handles.find(h => {
-        const lh = h.toLowerCase();
-        return lowerDomain === lh || lowerDomain.endsWith('.' + lh);
-      });
-      if (matchingHandle) {
-        const matchingItem = items.find(i => i.handle === matchingHandle);
-        if (matchingItem) {
-          await verifyDomainInDb(matchingHandle, matchingItem.did, false);
-        }
-      }
-    }
   }
 
   // If banned, block immediately
